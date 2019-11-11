@@ -85,27 +85,72 @@ classdef mi_ksg_sims < handle
                 sim_set = cat(1, sim_set, tmp_set); % add data/param set with identifiers to sim set
             end
             
-            % run MI calculations
-            if obj.verbose > 1; disp('>> Running simulations...'); end
-            sim_data = cell(size(sim_set,1),4); % pre-allocate memory
-            if obj.par_mode > 0
-                parfor i=1:size(sim_set,1) % run simulations in parallel
-                    tmp_sim_set = sim_set(i,:); % needed for parfor
-                    MI = MIxnyn(tmp_sim_set{1}, tmp_sim_set{2}, tmp_sim_set{3}); % run MI calculation
-                    sim_data(i,:) = {MI/log(2) tmp_sim_set{3} tmp_sim_set{4} tmp_sim_set{5}}; % add results with params/index to data set
-                end
-            else
-                for i=1:size(sim_set,1)
-                    if obj.verbose > 2; disp(['  > Sim ' num2str(i)]); end
-                    tmp_sim_set = sim_set(i,:); % for convenience
-                    if (max(size(tmp_sim_set{1})) > tmp_sim_set{3}+1) | (max(size(tmp_sim_set{2})) > tmp_sim_set{3}+1)
-                        MI = MIxnyn(tmp_sim_set{1}, tmp_sim_set{2}, tmp_sim_set{3}); % run MI calculation
-                        sim_data(i,:) = {MI/log(2) tmp_sim_set{3} tmp_sim_set{4} tmp_sim_set{5}}; % add results with params/index to data set
-                    else
-                        sim_data(i,:) = {nan tmp_sim_set{3} tmp_sim_set{4} tmp_sim_set{5}};
-                    end
-                end
-            end
+%             % run MI calculations
+%             if obj.verbose > 1; disp('>> Running simulations...'); end
+%             sim_data = cell(size(sim_set,1),4); % pre-allocate memory
+%             if obj.par_mode > 0
+%                 parfor i=1:size(sim_set,1) % run simulations in parallel
+%                     tmp_sim_set = sim_set(i,:); % needed for parfor
+%                     MI = MIxnyn(tmp_sim_set{1}, tmp_sim_set{2}, tmp_sim_set{3}); % run MI calculation
+%                     sim_data(i,:) = {MI/log(2) tmp_sim_set{3} tmp_sim_set{4} tmp_sim_set{5}}; % add results with params/index to data set
+%                 end
+%             else
+%                 for i=1:size(sim_set,1)
+%                     if obj.verbose > 2; disp(['  > Sim ' num2str(i)]); end
+%                     tmp_sim_set = sim_set(i,:); % for convenience
+%                     if (max(size(tmp_sim_set{1})) > tmp_sim_set{3}+1) | (max(size(tmp_sim_set{2})) > tmp_sim_set{3}+1)
+%                         MI = MIxnyn(tmp_sim_set{1}, tmp_sim_set{2}, tmp_sim_set{3}); % run MI calculation
+%                         sim_data(i,:) = {MI/log(2) tmp_sim_set{3} tmp_sim_set{4} tmp_sim_set{5}}; % add results with params/index to data set
+%                     else
+%                         sim_data(i,:) = {nan tmp_sim_set{3} tmp_sim_set{4} tmp_sim_set{5}};
+%                     end
+%                 end
+%             end
+            
+           % run MI calculations
+           if obj.verbose > 1; disp('>> Running simulations...'); end
+           sim_data = cell(size(sim_set,1),4); % pre-allocate memory
+           if obj.par_mode > 0
+               parfor i=1:size(sim_set,1) % run simulations in parallel
+               % for i = 1:10
+                   tmp_sim_set = sim_set(i,:); % needed for parfor
+                   if length(tmp_sim_set{1}) < 5
+                       MI = NaN;
+%                        disp('MI = NaN');
+                   elseif length(tmp_sim_set{1}) < tmp_sim_set{3}
+                       MI = NaN;
+%                        disp('MI = NaN');
+                   else
+%                        disp('MI = non-zero');
+                       MI = MIxnyn(tmp_sim_set{1}, tmp_sim_set{2}, tmp_sim_set{3}); % run MI calculation
+                   end
+                   sim_data(i,:) = {MI/log(2) tmp_sim_set{3} tmp_sim_set{4} tmp_sim_set{5}}; % add results with params/index to data set
+               end
+           else
+               for i=1:size(sim_set,1)
+                   if obj.verbose > 2; disp(['  > Sim ' num2str(i)]); end
+                   tmp_sim_set = sim_set(i,:); % for convenience
+                   if length(tmp_sim_set{1}) < 5
+                       MI = NaN;
+%                        disp('MI = NaN');
+                   elseif length(tmp_sim_set{1}) < tmp_sim_set{3}
+                       MI = NaN;
+%                        disp('MI = NaN');
+                   else
+%                        disp('MI = non-zero');
+                       MI = MIxnyn(tmp_sim_set{1}, tmp_sim_set{2}, tmp_sim_set{3}); % run MI calculation
+                   end
+                   sim_data(i,:) = {MI/log(2) tmp_sim_set{3} tmp_sim_set{4} tmp_sim_set{5}}; % add results with params/index to data set
+%                    if (max(size(tmp_sim_set{1})) > tmp_sim_set{3}+1) | (max(size(tmp_sim_set{2})) > tmp_sim_set{3}+1)
+%                        MI = MIxnyn(tmp_sim_set{1}, tmp_sim_set{2}, tmp_sim_set{3}); % run MI calculation
+%                        sim_data(i,:) = {MI/log(2) tmp_sim_set{3} tmp_sim_set{4} tmp_sim_set{5}}; % add results with params/index to data set
+%                    elseif max(size(tmp_sim_set{1})) < 5
+%                        sim_data(i,:) = {nan tmp_sim_set{3} tmp_sim_set{4} tmp_sim_set{5}};
+%                    else
+%                        sim_data(i,:) = {nan tmp_sim_set{3} tmp_sim_set{4} tmp_sim_set{5}};
+%                    end
+               end
+           end
             
             % return MI calculations to respective mi_core objects
             if obj.verbose > 1; disp('>> Returning data to MI cores...'); end

@@ -93,7 +93,7 @@ classdef mi_ksg_core < handle
             obj.mi_data = sortrows(tmp_mi_data,[4,3]);
         end
         
-        function r = get_mi(obj, k)
+        function r = get_mi(obj, k, errThreshold)
             % get mutual information and error estimates
             data_ixs = cell2mat(obj.mi_data(:,4)) == k; % find MI calcs with k-value
             
@@ -111,9 +111,21 @@ classdef mi_ksg_core < handle
             varS = 2*Sml^2/sum((k-1)); %Estimated variance of the variance of the estimate of the mutual information at full N
             stdvar = sqrt(varS/N^2); %the error bars on our estimate of the variance
 
-            % return MI value and error estimation
-            r.mi = MIs(1);
-            r.err = stdvar^0.5;
+            % 2019107 BC
+            % Adding hack to filter mutual information results that are
+            % within three S.D. from 0
+            if ((MIs(1) - errThreshold*(stdvar^0.5)) > 0 || errThreshold == 0) && (MIs(1) > 0)
+                r.mi = MIs(1);
+                r.err = stdvar^0.5;
+            else
+                r.mi = 0;
+                r.err = 0;
+            end
+            
+            
+%             % return MI value and error estimation
+%             r.mi = MIs(1);
+%             r.err = stdvar^0.5;
         end
         
         function r = find_k_value(obj)

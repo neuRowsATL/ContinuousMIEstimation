@@ -24,13 +24,15 @@ neural_data.add_spikes(unit3_ts, 'n_timebase', 'time');
 %% Load pressure data
 
 % remember current directory and navigate to folder with data files
-dat_pressure = mi_data_pressure('verbose', verbose);
+dat_pressure2 = mi_data_pressure('verbose', 3);
 
 old_dir = cd('D:/EMG_Data/chung/for_analysis/bl21lb21_20171218/bl21lb21_trial1_ch1_ch16/');
 addpath(old_dir);
 
-set_source(dat_pressure, dir('*.rhd')); % use all data RHD data files
-calc_cycles(dat_pressure, 'threshold');
+files = dir('*.rhd');
+set_source(dat_pressure2, files(15));
+% set_source(dat_pressure2, dir('*.rhd')); % use all data RHD data files
+calc_cycles(dat_pressure2, 'threshold');
 
 cd(old_dir); % return working directory to original location
 
@@ -49,7 +51,7 @@ neural_data.set_behavior('timebase', 'time', ...
 
 
 %% Calculate mutual information between neural units
-MI_cc = calc_count_count(neural_data, {1; 2});
+MI_cc = calc_count_count(neural_data, {2; 2});
 MI_cc.buildMIs();
 calcMIs(MI_cc);
 
@@ -59,9 +61,9 @@ MI_t1c2.buildMIs();
 calcMIs(MI_t1c2);
 
 %%
-MI_t2c1 = calc_timing_count(neural_data, {2; 1});
-MI_t2c1.buildMIs();
-calcMIs(MI_t2c1);
+MI_t2c3 = calc_timing_count(neural_data, {2; 3});
+MI_t2c3.buildMIs();
+calcMIs(MI_t2c3);
 
 %%
 MI_tt = calc_timing_timing(neural_data, {1; 2});

@@ -395,7 +395,9 @@ classdef mi_data < handle
                cycle_spikes_ix = find((spike_ts > cycle_ts(cycle_ix)) & (spike_ts < cycle_ts(cycle_ix+1)));
                if ~isempty(cycle_spikes_ix)
                    cycle_spike_ts(cycle_ix,1:length(cycle_spikes_ix)) = spike_ts(cycle_spikes_ix)-cycle_ts(cycle_ix);
+                   disp('goodbye');
                end
+               disp('goodbye2');
            end
            switch(obj.n_timebase)
                case('phase')
@@ -416,6 +418,8 @@ classdef mi_data < handle
                case('time')
                    r = cycle_spike_ts;
            end
+           
+           disp('hello');
        
        end
        

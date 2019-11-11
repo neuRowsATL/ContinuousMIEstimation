@@ -84,7 +84,7 @@ testObj.add_behavior(pressure);
 
 
 
-% Instantiate analysis object(s)
+%% Instantiate analysis object(s)
 MI_isi = calc_isi_isi(neural_data, [1], 1, 200);
 
 buildMIs(MI_isi);
