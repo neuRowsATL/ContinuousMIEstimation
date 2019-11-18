@@ -3,10 +3,8 @@ classdef mi_analysis < handle
     % 
     properties
         
-        vars % 2 x Nvariables list integer {(-1 OR 1-Nneurons), 'phase' or 'time';...}
-             % which indicates whether to take in the pressure or which neuron
+        vars % indicates which neuron(s)
         
-        % BC: This should only ever reference ONE objData
         objData % Reference to which data object to pull from
         
         % BC: This will be a list/cell array of objMIcore instances (may need to index)
@@ -33,9 +31,7 @@ classdef mi_analysis < handle
             end	   
 	   
             obj.arrMIcore = {};
-            % FOR RC 20190129:
-            obj.sim_manager = mi_ksg_sims(0,3);
-            %obj.sim_manager = mi_ksg_sims();
+            obj.sim_manager = mi_ksg_sims(1,3);
         end
 
         function buildMIs(obj, mi_data)
@@ -50,7 +46,7 @@ classdef mi_analysis < handle
             for iGroup = 1:size(xGroups,1)
                 x = xGroups{iGroup,1};
                 y = yGroups{iGroup,1};
-	          
+		  
                 % BC: Need to append new mi_core instance to the arrMICore object with associated information- DONE
                 % RC-  Is it a problem that we name the core object the same thing each iteration? 
               
