@@ -623,7 +623,9 @@ classdef mi_data < handle
 
         end
 
-           
+        function r = reparameterizeData(obj,data)
+            r = reparameterize_data(data);
+        end
    
     end
 end
