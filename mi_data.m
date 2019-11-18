@@ -40,22 +40,65 @@ classdef mi_data < handle
        function obj = mi_data(nFs,pFs)
            % This function documents the sample frequencies
            % Note that I need to add the proper functions once Bryce sends me his code  
-           if nargin > 0
-               obj.bFs = pFs;
-               obj.nFs = nFs;
-           end
-           % Set properties to empty arrays temporarily 
+          
+           % Initiate input parser
+           p = inputParser;
+           
+           % Set up required inputs
+           p.addRequired('nFs');
+           p.addRequired('bFs');
+           p.addRequired('data_ref');
+           
+           % Set up defaults and optional input for obj.n_timebase
+           default_n_timebase = 'time_ms';
+           validate_n_timebase = @(x) assert(ismember(x,{'time_s','time_ms','phase'}),'n_timebase must be either phase, time_s, or time_ms');
+           
+           % Default and optional input for obj.reparamData
+           default_reparamData = false;
+           validate_reparamData = @(x) isboolean(x);
+           
+           % Default and optional input for obj.b_timebase
+           default_b_timebase = 'phase';
+           validate_b_timebase = @(x) assert(ismember(x,{'phase','time'}), 'timebase must be either phase or time');
+           
+           % Default and optional input for obj.b_Length
+           default_b_Length = 11;
+           validate_b_Length = @(x) assert(isinteger(x),'length must be an integer value');
+            
+           % Default and optional input for obj.b_dataTransform
+           default_b_dataTransform = 'residual'; 
+           validate_b_dataTransform = @(x) assert(ismember(x,{'none','residual','pca'}), 'dataTransform must be none, residual, or pca');
+
+            
+           % Set up the optional input: timebase
+           p.addParameter('n_timebase',default_n_timebase,validate_n_timebase);
+           % Set up optional input: reparamData
+           p.addParameter('reparamData', default_reparamData, validate_reparamData);
+           % Set up optional input: b_timebase
+           p.addParameter('b_timebase',default_b_timebase,validate_b_timebase);
+           % Set up optional input: b_Length
+           p.addParameter('b_Length',default_b_Length, validate_b_Length);
+           % Set up optional input: b_dataTransform
+           p.addParameter('b_dataTransform',default_b_dataTransform, validate_b_dataTransform);
+           
+           % Parse the inputs
+           p.parse(nFs, bFs, data_ref, varargin{:});
+           
+           obj.bFs = p.Results.bFs;
+           obj.nFs = p.Results.nFs;
+           obj.data_ref = p.Results.data_ref;
+           obj.n_timebase = p.Results.n_timebase;
+           obj.reparamData = p.Results.reparamData;
+           obj.b_timebase = p.Results.b_timebase;
+           obj.b_Length = p.Results.b_Length;
+           obj.b_dataTransform = p.Results.b_dataTransform;
+           
+           % Set other properties to empty arrays temporarily 
            obj.neurons = {};
-           obj.n_timebase = {};
-%            obj.behavior = {};
-%            obj.cycleTimes = {};
-           obj.b_timebase = {};
-           obj.b_length = {};
+           obj.behavior = {};
+           obj.cycleTimes = {};
            obj.b_windowOfInterest = {};
            obj.b_startPhase = {};
-           obj.b_dataTransform = {};
-           obj.verbose = 1;
-           obj.reparamData = 0;
        end
        
        function add_spikes(obj, spike_times, varargin)                 
