@@ -50,8 +50,8 @@ classdef mi_data < handle
            p.addRequired('data_ref');
            
            % Set up defaults and optional input for obj.n_timebase
-           default_n_timebase = 'time_ms';
-           validate_n_timebase = @(x) assert(ismember(x,{'time_s','time_ms','phase'}),'n_timebase must be either phase, time_s, or time_ms');
+           default_n_timebase = 'time';
+           validate_n_timebase = @(x) assert(ismember(x,{'time','phase'}),'n_timebase must be either phase, time');
            
            % Default and optional input for obj.reparamData
            default_reparamData = false;
@@ -101,47 +101,16 @@ classdef mi_data < handle
            obj.b_startPhase = {};
        end
        
-       function add_spikes(obj, spike_times, varargin)                 
+       function add_spikes(obj, spike_times, varargin)     
+           % Take in spike times as a vector, and add that vector to the
+           % cell array of spike times vectors. 
            % BC-20190123: Can add an index to neurons for explicit tracking
            % across classes?
-           % RC: 20190517: Not sure what this would look like...
-
-           % Set default optional parameter value
-           default_n_timebase = 'time';
-           validate_n_timebase = @(x) assert(ismember(x,{'time','phase'}),'timebase must be either phase or time');
            
-           % Set up inputParser
-           p = inputParser;
-           % SpikeTimes are required if they haven't been specified
-           if isempty(obj.neurons)
-               p.addRequired('spike_times');
-               p.parse(spike_times);
-               
-           elseif ~isempty(obj.neurons)
-               p.addOptional('spike_times',[]);
-               p.parse(spike_times);
-           end
-
-           % Add a set of spike times to object unless the spikes weren't
-           % specified
-           if ~isempty(spike_times)
+           % Add a set of spike times to object
+           if ~isempty(spike_times)               
                obj.neurons{end+1} = spike_times;
            end
-           
-           % Determine n_timebase has been set
-           if isempty(obj.n_timebase)
-               % If n_timebase has not been defined yet, set it to the
-               % default or specified value
-               p.addParameter('timebase',default_n_timebase,validate_n_timebase)
-           elseif ~isempty(obj.n_timebase)
-               % If n_timebase has been defined, the default is the
-               % pre-assigned value, and it should only change if timebase
-               % is an input. 
-               p.addParameter('timebase',obj.n_timebase,validate_n_timebase);
-           end
-           p.parse(spike_times);
-           obj.n_timebase = p.Results.timebase;
-
        end
        
        function add_behavior(obj, behavior)
