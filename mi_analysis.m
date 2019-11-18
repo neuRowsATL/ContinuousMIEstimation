@@ -46,7 +46,16 @@ classdef mi_analysis < handle
             for iGroup = 1:size(xGroups,1)
                 x = xGroups{iGroup,1};
                 y = yGroups{iGroup,1};
-		  
+		
+		if obj.objData.reparamData == 1
+                    for iDimension = 1:size(x,1)
+                        x(iDimension,:) = obj.objData.reparameterizeData(x(iDimension,:));
+                    end
+                    for iDimension = 1:size(y,1)
+                        y(iDimension,:) = obj.objData.reparameterizeData(y(iDimension,:));
+                    end
+                end
+		
                 % BC: Need to append new mi_core instance to the arrMICore object with associated information- DONE
                 % RC-  Is it a problem that we name the core object the same thing each iteration? 
               
