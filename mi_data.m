@@ -29,6 +29,8 @@ classdef mi_data < handle
         bFs % sample frequency of pressure wave
         nFs % sample frequency of neural data 
         
+        reparamData % 0 if we don't want to reparameterize our data to have a Gaussian distribution and 1 if we do.
+        
         verbose % level of output for progress and troubleshooting/debugging
     end
 
@@ -51,6 +53,7 @@ classdef mi_data < handle
            obj.b_startPhase = {};
            obj.b_dataTransform = {};
            obj.verbose = 1;
+           obj.reparamData = 0;
        end
        
        function add_spikes(obj, spike_times, varargin)                 
