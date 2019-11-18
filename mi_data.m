@@ -31,6 +31,8 @@ classdef mi_data < handle
         
         reparamData % 0 if we don't want to reparameterize our data to have a Gaussian distribution and 1 if we do.
         
+        dataInfo % either a reference to the generator object or to a data file/name
+        
         verbose % level of output for progress and troubleshooting/debugging
     end
 
