@@ -9,7 +9,7 @@ classdef mi_ksg_core < handle
         x % matrix of x data
         y % matrix of y data
         k_values % array of k-values
-        mi_data % MI value, error estimate, data fraction
+        mi_data % MI value, error estimate, data fraction, k-value
         opt_k % optimized k value; if -1, only runs MI calculation without any error estimate
         data_fracs = 10 % number of data fractions
         
