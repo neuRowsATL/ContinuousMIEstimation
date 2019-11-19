@@ -119,9 +119,18 @@ classdef mi_data < handle
             end
         end
         
-        function r = get_data(obj, name)
+        function r = get_data(obj, varargin)
             % Returns data in raw or processed form for analysis
-            r = obj.data.(name).data;
+            p = inputParser;
+            
+            % Optional name argument
+            default_name = 'noname';
+            validate_name = @(x) assert(ischar(x), 'Name must be a string/char');
+            p.addOptional('name', default_name, validate_name);
+            
+            p.parse(name, varargin{:});
+            
+            r = obj.data.(name).data; % if no name was specified when adding data, "noname" is default field
         end
     end
 end  
