@@ -6,7 +6,6 @@ classdef mi_data < handle
         ID % unique identifier for data object
         
         data % array of data
-        dataInfo % either a reference to the generator object or to a data file/name
         
         Fs % sampling rate in Hz
         
@@ -37,7 +36,6 @@ classdef mi_data < handle
             obj.verbose = p.Results.verbose;
 
             obj.data = struct(); % struct of data
-            obj.dataInfo = struct(); % cell array of filename/generators
             obj.Fs = -1; % initially set to invalid value            
             
             if obj.verbose > 0; disp(['mi_data instantiated: ', obj.ID]); end
@@ -81,17 +79,15 @@ classdef mi_data < handle
             if isempty(name) % check to see if name is specified
                 if v>3; disp('--> --> name is empty'); end
                 if isempty(fields(obj.data)) % if mi_data has no data specified...
-                    if v>3; disp('--> --> obj.data has no fields');
-                    if ~isempty(fields(obj.dataInfo)) % if obj.dataInfo is already specified (and obj.data is empty), warn user that we're overwriting obj.dataInfo
-                        warning('obj.data is empty; overwriting obj.dataInfo');
-                        obj.dataInfo = struct(); % erasing existing obj.dataInfo because it does not correspond to anything meaningful
-                    end
+                    if v>3; disp('--> --> obj.data is empty');
                     
-                    % Set obj.data and obj.dataInfo with default field                    
-                    obj.data.noname = p.Results.data;
-                    obj.dataInfo.noname = p.Results.dataInfo;
+                    % Set obj.data and obj.dataInfo with default field  
+                    obj.data.noname = struct();
+                    obj.data.noname.data = p.Results.data;
+                    obj.data.noname.info = p.Results.dataInfo;
+                    
                     warning('No name specified, default field implemented.');
-                    if v>2; disp([newline 'data: ' strrep(num2str(size(obj.data.noname)), '  ', ' x ') newline 'dataInfo: ' obj.dataInfo.noname]); end
+                    if v>2; disp([newline 'data: ' strrep(num2str(size(obj.data.noname.data)), '  ', ' x ') newline 'info: ' obj.dataInfo.noname.info]); end
                 else
                     error('Name argument required if using multiple data matrices');
                 end
@@ -104,15 +100,22 @@ classdef mi_data < handle
                     end
                     
                     % assign data and dataInfo
-                    obj.data.(name) = p.Results.data;
-                    obj.dataInfo.(name) = p.Results.dataInfo;
-                    if v>2; disp([newline 'data: ' strrep(num2str(size(obj.data.noname)), '  ', ' x ') newline 'dataInfo: ' obj.dataInfo.noname]); end
+                    obj.data.(name) = struct();
+                    obj.data.(name).data = p.Results.data;
+                    obj.dataInfo.(name).info = p.Results.dataInfo;
+                    if v>2; disp([newline 'data: ' strrep(num2str(size(obj.data.noname.data)), '  ', ' x ') newline 'dataInfo: ' obj.dataInfo.noname.info]); end
                 end
                 end
             if v>0; disp(['Added data to mi_data: ' obj.ID]); end
             if v>1
-                disp(['mi_data(' obj.ID ') has fields:']);
-                obj.data
+                disp(['mi_data(' obj.ID ') with fields:']);
+                fields(obj.data)
+            end
+            if v>2
+                fs = fields(obj.data);
+                for i=1:length(fs)
+                    obj.data.(fs(i))
+                end
             end
         end
         
