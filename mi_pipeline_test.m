@@ -16,11 +16,20 @@ global_errs = {};
 
 %% RUN MI_DATA
 load('TestData/20191018_bl21lb21_171218_spikes.mat');
+unit1 = unit1*1000.;
+unit2 = unit2*1000.;
+unit3 = unit3*1000.;
 
 str_unit1 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit1';
 str_unit2 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit2';
 str_unit3 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit3';
 
+load('TestData/20191018_bl21lb21_171218_cycles.mat');
+cycle_times = [cycle_times(1:end-1)' cycle_times(2:end)'];
+
+str_cycles = 'TestData/20191018_bl21lb21_171218_cycles.mat';
+
+%%
 try
     disp([newline newline]);
     clear d;
@@ -125,6 +134,23 @@ catch
     error('FATAL ERROR: Unable to construct mi_data objects');
 end
 
+
+%%
+clear d
+
+d = mi_data_neural('test');
+
+add_spikes(d, unit1, str_unit1, 30000);
+
+get_spikes(d, 'format', 'raw');
+
+get_count(d, cycle_times);
+get_spikes(d, 'format', 'count', 'cycleTimes', cycle_times);
+
+get_timing(d, cycle_times, 'timeBase', 'time');
+get_spikes(d, 'format', 'timing', 'cycleTimes', cycle_times, 'timeBase', 'time');
+
+
 %%
 
 try
@@ -197,10 +223,9 @@ catch
     end
     disp(['----- ----- ----- ----- -----' newline]);
     
-    error('FATAL ERROR: Unable to construct mi_data objects');
+    error('FATAL ERROR: Unable to construct mi_data_behavior objects');
 end
 
 
-
-
+%%
 diary off
