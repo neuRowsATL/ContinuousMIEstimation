@@ -21,6 +21,7 @@ classdef mi_data < handle
             p = inputParser;
 
             % Set up required inputs
+            validate_ID = @(x) assert(ischar(x), 'ID must be a string/char');
             p.addRequired('ID');
 
             % Default and optional input for obj.b_Length
@@ -128,8 +129,9 @@ classdef mi_data < handle
             validate_name = @(x) assert(ischar(x), 'Name must be a string/char');
             p.addOptional('name', default_name, validate_name);
             
-            p.parse(name, varargin{:});
+            p.parse(varargin{:});
             
+            name = p.Results.name;
             r = obj.data.(name).data; % if no name was specified when adding data, "noname" is default field
         end
     end
