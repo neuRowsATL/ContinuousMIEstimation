@@ -34,15 +34,20 @@ classdef mi_data < handle
             p.parse(ID, varargin{:});
 
             obj.ID = p.Results.ID;
+            obj.verbose = p.Results.verbose;
 
             obj.data = struct(); % struct of data
             obj.dataInfo = struct(); % cell array of filename/generators
-            obj.Fs = -1; % initially set to invalid value
+            obj.Fs = -1; % initially set to invalid value            
+            
+            if obj.verbose > 0; disp(['mi_data instantiated: ', obj.ID]); end
         end
         
         function add_data(obj, data, dataInfo, Fs, name)
             % Add data from file
 
+            v = obj.verbose;
+            
             % Initiate input parser
             p = inputParser;
             
@@ -61,15 +66,22 @@ classdef mi_data < handle
             % Optional data name
             default_name = '';
             validate_name = @(x) assert(isstring(x) && isempty(str2num(x(1))), 'Name must be a string that does not start with a number');
+            p.addOptional('name', default_name, validate_name);
             
             % Parse the inputs
-            p.parse(data, dataInfo, Fs);
+            p.parse(data, dataInfo, Fs, name);
+            
+            if v>1; disp('--> Adding data...'); end
             
             obj.Fs = p.Results.Fs;
             name = p.Results.name;
             
+            if v>2; disp([newline 'Fs: ' num2str(obj.Fs) newline 'name: ' name]); end
+            
             if isempty(name) % check to see if name is specified
+                if v>3; disp('--> --> name is empty'); end
                 if isempty(fields(obj.data)) % if mi_data has no data specified...
+                    if v>3; disp('--> --> obj.data has no fields');
                     if ~isempty(fields(obj.dataInfo)) % if obj.dataInfo is already specified (and obj.data is empty), warn user that we're overwriting obj.dataInfo
                         warning('obj.data is empty; overwriting obj.dataInfo');
                         obj.dataInfo = struct(); % erasing existing obj.dataInfo because it does not correspond to anything meaningful
@@ -78,6 +90,8 @@ classdef mi_data < handle
                     % Set obj.data and obj.dataInfo with default field                    
                     obj.data.noname = p.Results.data;
                     obj.dataInfo.noname = p.Results.dataInfo;
+                    warning('No name specified, default field implemented.');
+                    if v>2; disp([newline 'data: ' strrep(num2str(size(obj.data.noname)), '  ', ' x ') newline 'dataInfo: ' obj.dataInfo.noname]); end
                 else
                     error('Name argument required if using multiple data matrices');
                 end
@@ -92,7 +106,13 @@ classdef mi_data < handle
                     % assign data and dataInfo
                     obj.data.(name) = p.Results.data;
                     obj.dataInfo.(name) = p.Results.dataInfo;
+                    if v>2; disp([newline 'data: ' strrep(num2str(size(obj.data.noname)), '  ', ' x ') newline 'dataInfo: ' obj.dataInfo.noname]); end
                 end
+                end
+            if v>0; disp(['Added data to mi_data: ' obj.ID]); end
+            if v>1
+                disp(['mi_data(' obj.ID ') has fields:']);
+                obj.data
             end
         end
         
