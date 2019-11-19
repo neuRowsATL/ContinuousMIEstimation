@@ -119,9 +119,9 @@ classdef mi_data < handle
             end
         end
         
-        function r = get_data(obj)
+        function r = get_data(obj, name)
             % Returns data in raw or processed form for analysis
-            warning('NOT IMPLEMENTED: Define in subclasses');
+            r = obj.data.(name).data;
         end
     end
 end  
