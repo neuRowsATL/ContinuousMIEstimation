@@ -13,7 +13,7 @@ classdef mi_data < handle
     end
 
     methods
-        function obj = mi_data(ID)
+        function obj = mi_data(ID, varargin)
             % This function documents the sample frequencies
             % Note that I need to add the proper functions once Bryce sends me his code  
 
@@ -25,7 +25,7 @@ classdef mi_data < handle
 
             % Default and optional input for obj.b_Length
             default_verbose = 1;
-            validate_verbose = @(x) assert(isinteger(x),'verbose must be an integer');
+            validate_verbose = @(x) assert(isnumeric(x) && rem(x,1) == 0,'verbose must be an integer');
             % Set up optional input: verbose
             p.addParameter('verbose',default_verbose, validate_verbose);
 
@@ -41,7 +41,7 @@ classdef mi_data < handle
             if obj.verbose > 0; disp(['mi_data instantiated: ', obj.ID]); end
         end
         
-        function add_data(obj, data, dataInfo, Fs, name)
+        function add_data(obj, data, dataInfo, Fs, varargin)
             % Add data from file
 
             v = obj.verbose;
@@ -54,20 +54,20 @@ classdef mi_data < handle
             p.addRequired('data',validate_data);
 
             % Required data file name
-            validate_dataInfo = @(x) assert(isstring(x),'dataInfo must be a string file name');
+            validate_dataInfo = @(x) assert(ischar(x),'dataInfo must be a string file name');
             p.addRequired('dataInfo',validate_dataInfo);
 
             % Required sampling frequency
-            validate_Fs = @(x) assert(isinteger(x) && x > 0,'Fs must be specified as sampling rate in Hz > 0');
+            validate_Fs = @(x) assert(isnumeric(x) && rem(x,1) == 0 && x > 0,'Fs must be specified as sampling rate in Hz > 0');
             p.addRequired('Fs', validate_Fs);
 
             % Optional data name
             default_name = '';
-            validate_name = @(x) assert(isstring(x) && isempty(str2num(x(1))), 'Name must be a string that does not start with a number');
+            validate_name = @(x) assert(ischar(x) && isempty(str2num(x(1))), 'Name must be a string that does not start with a number');
             p.addOptional('name', default_name, validate_name);
             
             % Parse the inputs
-            p.parse(data, dataInfo, Fs, name);
+            p.parse(data, dataInfo, Fs, varargin{:});
             
             if v>1; disp('--> Adding data...'); end
             
@@ -79,7 +79,7 @@ classdef mi_data < handle
             if isempty(name) % check to see if name is specified
                 if v>3; disp('--> --> name is empty'); end
                 if isempty(fields(obj.data)) % if mi_data has no data specified...
-                    if v>3; disp('--> --> obj.data is empty');
+                    if v>3; disp('--> --> obj.data is empty'); end
                     
                     % Set obj.data and obj.dataInfo with default field  
                     obj.data.noname = struct();
@@ -87,7 +87,7 @@ classdef mi_data < handle
                     obj.data.noname.info = p.Results.dataInfo;
                     
                     warning('No name specified, default field implemented.');
-                    if v>2; disp([newline 'data: ' strrep(num2str(size(obj.data.noname.data)), '  ', ' x ') newline 'info: ' obj.dataInfo.noname.info]); end
+                    if v>2; disp([newline 'data: ' strrep(num2str(size(obj.data.noname.data)), '  ', ' x ') newline 'info: ' obj.data.noname.info]); end
                 else
                     error('Name argument required if using multiple data matrices');
                 end
@@ -102,10 +102,10 @@ classdef mi_data < handle
                     % assign data and dataInfo
                     obj.data.(name) = struct();
                     obj.data.(name).data = p.Results.data;
-                    obj.dataInfo.(name).info = p.Results.dataInfo;
-                    if v>2; disp([newline 'data: ' strrep(num2str(size(obj.data.noname.data)), '  ', ' x ') newline 'dataInfo: ' obj.dataInfo.noname.info]); end
+                    obj.data.(name).info = p.Results.dataInfo;
+                    if v>2; disp([newline 'data: ' strrep(num2str(size(obj.data.(name).data)), '  ', ' x ') newline 'dataInfo: ' obj.data.(name).info]); end
                 end
-                end
+            end
             if v>0; disp(['Added data to mi_data: ' obj.ID]); end
             if v>1
                 disp(['mi_data(' obj.ID ') with fields:']);
@@ -114,7 +114,7 @@ classdef mi_data < handle
             if v>2
                 fs = fields(obj.data);
                 for i=1:length(fs)
-                    obj.data.(fs(i))
+                    disp(obj.data.(fs{i}))
                 end
             end
         end
