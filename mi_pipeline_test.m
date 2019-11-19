@@ -17,12 +17,38 @@ global_errs = {};
 %% RUN MI_DATA
 load('TestData/20191018_bl21lb21_171218_spikes.mat');
 
+str_unit1 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit1';
+str_unit2 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit2';
+str_unit3 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit3';
+
 try
     disp([newline newline]);
     clear d;
     d = mi_data('test');
+    
+    
+    % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
+    errs = ['----- ----- ----- ----- -----' newline 'ERRORS:' newline];
+    disp([newline newline '===== ===== ===== ===== ===== ' newline 'SUCCESSFUL:' newline]);
+    
+    add_data(d, unit1, str_unit1, 30000);
+    
+    if all(size(d.data.noname.data) == size(unit1))
+        disp('Imported: data');
+    else
+        errs = [errs newline 'Importing: data dims do not match for single dataset'];
+    end
+    
+    if all(size(get_data(d)) == size(unit1))
+        disp('Pulled: data');
+    else
+        errs = [errs newline 'Pulling: get_data() dims do not match for single dataset'];
+    end
+    
+    disp(errs);
     clear d;
-catch
+catch e
+    e
     global_errs{end+1} = {'Intantiating mi_data with ID only'};
     disp([newline 'ERROR: Unable to instantiate mi_data with ID only']);
 end
@@ -31,10 +57,6 @@ try
     disp([newline newline]);
     clear d;
     d = mi_data('test', 'verbose', 5);
-
-    str_unit1 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit1';
-    str_unit2 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit2';
-    str_unit3 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit3';
 
     add_data(d, unit1, str_unit1, 30000, 'unit1');
     add_data(d, unit2, str_unit2, 30000, 'unit2');
