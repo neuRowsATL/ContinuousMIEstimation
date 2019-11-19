@@ -15,42 +15,90 @@ classdef mi_data < handle
 
     methods
         function obj = mi_data(ID)
-           % This function documents the sample frequencies
-           % Note that I need to add the proper functions once Bryce sends me his code  
-          
-           % Initiate input parser
-           p = inputParser;
-           
-           % Set up required inputs
-           p.addRequired('ID');
-           
-           % Default and optional input for obj.b_Length
-           default_verbose = 1;
-           validate_verbose = @(x) assert(isinteger(x),'verbose must be an integer');
-           % Set up optional input: verbose
-           p.addParameter('verbose',default_verbose, validate_verbose);
+            % This function documents the sample frequencies
+            % Note that I need to add the proper functions once Bryce sends me his code  
 
-           % Parse the inputs
-           p.parse(ID, varargin{:});
+            % Initiate input parser
+            p = inputParser;
 
-           obj.data = []; % array of data
-           obj.dataInfo = {}; % cell array of filename/generators
-           obj.Fs = -1; % initially set to invalid value
+            % Set up required inputs
+            p.addRequired('ID');
+
+            % Default and optional input for obj.b_Length
+            default_verbose = 1;
+            validate_verbose = @(x) assert(isinteger(x),'verbose must be an integer');
+            % Set up optional input: verbose
+            p.addParameter('verbose',default_verbose, validate_verbose);
+
+            % Parse the inputs
+            p.parse(ID, varargin{:});
+
+            obj.ID = p.Results.ID;
+
+            obj.data = struct(); % struct of data
+            obj.dataInfo = struct(); % cell array of filename/generators
+            obj.Fs = -1; % initially set to invalid value
         end
         
-        function add_data()
+        function add_data(obj, data, dataInfo, Fs, name)
+            % Add data from file
+
+            % Initiate input parser
+            p = inputParser;
             
+            % Required data file name
+            validate_data = @(x) assert(ismatrix(x),'data must be a matrix');
+            p.addRequired('data',validate_data);
+
+            % Required data file name
+            validate_dataInfo = @(x) assert(isstring(x),'dataInfo must be a string file name');
+            p.addRequired('dataInfo',validate_dataInfo);
+
+            % Required sampling frequency
+            validate_Fs = @(x) assert(isinteger(x) && x > 0,'Fs must be specified as sampling rate in Hz > 0');
+            p.addRequired('Fs', validate_Fs);
+
+            % Optional data name
+            default_name = '';
+            validate_name = @(x) assert(isstring(x) && isempty(str2num(x(1))), 'Name must be a string that does not start with a number');
+            
+            % Parse the inputs
+            p.parse(data, dataInfo, Fs);
+            
+            obj.Fs = p.Results.Fs;
+            name = p.Results.name;
+            
+            if isempty(name) % check to see if name is specified
+                if isempty(fields(obj.data)) % if mi_data has no data specified...
+                    if ~isempty(fields(obj.dataInfo)) % if obj.dataInfo is already specified (and obj.data is empty), warn user that we're overwriting obj.dataInfo
+                        warning('obj.data is empty; overwriting obj.dataInfo');
+                        obj.dataInfo = struct(); % erasing existing obj.dataInfo because it does not correspond to anything meaningful
+                    end
+                    
+                    % Set obj.data and obj.dataInfo with default field                    
+                    obj.data.noname = p.Results.data;
+                    obj.dataInfo.noname = p.Results.dataInfo;
+                else
+                    error('Name argument required if using multiple data matrices');
+                end
+            else
+                if isfield(obj.data, 'noname') % check that the existing data has valid name
+                    error('Existing data was not assigned a name. Must specify name for multiple data matrices.');
+                else
+                    if isfield(obj.data, name) % check that the specified name is valid
+                        error('Name already exists in obj.data. Use a different name.');
+                    end
+                    
+                    % assign data and dataInfo
+                    obj.data.(name) = p.Results.data;
+                    obj.dataInfo.(name) = p.Results.dataInfo;
+                end
+            end
         end
         
-        function get_data()
-
+        function r = get_data(obj)
+            % Returns data in raw or processed form for analysis
+            warning('NOT IMPLEMENTED: Define in subclasses');
         end
-       
-        function r = reparam_data(obj,data)
-            r = reparameterize_data(data);
-        end
-   
     end
-end
-
-    
+end  
