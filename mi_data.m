@@ -39,7 +39,7 @@ classdef mi_data < handle
             obj.data = struct(); % struct of data
             obj.Fs = -1; % initially set to invalid value            
             
-            if obj.verbose > 0; disp(['mi_data instantiated: ', obj.ID]); end
+            if obj.verbose > 0; disp([newline 'mi_data instantiated: ', obj.ID]); end
         end
         
         function add_data(obj, data, dataInfo, Fs, varargin)
@@ -70,7 +70,7 @@ classdef mi_data < handle
             % Parse the inputs
             p.parse(data, dataInfo, Fs, varargin{:});
             
-            if v>1; disp('--> Adding data...'); end
+            if v>1; disp([newline '--> Adding data...']); end
             
             obj.Fs = p.Results.Fs;
             name = p.Results.name;
@@ -88,7 +88,7 @@ classdef mi_data < handle
                     obj.data.noname.info = p.Results.dataInfo;
                     
                     warning('No name specified, default field implemented.');
-                    if v>2; disp([newline 'data: ' strrep(num2str(size(obj.data.noname.data)), '  ', ' x ') newline 'info: ' obj.data.noname.info]); end
+                    if v>2; disp([newline 'data: ' regexprep(num2str(size(obj.data.noname.data)), '\s*', ' x ') newline 'info: ' obj.data.noname.info]); end
                 else
                     error('Name argument required if using multiple data matrices');
                 end
@@ -104,10 +104,10 @@ classdef mi_data < handle
                     obj.data.(name) = struct();
                     obj.data.(name).data = p.Results.data;
                     obj.data.(name).info = p.Results.dataInfo;
-                    if v>2; disp([newline 'data: ' strrep(num2str(size(obj.data.(name).data)), '  ', ' x ') newline 'dataInfo: ' obj.data.(name).info]); end
+                    if v>2; disp([newline 'data: ' regexprep(num2str(size(obj.data.(name).data)), '\s*', ' x ') newline 'dataInfo: ' obj.data.(name).info]); end
                 end
             end
-            if v>0; disp(['Added data to mi_data: ' obj.ID]); end
+            if v>0; disp(['COMPLETE: Added data to mi_data(' obj.ID ')']); end
             if v>1
                 disp(['mi_data(' obj.ID ') with fields:']);
                 fields(obj.data)
@@ -122,6 +122,8 @@ classdef mi_data < handle
         
         function r = get_data(obj, varargin)
             % Returns data in raw or processed form for analysis
+            v = obj.verbose; 
+            
             p = inputParser;
             
             % Optional name argument
@@ -133,6 +135,7 @@ classdef mi_data < handle
             
             name = p.Results.name;
             r = obj.data.(name).data; % if no name was specified when adding data, "noname" is default field
+            if v>0; disp(['COMPLETE: Data returned']); end
         end
     end
 end  

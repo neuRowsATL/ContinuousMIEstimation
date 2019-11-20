@@ -10,6 +10,7 @@ classdef mi_data_neural < mi_data
         end
         
         function r = get_spikes(obj, varargin)
+            v = obj.verbose;
             p = inputParser;
             
             % Parameter format
@@ -34,7 +35,6 @@ classdef mi_data_neural < mi_data
             validate_name = @(x) assert(ischar(x), 'name must be string/char');
             p.addParameter('name', default_name, validate_name);
             
-            
             p.parse(varargin{:});
             format = p.Results.format;
             cycleTimes = p.Results.cycleTimes;
@@ -42,13 +42,18 @@ classdef mi_data_neural < mi_data
             name = p.Results.name;
             
             
+            if v>1; disp([newline '--> Getting spike data...']); end
+            
             switch format
                 case 'raw'
+                    if v>1; disp('--> Raw data'); end
                     r = get_data(obj, name);
                 case 'count'
                     r = get_count(obj, cycleTimes, name);
+                    if v>1; disp('--> Spike count data'); end
                 case 'timing'
                     r = get_timing(obj, cycleTimes, 'timeBase', timeBase, 'name', name);
+                    if v>1; disp('--> Spike timing data'); end
             end
         end
         
@@ -66,30 +71,34 @@ classdef mi_data_neural < mi_data
             validate_name = @(x) assert(ischar(x), 'name must be string/char');
             p.addOptional('name', default_name, validate_name);
             
-            
             p.parse(cycleTimes, varargin{:});
-            cycleTs = p.Results.cycleTimes;
+            cycle_ts = p.Results.cycleTimes;
             name = p.Results.name;
 
-
             spike_ts = obj.data.(name).data;
-            cycle_ts = cycleTs;
 
-%             if v>1; disp('Calculating spike count...'); end
+            
+            if v>1; disp([newline '--> Calculating spike count...']); end
+            
+            if v>2
+                disp(['cycleTimes: ' regexprep(num2str(size(cycle_ts)), '\s*', ' x ')]);
+                disp(['name: ' name]);
+            end
             
             % Find the number of spikes in each cycle
             % We include data that comes after the onset of the first cycle
             % and before the onset of the last cycle
             cycle_spike_counts = zeros(1,size(cycle_ts,1)-1);
-            for cycle_ix = 1:(size(cycle_ts,1)-1)
-               cycle_spikes_ix = find((spike_ts > cycle_ts(cycle_ix)) & (spike_ts < cycle_ts(cycle_ix+1)));
-               if ~isempty(cycle_spikes_ix)
-                 cycle_spike_counts(cycle_ix) = length(cycle_spikes_ix);
-               end
+            
+            % AVG run time: 0.4599 s
+            for cycle_ix = 1:size(cycle_ts,1)
+                cycle_spike_counts(cycle_ix) = sum((spike_ts > cycle_ts(cycle_ix,1)) & (spike_ts < cycle_ts(cycle_ix,2)));
             end
+            
+            
             r = cycle_spike_counts;
             
-%             if v>0; disp('Spike count calculated!'); end
+            if v>0; disp('COMPLETE: Spike count calculated!'); end
         end
         
         function r = get_timing(obj, cycleTimes, varargin)
@@ -98,6 +107,7 @@ classdef mi_data_neural < mi_data
             % before the onset of the first cycle or after the onset of the last cycle
             %  - additionally, we are segmenting spikes based on the cycle times rather than trying
             % to keep bursts together and using negative spike times 
+            v = obj.verbose; 
 
             p = inputParser;
 
@@ -110,53 +120,67 @@ classdef mi_data_neural < mi_data
             valid_timebases = {'time', 'phase'};
             validate_timebase = @(x) assert(ischar(x) && ismember(x,valid_timebases), 'timebase must be: time, phase');
             p.addParameter('timeBase', default_timebase, validate_timebase);
-            
+
             % Parameter name
             default_name = 'noname';
             validate_name = @(x) assert(ischar(x), 'name must be string/char');
             p.addParameter('name', default_name, validate_name);
 
-            
             p.parse(cycleTimes, varargin{:});
-            
-            cycleTs = p.Results.cycleTimes;
+            cycle_ts = p.Results.cycleTimes;
             name = p.Results.name;
             timeBase = p.Results.timeBase;
 
-           spike_ts = obj.data.(name).data;
-           cycle_ts = cycleTs;
+            spike_ts = obj.data.(name).data;
 
-           % Find the number of spikes in each cycle
-           cycle_spike_counts = obj.get_count(cycle_ts, name);
+            
+            if v>1; disp([newline '--> Calculating spike timing...']); end
+            
+            if v>2
+                disp(['cycleTimes: ' regexprep(num2str(size(cycle_ts)), '\s*', ' x ')]);
+                disp(['timeBase: ' timeBase]);
+                disp(['name: ' name]);
+            end 
+            
+            % Find the number of spikes in each cycle
+            if v>1; disp('--> Getting spike count...'); end
+            cycle_spike_counts = obj.get_count(cycle_ts, name);
 
-           % Calculate relative spike times for each breathing cycle
-           % if verbose > 1; disp('-> Calculating relative spike times by cycle'); end
-           cycle_spike_ts = nan(size(cycle_ts,1)-1, max(cycle_spike_counts));
-           for cycle_ix = 1:(size(cycle_ts,1)-1)
-               cycle_spikes_ix = find((spike_ts > cycle_ts(cycle_ix)) & (spike_ts < cycle_ts(cycle_ix+1)));
+            % Calculate relative spike times for each breathing cycle
+            % if verbose > 1; disp('-> Calculating relative spike times by cycle'); end
+            if v>1; disp('--> Calculating timing based on count...'); end
+            cycle_spike_ts = nan(size(cycle_ts,1), max(cycle_spike_counts));
+
+            
+            % AVG run time: 0.9658 s
+            for cycle_ix = 1:(size(cycle_ts,1))
+               cycle_spikes_ix = find((spike_ts > cycle_ts(cycle_ix,1)) & (spike_ts < cycle_ts(cycle_ix,2)));
                if ~isempty(cycle_spikes_ix)
-                   cycle_spike_ts(cycle_ix,1:length(cycle_spikes_ix)) = spike_ts(cycle_spikes_ix)-cycle_ts(cycle_ix);
+                   cycle_spike_ts(cycle_ix,1:length(cycle_spikes_ix)) = spike_ts(cycle_spikes_ix) - cycle_ts(cycle_ix,1);
                end
-           end
-           switch timeBase
+            end
+            
+            
+            switch timeBase
                case 'phase'
+                   if v>1; disp('--> Transforming timing to phase...'); end
                    % Convert spike times to phase values in radians. 
-                   cycle_lengths = diff(cycle_ts);
-                   % Find the dimensions of the cycle_spike_ts matrix
-                   dimension_cycle_spike_ts = size(cycle_spike_ts);
+                   cycle_durs = diff(cycle_ts');
                    % Calculate the phase conversion for each cycle
-                   phase_factor = (2*pi)./cycle_lengths;
+                   phase_factor = (2*pi)./cycle_durs;
                    % Propogate the phase conversion to a matrix
-                   phase_factor_matrix = repmat(phase_factor,1,dimension_cycle_spike_ts(2));
+                   phase_factor_matrix = repmat(phase_factor,size(cycle_spike_ts,2),1);
                    % Multiply each spike time by the phase factor for the
                    % respective cycle
-                   cycle_spike_phase = cycle_spike_ts.*phase_factor_matrix;
+                   cycle_spike_phase = cycle_spike_ts.*phase_factor_matrix';
                    % Output the variable. 
                    r = cycle_spike_phase;
-                   
+
                case 'time'
                    r = cycle_spike_ts;
-           end
-       end
+            end
+            
+            if v>0; disp('COMPLETE: Spike timing calculated'); end
+        end
     end
 end
