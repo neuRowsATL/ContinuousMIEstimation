@@ -50,7 +50,7 @@ try
     
     
     success = [success newline 'Pulled: data'];
-    if all(size(get_data(d)) == size(unit1)); success = [success ' >> FAILED']; end
+    if ~all(size(get_data(d)) == size(unit1)); success = [success ' >> FAILED']; end
     
     disp(success);
 catch e
@@ -72,55 +72,49 @@ try
 
 
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
-    errs = ['----- ----- ----- ----- -----' newline 'ERRORS:' newline];
     success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
-    if strcmp(d.ID, 'test')
-        success = [success newline 'Assigned: ID'];
-    else
-        errs = [errs newline 'Assigning: ID'];
-    end
-    if d.Fs == 30000
-        success = [success newline 'Assigned: Fs'];
-    else
-        errs = [errs newline 'Assigning: Fs'];
-    end
-    if d.verbose == 5
-        success = [success newline 'Assigned: verbose'];
-    else
-        errs = [errs newline 'Assigning: verbose'];
-    end
-    if isfield(d.data, 'unit1') && isfield(d.data, 'unit2') && isfield(d.data, 'unit3')
-        success = [success newline 'Assigned: data'];
-    else
-        errs = [errs newline 'Assigning: data'];
-    end
 
-    if all(size(d.data.unit1.data) == size(unit1)) && ...
-            all(size(d.data.unit2.data) == size(unit2)) && ...
-            all(size(d.data.unit3.data) == size(unit3))
-        success = [success newline 'Imported: data'];
-    else
-        errs = [errs newline 'Importing: data dims do not match'];
-    end
+    % Check that ID matches what was set
+    success = [success newline 'Assigned: ID'];
+    if ~strcmp(d.ID, 'test'); success = [success '>> FAILED']; end
+    
+    % Check for correct Fs 
+    success = [success newline 'Assigned: Fs'];
+    if ~d.Fs == 30000;  success = [success '>> FAILED']; end
+    
+    % Check for correct verbose
+    success = [success newline 'Assigned: verbose'];
+    if ~d.verbose == 5;  success = [success '>> FAILED']; end
+    
+    % Check for correct data names
+    success = [success newline 'Assigned: data'];
+    if ~isfield(d.data, 'unit1') || ~isfield(d.data, 'unit2') || ~isfield(d.data, 'unit3');  success = [success '>> FAILED']; end
 
-    if strcmp(d.data.unit1.info,str_unit1) && ...
-            strcmp(d.data.unit2.info,str_unit2) && ...
-            strcmp(d.data.unit3.info,str_unit3)
-        success = [success newline 'Imported: info'];
-    else
-        errs = [errs newline 'Importing: data info'];
+    % Check for correct data sizes
+    success = [success newline 'Imported: data'];
+    if any(size(d.data.unit1.data) ~= size(unit1)) || ...
+            any(size(d.data.unit2.data) ~= size(unit2)) || ...
+            any(size(d.data.unit3.data) ~= size(unit3))
+         success = [success '>> FAILED'];
     end
-
-    if all(size(get_data(d,'unit1')) == size(unit1)) && ...
-            all(size(get_data(d,'unit2')) == size(unit2)) && ...
-            all(size(get_data(d,'unit3')) == size(unit3))
-        success = [success newline 'Pulled: data'];
-    else
-        errs = [errs newline 'Pulling: get_data() dims do not match'];
+    
+    % Check for correct data info
+    success = [success newline 'Imported: info'];
+    if ~strcmp(d.data.unit1.info,str_unit1) || ...
+            ~strcmp(d.data.unit2.info,str_unit2) || ...
+            ~strcmp(d.data.unit3.info,str_unit3)
+        success = [success '>> FAILED'];
+    end
+    
+    % Check for correct data from get_data
+    success = [success newline 'Pulled: data'];    
+    if any(size(get_data(d,'unit1')) ~= size(unit1)) || ...
+            any(size(get_data(d,'unit2')) ~= size(unit2)) || ...
+            any(size(get_data(d,'unit3')) ~= size(unit3))
+        success = [success '>> FAILED'];
     end
     
     disp(success);
-    disp(errs);
 catch e
     e
     global_errs{end+1} = {'Instantiating mi_data with ID and verbose'};
@@ -147,65 +141,59 @@ try
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
 
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
-    errs = ['----- ----- ----- ----- -----' newline 'ERRORS:' newline];
     success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
-    if strcmp(d.ID, 'test')
-        success = [success newline 'Assigned: ID'];
-    else
-        errs = [errs newline 'Assigning: ID'];
-    end
-    if d.Fs == 30000
-        success = [success newline 'Assigned: Fs'];
-    else
-        errs = [errs newline 'Assigning: Fs'];
-    end
-    if d.verbose == 5
-        success = [success newline 'Assigned: verbose'];
-    else
-        errs = [errs newline 'Assigning: verbose'];
-    end
-    if isfield(d.data, 'unit1')
-        success = [success newline 'Assigned: data'];
-    else
-        errs = [errs newline 'Assigning: data'];
-    end
 
-    if all(size(d.data.unit1.data) == size(unit1))
-        success = [success newline 'Imported: data'];
-    else
-        errs = [errs newline 'Importing: data dims do not match'];
-    end
-
-    if strcmp(d.data.unit1.info,str_unit1)
-        success = [success newline 'Imported: info'];
-    else
-        errs = [errs newline 'Importing: data info'];
-    end
-
-    if all(size(get_data(d,'unit1')) == size(unit1))
-        success = [success newline 'Pulled: data'];
-    else
-        errs = [errs newline 'Pulling: get_data() dims do not match'];
-    end
+    % Check for correct ID
+    success = [success newline 'Assigned: ID'];
+    if ~strcmp(d.ID, 'test'); success = [success '>> FAILED']; end
     
-    if all(size(get_spikes(d, 'format', 'raw', 'name', 'unit1')) == size(get_data(d,'unit1')))
-        success = [success newline 'Pulled: raw data'];
-    else
-        errs = [errs newline 'Pulling: get_spikes() dims do not match'];
-    end
+    % Check for correct Fs
+    success = [success newline 'Assigned: Fs'];
+    if ~d.Fs == 30000;  end
+    
+    % Check for correct verbose
+    success = [success newline 'Assigned: verbose'];
+    if ~d.verbose == 5; success = [success '>> FAILED']; end
+    
+    % Check for correct data name
+    success = [success newline 'Assigned: data'];
+    if ~isfield(d.data, 'unit1'); success = [success '>> FAILED']; end
+
+    % Check for correct data size
+    success = [success newline 'Imported: data'];
+    if any(size(d.data.unit1.data) ~= size(unit1)); success = [success '>> FAILED']; end
+
+    % Check for correct data info
+    success = [success newline 'Imported: info'];
+    if ~strcmp(d.data.unit1.info,str_unit1); success = [success '>> FAILED']; end
+
+    % Check for correct data from get_data
+    success = [success newline 'Pulled: data'];
+    if any(size(get_data(d,'unit1')) ~= size(unit1)); success = [success '>> FAILED']; end
+    
+    % Check for correct data from get_spikes, 'raw'
+    success = [success newline 'Pulled: raw data'];
+    if any(size(get_spikes(d, 'format', 'raw', 'name', 'unit1')) ~= size(get_data(d,'unit1'))); success = [success '>> FAILED']; end
 
     % VALIDATION CHECK
     % 1. Number of non-nan values = # spikes - # spikes outside of cycles
     % 2. Save validated matrix to check against
     
     c1 = get_count(d, cycle_times, 'unit1');
+    
+    % Check for correct data from get_count
+    success = [success newline 'Pulled: count data'];
+    if sum(c1) ~= (sum(~isnan(unit1)) - sum(unit1 < cycle_times(1,1) || unit1 > cycle_times(end,2))); success = [success '>> FAILED']; end
+    
     c2 = get_spikes(d, 'format', 'count', 'cycleTimes', cycle_times, 'name', 'unit1');
 
-    if c1 == c2
-        success = [success newline 'Matched: spike counts'];
-    else
-        errs = [errs newline 'Matching: spike counts'];
-    end
+    % Check for correct data from get_spikes, count
+    success = [success newline 'Pulled: count data'];
+    if sum(c2) ~= (sum(~isnan(unit1)) - (sum(unit1 < cycle_times(1,1) || unit1 > cycle_times(end,2)))); success = [success '>> FAILED']; end
+
+    % Check for matching data from get_count and from get_spikes, 'count'
+    success = [success newline 'Matched: spike counts'];
+    if c1 ~= c2; success = [success '>> FAILED']; end
     
     if with_plots
         figure();
@@ -222,13 +210,20 @@ try
     % 2. Save validated matrix to check against
     
     t1 = get_timing(d, cycle_times, 'timeBase', 'time', 'name', 'unit1');
+    
+    % Check for correct data from get_timing
+    success = [success newline 'Pulled: count data'];
+    if sum(sum(~isnan(t1))) ~= (sum(~isnan(unit1)) - sum(unit1 < cycle_times(1,1) || unit1 > cycle_times(end,2))); success = [success '>> FAILED']; end
+    
     t2 = get_spikes(d, 'format', 'timing', 'cycleTimes', cycle_times, 'timeBase', 'time', 'name', 'unit1');
+    
+    % Check for correct data from get_spikes, 'timing'
+    success = [success newline 'Pulled: count data'];
+    if sum(sum(~isnan(t2))) ~= (sum(~isnan(unit1)) - sum(unit1 < cycle_times(1,1) || unit1 > cycle_times(end,2))); success = [success '>> FAILED']; end
 
-    if isequalwithequalnans(t1,t2)
-        success = [success newline 'Matched: spike timing (time)'];
-    else
-        errs = [errs newline 'Matching: spike timing (time)'];
-    end
+    % Check for matching data from get_timing and get_spikes, 'timing'
+    success = [success newline 'Matched: spike timing (time)'];
+    if ~isequalwithequalnans(t1,t2); errs = [errs newline 'Matching: spike timing (time)']; end
     
     if with_plots
         figure();
@@ -246,11 +241,10 @@ try
         'timeBase', 'phase', ...
         'name', 'unit1');
     
-    if isequalwithequalnans(t1,t2)
-        success = [success newline 'Matched: spike timing (phase)'];
-    else
-        errs = [errs newline 'Matching: spike timing (phase)'];
-    end
+    % Check for matching data from get_timing and get_spikes, 'timing',
+    % 'phase'
+    success = [success newline 'Matched: spike timing (phase)'];
+    if ~isequalwithequalnans(t1,t2); errs = [errs newline 'Matching: spike timing (phase)']; end
     
     if with_plots
         figure();
@@ -263,7 +257,6 @@ try
     end
     
     disp(success);
-    disp(errs);
 catch e
     e
     global_errs{end+1} = {'Instantiating mi_data_neural'};
@@ -294,44 +287,35 @@ try
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
     errs = ['----- ----- ----- ----- -----' newline 'ERRORS:' newline];
     success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
-    if strcmp(d.ID, 'test')
-        success = [success newline 'Assigned: ID'];
-    else
-        errs = [errs newline 'Assigning: ID'];
-    end
-    if d.Fs == 30000
-        success = [success newline 'Assigned: Fs'];
-    else
-        errs = [errs newline 'Assigning: Fs'];
-    end
-    if d.verbose == 5
-        success = [success newline 'Assigned: verbose'];
-    else
-        errs = [errs newline 'Assigning: verbose'];
-    end
-    if isfield(d.data, 'cycleTimes')
-        success = [success newline 'assigned: cycleTimes'];
-    else
-        errs = [errs newline 'Assigning: cycleTimes'];
-    end
 
-    if all(size(d.data.cycleTimes.data) == [size(unit1,2) 2])
-        success = [success newline 'Imported: cycleTimes'];
-    else
-        errs = [errs newline 'Importing: cycleTimes dims do not match'];
-    end
+    % Check for correct ID
+    success = [success newline 'Assigned: ID'];
+    if ~strcmp(d.ID, 'test'); success = [success '>> FAILED']; end
+    
+    % Check for correct Fs
+    success = [success newline 'Assigned: Fs'];
+    if ~d.Fs == 30000; success = [success '>> FAILED']; end
+    
+    % Check for correct verbose
+    success = [success newline 'Assigned: verbose'];
+    if ~d.verbose == 5; success = [success '>> FAILED']; end
+    
+     % Check for correct data name
+    success = [success newline 'Assigned: data'];
+    if ~isfield(d.data, 'cycleTimes'); success = [success '>> FAILED']; end
 
-    if strcmp(d.data.cycleTimes.info,str_unit1)
-        success = [success newline 'Imported: info'];
-    else
-        errs = [errs newline 'Importing: cycleTimes info'];
-    end
+    % Check for correct data size
+    success = [success newline 'Imported: data'];
+    if any(size(d.data.unit1.data) ~= [size(unit1), 2 2]); success = [success '>> FAILED']; end
 
-    if all(size(get_cycleTimes(d)) == [size(unit1,2) 2])
-        success = [success newline 'Pulled: cycleTimes'];
-    else
-        errs = [errs newline 'Pulling: get_cycleTimes() dims do not match'];
-    end
+    % Check for correct data info
+    success = [success newline 'Imported: info'];
+    if ~strcmp(d.data.unit1.info,str_unit1); success = [success '>> FAILED']; end
+
+
+    % Check for correct data from get_cycleTimes
+    success = [success newline 'Pulled: cycleTimes'];
+    if any(size(get_cycleTimes(d)) ~= [size(unit1,2) 2]); success = [success '>> FAILED']; end
     
     disp(success);
     disp(errs);
