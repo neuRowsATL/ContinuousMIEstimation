@@ -27,7 +27,7 @@ str_unit2 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit2';
 str_unit3 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit3';
 
 load('TestData/20191018_bl21lb21_171218_cycles.mat');
-cycle_times = [cycle_times(1:end-1)' cycle_times(2:end)'];
+cycle_times = [cycle_times(1:end-1)' cycle_times(2:end)']; % Needs to be N x 2 matrix of [on off] x N
 
 str_cycles = 'TestData/20191018_bl21lb21_171218_cycles.mat';
 
@@ -332,6 +332,20 @@ catch e
     
     error('FATAL ERROR: Unable to construct mi_data_behavior objects');
 end
+
+
+%%
+
+fnames = dir('D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16\*.rhd');
+fnames = {fnames.name};
+fpath = 'D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16';
+
+d = mi_data_pressure('test', 'verbose', 5);
+add_cycleTimes(d, cycle_times, str_cycles, 30000);
+set_data_files(d, fnames, fpath);
+build_behavior(d);
+
+x = get_behavior(d, 'phase', 'raw', 0.8*pi, pi, 11);
 
 
 %%

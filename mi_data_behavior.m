@@ -3,6 +3,7 @@ classdef mi_data_behavior < mi_data
         rawBehav % struct of raw behavior data and information
         
         arrFiles % list of files with raw behavioral data
+        strFldr % path to where the data files are saved
     end
     
     methods
