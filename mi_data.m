@@ -22,7 +22,7 @@ classdef mi_data < handle
 
             % Set up required inputs
             validate_ID = @(x) assert(ischar(x), 'ID must be a string/char');
-            p.addRequired('ID');
+            p.addRequired('ID', validate_ID);
 
             % Default and optional input for obj.b_Length
             default_verbose = 1;
