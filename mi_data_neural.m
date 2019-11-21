@@ -55,6 +55,7 @@ classdef mi_data_neural < mi_data
                     r = get_timing(obj, cycleTimes, 'timeBase', timeBase, 'name', name);
                     if v>1; disp('--> Spike timing data'); end
             end
+            if v>0; disp('COMPLETE: Spike data retrieved!'); end
         end
         
         function r = get_count(obj, cycleTimes, varargin)
