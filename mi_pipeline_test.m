@@ -183,13 +183,13 @@ try
     
     % Check for correct data from get_count
     success = [success newline 'Pulled: count data'];
-    if sum(c1) ~= (sum(~isnan(unit1)) - sum(unit1 < cycle_times(1,1) || unit1 > cycle_times(end,2))); success = [success '>> FAILED']; end
+    if sum(c1) ~= (sum(~isnan(unit1)) - sum(unit1 < cycle_times(1,1) | unit1 > cycle_times(end,2))); success = [success '>> FAILED']; end
     
     c2 = get_spikes(d, 'format', 'count', 'cycleTimes', cycle_times, 'name', 'unit1');
 
     % Check for correct data from get_spikes, count
     success = [success newline 'Pulled: count data'];
-    if sum(c2) ~= (sum(~isnan(unit1)) - (sum(unit1 < cycle_times(1,1) || unit1 > cycle_times(end,2)))); success = [success '>> FAILED']; end
+    if sum(c2) ~= (sum(~isnan(unit1)) - (sum(unit1 < cycle_times(1,1) | unit1 > cycle_times(end,2)))); success = [success '>> FAILED']; end
 
     % Check for matching data from get_count and from get_spikes, 'count'
     success = [success newline 'Matched: spike counts'];
@@ -213,13 +213,13 @@ try
     
     % Check for correct data from get_timing
     success = [success newline 'Pulled: count data'];
-    if sum(sum(~isnan(t1))) ~= (sum(~isnan(unit1)) - sum(unit1 < cycle_times(1,1) || unit1 > cycle_times(end,2))); success = [success '>> FAILED']; end
+    if sum(sum(~isnan(t1))) ~= (sum(~isnan(unit1)) - sum(unit1 < cycle_times(1,1) | unit1 > cycle_times(end,2))); success = [success '>> FAILED']; end
     
     t2 = get_spikes(d, 'format', 'timing', 'cycleTimes', cycle_times, 'timeBase', 'time', 'name', 'unit1');
     
     % Check for correct data from get_spikes, 'timing'
     success = [success newline 'Pulled: count data'];
-    if sum(sum(~isnan(t2))) ~= (sum(~isnan(unit1)) - sum(unit1 < cycle_times(1,1) || unit1 > cycle_times(end,2))); success = [success '>> FAILED']; end
+    if sum(sum(~isnan(t2))) ~= (sum(~isnan(unit1)) - sum(unit1 < cycle_times(1,1) | unit1 > cycle_times(end,2))); success = [success '>> FAILED']; end
 
     % Check for matching data from get_timing and get_spikes, 'timing'
     success = [success newline 'Matched: spike timing (time)'];
@@ -265,6 +265,10 @@ end
     
 %%
 
+% In this script, we are just checking that the behavior class is
+% functioning and that we can load cycleTimes into the class. For this
+% reason, we arbitrarily set the d.data.cycleTimes.data = [unit1' unit1']. 
+
 % try
 %     disp([newline newline]);
 %     clear d;
@@ -285,7 +289,6 @@ try
     add_cycleTimes(d, [unit1' unit1'], str_unit1, 30000);
 
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
-    errs = ['----- ----- ----- ----- -----' newline 'ERRORS:' newline];
     success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
 
     % Check for correct ID
@@ -306,11 +309,11 @@ try
 
     % Check for correct data size
     success = [success newline 'Imported: data'];
-    if any(size(d.data.unit1.data) ~= [size(unit1), 2 2]); success = [success '>> FAILED']; end
+    if any(size(d.data.cycleTimes.data) ~= [size(unit1,2), 2]); success = [success '>> FAILED']; end
 
     % Check for correct data info
     success = [success newline 'Imported: info'];
-    if ~strcmp(d.data.unit1.info,str_unit1); success = [success '>> FAILED']; end
+    if ~strcmp(d.data.cycleTimes.info,str_unit1); success = [success '>> FAILED']; end
 
 
     % Check for correct data from get_cycleTimes
@@ -318,7 +321,6 @@ try
     if any(size(get_cycleTimes(d)) ~= [size(unit1,2) 2]); success = [success '>> FAILED']; end
     
     disp(success);
-    disp(errs);
 catch e
     e
     global_errs{end+1} = {'Instantiating mi_data_behavior with ID and verbose'};
@@ -334,18 +336,108 @@ catch e
 end
 
 
-%%
+%% CHECK mi_data_pressure
 
-fnames = dir('D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16\*.rhd');
+% BRYCE:
+%fnames = dir('D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16\*.rhd');
+%fnames = {fnames.name};
+%fpath = 'D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16';
+
+% RACHEL:
+fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
 fnames = {fnames.name};
-fpath = 'D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16';
+fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
 
-d = mi_data_pressure('test', 'verbose', 5);
-add_cycleTimes(d, cycle_times, str_cycles, 30000);
-set_data_files(d, fnames, fpath);
-build_behavior(d);
 
-x = get_behavior(d, 'phase', 'raw', 0.8*pi, pi, 11);
+% TO DO: later
+% x = get_behavior(d, 'phase', 'raw', 0.8*pi, pi, 11);
+
+try
+    disp([newline newline]);
+    clear d
+    d = mi_data_pressure('test', 'verbose', 5);
+    add_cycleTimes(d, cycle_times, str_cycles, 30000);
+    set_data_files(d, fnames, fpath);
+    
+    build_behavior(d);
+    disp([newline '===== ===== ===== ===== =====']);
+    disp(['RUNNING: mi_data_behavior()' newline newline]);
+
+
+    % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
+    success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
+
+    % Check for correct ID
+    success = [success newline 'Assigned: ID'];
+    if ~strcmp(d.ID, 'test'); success = [success '>> FAILED']; end
+    
+    % Check for correct Fs
+    success = [success newline 'Assigned: Fs'];
+    if ~d.Fs == 30000; success = [success '>> FAILED']; end
+    
+    % Check for correct verbose
+    success = [success newline 'Assigned: verbose'];
+    if ~d.verbose == 5; success = [success '>> FAILED']; end
+    
+     % Check for correct data name
+    success = [success newline 'Assigned: data'];
+    if ~isfield(d.data, 'cycleTimes'); success = [success '>> FAILED']; end
+
+    % Check for correct data size
+    success = [success newline 'Imported: data'];
+    if any(size(d.data.cycleTimes.data) ~= size(cycle_times)); success = [success '>> FAILED']; end
+
+    % Check for correct data info
+    success = [success newline 'Imported: info'];
+    if ~strcmp(d.data.cycleTimes.info,str_cycles); success = [success '>> FAILED']; end
+
+
+    % Check for correct data from get_cycleTimes
+    success = [success newline 'Pulled: cycleTimes'];
+    if any(size(get_cycleTimes(d)) ~= size(cycle_times)); success = [success '>> FAILED']; end
+    
+    % Check for correct strFldr:
+    success = [success newline 'Assigned: strFldr'];
+    if ~strcmp(d.strFldr, fpath); succes= [success '>> FAILED']; end
+    
+    % Check for correct arrFiles
+    success = [success newline 'Assigned: arrFiles'];
+    if ~isequal(d.arrFiles, fnames); success = [success '>> FAILED' ]; end
+    
+%     % NOTE: TEMPORARIlY THIS IS NOT WORKING BECAUSE WE ARE NOT USING ALL
+%     THE FILES CURRENTLY. ALSO, THIS MAY NEVER WORK DEPENDING ON HOW WE
+%     DECIDE TO OMIT CYCLES AND HOW WE DOCUMENT THAT. 
+
+%     % Check that size of rawBehav is correct
+%     success = [success newline 'Pulled: rawBehav']; 
+%     if ~any(size(d.data.cycleTimes.data) == size(find(~cellfun('isempty',obj.rawBehav)))); end
+
+    % Plot some random cycles that were specified
+    % Identify the cycles that were specified
+    cycles = find(~cellfun('isempty', d.rawBehav));
+    cyclesToPlot = round(linspace(1,length(cycles),10));
+    figure()
+    for i = cyclesToPlot
+        plot(d.rawBehav{cycles(i),1})
+        hold on
+    end
+
+    
+    disp(success);
+catch e
+    e
+    global_errs{end+1} = {'Instantiating mi_data_behavior with ID and verbose'};
+    % Not possible to proceed without mi_data class
+    
+    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
+    for i=1:length(global_errs)
+        disp(global_errs{i});
+    end
+    disp(['----- ----- ----- ----- -----' newline]);
+    
+    error('FATAL ERROR: Unable to construct mi_data_behavior objects');
+end
+
 
 
 %%

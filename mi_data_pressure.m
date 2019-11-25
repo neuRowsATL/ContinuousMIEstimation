@@ -64,7 +64,7 @@ classdef mi_data_pressure < mi_data_behavior
             behavOffset = 0;
             % Iterate and load data file info
 %             for i=1:length(obj.arrFiles)
-            for i=1:3
+            for i=1:length(obj.arrFiles)
                 if obj.verbose > 1
                     disp('===== ===== ===== ===== =====');
                     disp(['Processing file ' num2str(i) ' of ' num2str(length(obj.arrFiles))]);
@@ -77,7 +77,7 @@ classdef mi_data_pressure < mi_data_behavior
                 
                 % Filter Pressure Waves
 %                 filterData = obj.filterBehavior(pressure_wav, obj.Fs, filterFreq); % This will change once we update filterBehavior func
-                if v>3; disp('--> --> Filtering data...');
+                if v>3; disp('--> --> Filtering data...');end
                 filterData = pressure_wav;
 
                 
@@ -89,18 +89,28 @@ classdef mi_data_pressure < mi_data_behavior
                 
                 if v>3; disp(['# Cycles: ' num2str(sum(cycleIxs))]); end
                 
-                % Assign pressure waves to matrix rows
+                % Assign pressure waves to cell array
                 % Consider alternative ways to save speed here?
                 for iCycle = 1:size(validCycles,1)
+                   % Find cycle start index
                    cycleStart = ceil((validCycles(iCycle,1)-tStart)*obj.Fs/1000.);
+                   % Find cycle end index
                    cycleEnd = floor((validCycles(iCycle,2)-tStart)*obj.Fs/1000.);
                    behaviorCycles{iCycle+behavOffset} = filterData(cycleStart:cycleEnd);
                 end
                 
                 behavOffset = behavOffset + size(validCycles,1);
+                
+                % Check that number of stored cycles matches the offset
+                % being added to cycle indices. 
+                if ~any(behavOffset == size(find(~cellfun('isempty',behaviorCycles)))); keyboard; error('Number of stored cycles does not match the offset cycle index'); end
+                
             end
             
             obj.rawBehav = behaviorCycles;
+            % Check that number of stored cycles matches the final value of the offset. 
+            if ~any(behavOffset == size(find(~cellfun('isempty',obj.rawBehav)))); error('Total number of stored cycles does not match the final offset of cycle index'); end
+            
             if v>0; disp('COMPLETE: Behavioral data loaded!'); end
        end
        
