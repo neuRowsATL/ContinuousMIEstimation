@@ -414,15 +414,130 @@ try
 
     % Plot some random cycles that were specified
     % Identify the cycles that were specified
-    cycles = find(~cellfun('isempty', d.rawBehav));
-    cyclesToPlot = round(linspace(1,length(cycles),10));
-    figure()
-    for i = cyclesToPlot
-        plot(d.rawBehav{cycles(i),1})
-        hold on
+    if with_plots
+        cycles = find(~cellfun('isempty', d.rawBehav));
+        cyclesToPlot = round(linspace(1,length(cycles),5));
+        F1 = figure();
+        colors = {[1 0 0], [0 1 0], [0 0 1], [0 1 1], [1 0 1]};
+        for i = 1:length(cyclesToPlot)
+            plot(d.rawBehav{cycles(cyclesToPlot(i)),1}, 'color', colors{i})
+            hold on
+        end
     end
 
+    % Get behavior in many different ways
+    % PHASE, RAW
+    b1 = get_behavior(d, 'phase', 'raw', pi/2 , pi, 11);
+    if with_plots
+        F2 = figure();
+        for i = 1:length(cyclesToPlot)
+            plot(b1(cycles(cyclesToPlot(i)),:), 'color', colors{i})
+            hold on
+        end
+        title('Transformed Sample Cycles: Phase, Raw')
+
+        figure(F1);
+        for i = 1:length(cyclesToPlot)
+            len = length(d.rawBehav{cycles(cyclesToPlot(i))});
+            idx1 = round(len*((pi/2)/(2*pi)));
+            idx2 = idx1 + round(len*(pi/(2*pi)));
+            idxs = round(linspace(idx1,idx2, 11));
+            plot(idxs,b1(cycles(cyclesToPlot(i)), :), 'Marker', 'o','MarkerSize', 10 , 'MarkerFaceColor', colors{i}, 'LineStyle', 'none', 'MarkerEdgeColor', [0 0 0])
+        end
+        title('Raw Sample Cycles with projected transform: Phase, Raw')
+    end
     
+    % PHASE, Residual
+    b2 = get_behavior(d, 'phase', 'residual', pi/2 , pi, 11);
+    
+    % Check for correct size behavior residuals
+    success = [success newline 'Pulled: behavior (phase, residual)'];
+    m = mean(b1,1, 'omitnan');
+    if sum(sum(~isnan(b1))) ~= sum(sum(~isnan(b2)))
+        success = [success '>> FAILED' ];    
+    % Check that raw equals residual plus mean. 
+    elseif ~isequaln(b1,(b2 + m))
+        success = [success '>> FAILED' ];     
+    end
+    
+    % Again, plot some random cycles that were specified
+    % Identify the cycles that were specified
+    if with_plots
+        cycles = find(~cellfun('isempty', d.rawBehav));
+        cyclesToPlot = round(linspace(1,length(cycles),5));
+        F3 = figure();
+        colors = {[1 0 0], [0 1 0], [0 0 1], [0 1 1], [1 0 1]};
+        for i = 1:length(cyclesToPlot)
+            plot(d.rawBehav{cycles(cyclesToPlot(i)),1}, 'color', colors{i})
+            hold on
+        end
+    end
+    
+    if with_plots
+        F4 = figure();
+        for i = 1:length(cyclesToPlot)
+            plot(b2(cycles(cyclesToPlot(i)),:), 'color', colors{i})
+            hold on
+        end
+        title('Transformed Sample Cycles: Phase, Residual')
+
+        figure(F3);
+        for i = 1:length(cyclesToPlot)
+            len = length(d.rawBehav{cycles(cyclesToPlot(i))});
+            idx1 = round(len*((pi/2)/(2*pi)));
+            idx2 = idx1 + round(len*(pi/(2*pi)));
+            idxs = round(linspace(idx1,idx2, 11));
+            plot(idxs,(b2(cycles(cyclesToPlot(i)), :) + m), 'Marker', 'o','MarkerSize', 10 , 'MarkerFaceColor', colors{i}, 'LineStyle', 'none', 'MarkerEdgeColor', [0 0 0])
+        end
+        title('Raw Sample Cycles with projected transform: Phase, Residual')        
+        
+    end
+    
+%     % PHASE, PCA
+%     b2 = get_behavior(d, 'phase', 'pca', pi/2 , pi, 600, 2);
+%     
+%     % Check for correct size behavior residuals
+%     success = [success newline 'Pulled: behavior (phase, residual)'];
+%     m = mean(b1,1, 'omitnan');
+%     if sum(sum(~isnan(b1))) ~= sum(sum(~isnan(b2)))
+%         success = [success '>> FAILED' ];    
+%     % Check that raw equals residual plus mean. 
+%     elseif ~isequaln(b1,(b2 + m))
+%         success = [success '>> FAILED' ];     
+%     end
+%     
+%     % Again, plot some random cycles that were specified
+%     % Identify the cycles that were specified
+%     if with_plots
+%         cycles = find(~cellfun('isempty', d.rawBehav));
+%         cyclesToPlot = round(linspace(1,length(cycles),5));
+%         F3 = figure();
+%         colors = {[1 0 0], [0 1 0], [0 0 1], [0 1 1], [1 0 1]};
+%         for i = 1:length(cyclesToPlot)
+%             plot(d.rawBehav{cycles(cyclesToPlot(i)),1}, 'color', colors{i})
+%             hold on
+%         end
+%     end
+%     
+%     if with_plots
+%         F4 = figure();
+%         for i = 1:length(cyclesToPlot)
+%             plot(b2(cycles(cyclesToPlot(i)),:), 'color', colors{i})
+%             hold on
+%         end
+%         title('Transformed Sample Cycles: Phase, Residual')
+% 
+%         figure(F3);
+%         for i = 1:length(cyclesToPlot)
+%             len = length(d.rawBehav{cycles(cyclesToPlot(i))});
+%             idx1 = round(len*((pi/2)/(2*pi)));
+%             idx2 = idx1 + round(len*(pi/(2*pi)));
+%             idxs = round(linspace(idx1,idx2, 11));
+%             plot(idxs,(b2(cycles(cyclesToPlot(i)), :) + m), 'Marker', 'o','MarkerSize', 10 , 'MarkerFaceColor', colors{i}, 'LineStyle', 'none', 'MarkerEdgeColor', [0 0 0])
+%         end
+%         title('Raw Sample Cycles with projected transform: Phase, Residual')        
+%         
+%     end
     disp(success);
 catch e
     e

@@ -142,6 +142,8 @@ classdef mi_data_pressure < mi_data_behavior
             %% Implemented to return different features of behavior cycles after processing raw waveform matrix data
             % i.e., raw data, PCA, residual, area
 
+            v = obj.verbose;
+            
             p = inputParser;
             
             % Required: timeBase
@@ -183,7 +185,7 @@ classdef mi_data_pressure < mi_data_behavior
             feature = p.Results.feature;
             start = p.Results.start;
             dur = p.Results.dur;
-            nSamp = p.Results.dur;
+            nSamp = p.Results.nSamp;
             nPC = p.Results.nPC;
             
             
@@ -284,7 +286,7 @@ classdef mi_data_pressure < mi_data_behavior
                     end              
                     toc
                     
-                    if v>2; warning(['WARNING: Ommitted ' sum(isnan(cycle_behavior(:,1))) ' empty cycles']); end
+                    if v>2; warning(['WARNING: Ommitted ' num2str(sum(isnan(cycle_behavior(:,1)))) ' empty cycles']); end
             end
             
             switch(feature)
@@ -295,9 +297,9 @@ classdef mi_data_pressure < mi_data_behavior
                     if v>2; disp([newline '--> --> Processing behavior: PCA (' num2str(nPC) ') PCs']); end
                     [~,score,~] = pca(cycle_behavior);
                     r = score(:,1:nPC);
-                case('resid')
+                case('residual')
                     if v>2; disp([newline '--> --> Processing behavior: residual']); end
-                    r = cycle_behavior - mean(cycle_behavior,1);     
+                    r = cycle_behavior - mean(cycle_behavior,1,'omitnan');     
             end
             
             if v>0; disp('COMPLETE: Behavioral data retrieved!'); end
