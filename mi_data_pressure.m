@@ -238,7 +238,7 @@ classdef mi_data_pressure < mi_data_behavior
                     end
                     toc
                     
-                    if v>2; warning(['WARNING: Ommitted ' sum(isnan(cycle_behavior(:,1))) ' empty cycles']); end
+                    if v>2; warning(['WARNING: Ommitted ' num2str(sum(isnan(cycle_behavior(:,1)))) ' empty cycles']); end
 
                 case('phase')
                     if v>2; disp([newline '--> --> Formatting behavior: phase']); end

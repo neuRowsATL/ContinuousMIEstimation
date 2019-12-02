@@ -336,7 +336,7 @@ catch e
 end
 
 
-%% CHECK mi_data_pressure
+%% CHECK mi_data_pressure: phase
 
 % BRYCE:
 %fnames = dir('D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16\*.rhd');
@@ -349,8 +349,6 @@ fnames = {fnames.name};
 fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
 
 
-% TO DO: later
-% x = get_behavior(d, 'phase', 'raw', 0.8*pi, pi, 11);
 
 try
     disp([newline newline]);
@@ -362,6 +360,8 @@ try
     build_behavior(d);
     disp([newline '===== ===== ===== ===== =====']);
     disp(['RUNNING: mi_data_behavior()' newline newline]);
+    disp(['--> mi_data_pressure()' newline newline]);
+    disp(['--> --> phase' newline newline]);
 
 
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
@@ -493,51 +493,66 @@ try
         
     end
     
-%     % PHASE, PCA
-%     b2 = get_behavior(d, 'phase', 'pca', pi/2 , pi, 600, 2);
-%     
-%     % Check for correct size behavior residuals
-%     success = [success newline 'Pulled: behavior (phase, residual)'];
-%     m = mean(b1,1, 'omitnan');
-%     if sum(sum(~isnan(b1))) ~= sum(sum(~isnan(b2)))
-%         success = [success '>> FAILED' ];    
-%     % Check that raw equals residual plus mean. 
-%     elseif ~isequaln(b1,(b2 + m))
-%         success = [success '>> FAILED' ];     
-%     end
-%     
-%     % Again, plot some random cycles that were specified
-%     % Identify the cycles that were specified
-%     if with_plots
-%         cycles = find(~cellfun('isempty', d.rawBehav));
-%         cyclesToPlot = round(linspace(1,length(cycles),5));
-%         F3 = figure();
-%         colors = {[1 0 0], [0 1 0], [0 0 1], [0 1 1], [1 0 1]};
-%         for i = 1:length(cyclesToPlot)
-%             plot(d.rawBehav{cycles(cyclesToPlot(i)),1}, 'color', colors{i})
-%             hold on
-%         end
-%     end
-%     
-%     if with_plots
-%         F4 = figure();
-%         for i = 1:length(cyclesToPlot)
-%             plot(b2(cycles(cyclesToPlot(i)),:), 'color', colors{i})
-%             hold on
-%         end
-%         title('Transformed Sample Cycles: Phase, Residual')
-% 
-%         figure(F3);
-%         for i = 1:length(cyclesToPlot)
-%             len = length(d.rawBehav{cycles(cyclesToPlot(i))});
-%             idx1 = round(len*((pi/2)/(2*pi)));
-%             idx2 = idx1 + round(len*(pi/(2*pi)));
-%             idxs = round(linspace(idx1,idx2, 11));
-%             plot(idxs,(b2(cycles(cyclesToPlot(i)), :) + m), 'Marker', 'o','MarkerSize', 10 , 'MarkerFaceColor', colors{i}, 'LineStyle', 'none', 'MarkerEdgeColor', [0 0 0])
-%         end
-%         title('Raw Sample Cycles with projected transform: Phase, Residual')        
-%         
-%     end
+    % PHASE, PCA
+    b1 = get_behavior(d, 'phase', 'raw', pi/2, pi, 600);
+    b2 = get_behavior(d, 'phase', 'pca', pi/2 , pi, 600, 2);
+    
+    % Run PCA on b1 to compare with b2.
+    m = mean(b1, 1, 'omitnan');
+    [coeff, score, latent] = pca(b1);
+    
+    % Check that scores 1 and 2 match b2. 
+    success = [success newline 'Pulled: behavior (Phase, PCA)'];
+    if ~isequaln(score(:, 1:2), b2); success = [success '>> FAILED' ]; end
+    
+    % Check that the error on the full projections is low
+    b1_Full_proj = score * coeff' + repmat(m, size(b1,1), 1);
+    b1_proj_err = (b1 - b1_Full_proj)./b1;
+    err = max(max(b1_proj_err));
+    
+    % Check that error between data and rpojections is less than .01%
+    % RC20191202: NOTE: The error threshold here may need to be changed. 
+    success = [success newline 'Verified: PC Projection Error'];
+    if err >= 1e-4; success = [success '>> FAILED' ]; end
+    
+    
+    % Plot the projections of the two PCs of interest with the raw data.    
+    % Identify the cycles that were specified
+    if with_plots
+        cycles = find(~cellfun('isempty', d.rawBehav));
+        cyclesToPlot = round(linspace(1,length(cycles),5));
+        F5 = figure();
+        colors = {[1 0 0], [0 1 0], [0 0 1], [0 1 1], [1 0 1]};
+        for i = 1:length(cyclesToPlot)
+            plot(d.rawBehav{cycles(cyclesToPlot(i)),1}, 'color', colors{i})
+            hold on
+        end
+    end
+    
+    if with_plots
+        F6 = figure();
+        for i = 1:length(cyclesToPlot)
+            plot(b2(cycles(cyclesToPlot(i)),:), 'color', colors{i})
+            hold on
+        end
+        title('Transformed Sample Cycles: Phase, Residual')
+
+        figure(F5);
+        coeff_t = coeff';
+        b2_proj = b2 * coeff_t(1:2,:);
+        m = mean(b1,1,'omitnan');
+        colors2 = {};
+        for i = 1:length(cyclesToPlot)
+            len = length(d.rawBehav{cycles(cyclesToPlot(i))});
+            idx1 = round(len*((pi/2)/(2*pi)));
+            idx2 = idx1 + round(len*(pi/(2*pi)));
+            idxs = round(linspace(idx1,idx2, 600));
+            colors2{i} = colors{i}*.7;
+            plot(idxs,(b2_proj(cycles(cyclesToPlot(i)), :) + m),'LineWidth', 2 , 'LineStyle', ':', 'color', colors2{i})
+        end
+        title('Raw Sample Cycles with projected transform: Phase, Residual')        
+        
+    end
     disp(success);
 catch e
     e
@@ -553,6 +568,234 @@ catch e
     error('FATAL ERROR: Unable to construct mi_data_behavior objects');
 end
 
+%% CHECK mi_data_pressure: time
+
+% BRYCE:
+%fnames = dir('D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16\*.rhd');
+%fnames = {fnames.name};
+%fpath = 'D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16';
+
+% RACHEL:
+fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
+fnames = {fnames.name};
+fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
+
+
+
+try
+    disp([newline newline]);
+    clear d
+    d = mi_data_pressure('test', 'verbose', 5);
+    add_cycleTimes(d, cycle_times, str_cycles, 30000);
+    set_data_files(d, fnames, fpath);
+    
+    build_behavior(d);
+    disp([newline '===== ===== ===== ===== =====']);
+    disp(['RUNNING: mi_data_behavior()' newline newline]);
+        disp(['--> mi_data_pressure()' newline newline]);
+    disp(['--> --> time' newline newline]);
+
+
+    % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
+    success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
+
+    % Check for correct ID
+    success = [success newline 'Assigned: ID'];
+    if ~strcmp(d.ID, 'test'); success = [success '>> FAILED']; end
+    
+    % Check for correct Fs
+    success = [success newline 'Assigned: Fs'];
+    if ~d.Fs == 30000; success = [success '>> FAILED']; end
+    
+    % Check for correct verbose
+    success = [success newline 'Assigned: verbose'];
+    if ~d.verbose == 5; success = [success '>> FAILED']; end
+    
+     % Check for correct data name
+    success = [success newline 'Assigned: data'];
+    if ~isfield(d.data, 'cycleTimes'); success = [success '>> FAILED']; end
+
+    % Check for correct data size
+    success = [success newline 'Imported: data'];
+    if any(size(d.data.cycleTimes.data) ~= size(cycle_times)); success = [success '>> FAILED']; end
+
+    % Check for correct data info
+    success = [success newline 'Imported: info'];
+    if ~strcmp(d.data.cycleTimes.info,str_cycles); success = [success '>> FAILED']; end
+
+
+    % Check for correct data from get_cycleTimes
+    success = [success newline 'Pulled: cycleTimes'];
+    if any(size(get_cycleTimes(d)) ~= size(cycle_times)); success = [success '>> FAILED']; end
+    
+    % Check for correct strFldr:
+    success = [success newline 'Assigned: strFldr'];
+    if ~strcmp(d.strFldr, fpath); succes= [success '>> FAILED']; end
+    
+    % Check for correct arrFiles
+    success = [success newline 'Assigned: arrFiles'];
+    if ~isequal(d.arrFiles, fnames); success = [success '>> FAILED' ]; end
+    
+%     % NOTE: TEMPORARIlY THIS IS NOT WORKING BECAUSE WE ARE NOT USING ALL
+%     THE FILES CURRENTLY. ALSO, THIS MAY NEVER WORK DEPENDING ON HOW WE
+%     DECIDE TO OMIT CYCLES AND HOW WE DOCUMENT THAT. 
+
+%     % Check that size of rawBehav is correct
+%     success = [success newline 'Pulled: rawBehav']; 
+%     if ~any(size(d.data.cycleTimes.data) == size(find(~cellfun('isempty',obj.rawBehav)))); end
+
+    % Plot some random cycles that were specified
+    % Identify the cycles that were specified
+    if with_plots
+        cycles = find(~cellfun('isempty', d.rawBehav));
+        cyclesToPlot = round(linspace(1,length(cycles),5));
+        F1 = figure();
+        colors = {[1 0 0], [0 1 0], [0 0 1], [0 1 1], [1 0 1]};
+        for i = 1:length(cyclesToPlot)
+            plot(d.rawBehav{cycles(cyclesToPlot(i)),1}, 'color', colors{i})
+            hold on
+        end
+    end
+
+    % Get behavior in many different ways
+    % TIME, RAW
+    b1 = get_behavior(d, 'time', 'raw', 50 , 100, 11);
+    if with_plots
+        F2 = figure();
+        for i = 1:length(cyclesToPlot)
+            plot(b1(cycles(cyclesToPlot(i)),:), 'color', colors{i})
+            hold on
+        end
+        title('Transformed Sample Cycles: Phase, Raw')
+
+        figure(F1);
+        for i = 1:length(cyclesToPlot)
+            idx1 = round((50/1000)*d.Fs);
+            idx2 = idx1 + round((100/1000)*d.Fs);
+            idxs = round(linspace(idx1,idx2, 11));
+            plot(idxs,b1(cycles(cyclesToPlot(i)), :), 'Marker', 'o','MarkerSize', 10 , 'MarkerFaceColor', colors{i}, 'LineStyle', 'none', 'MarkerEdgeColor', [0 0 0])
+        end
+        title('Raw Sample Cycles with projected transform: Phase, Raw')
+    end
+    
+    % PHASE, Residual
+    b2 = get_behavior(d, 'time', 'residual', 50 , 100, 11);
+    
+    % Check for correct size behavior residuals
+    success = [success newline 'Pulled: behavior (phase, residual)'];
+    m = mean(b1,1, 'omitnan');
+    if sum(sum(~isnan(b1))) ~= sum(sum(~isnan(b2)))
+        success = [success '>> FAILED' ];    
+    % Check that raw equals residual plus mean. 
+    elseif ~isequaln(b1,(b2 + m))
+        success = [success '>> FAILED' ];     
+    end
+    
+    % Again, plot some random cycles that were specified
+    % Identify the cycles that were specified
+    if with_plots
+        cycles = find(~cellfun('isempty', d.rawBehav));
+        cyclesToPlot = round(linspace(1,length(cycles),5));
+        F3 = figure();
+        colors = {[1 0 0], [0 1 0], [0 0 1], [0 1 1], [1 0 1]};
+        for i = 1:length(cyclesToPlot)
+            plot(d.rawBehav{cycles(cyclesToPlot(i)),1}, 'color', colors{i})
+            hold on
+        end
+    end
+    
+    if with_plots
+        F4 = figure();
+        for i = 1:length(cyclesToPlot)
+            plot(b2(cycles(cyclesToPlot(i)),:), 'color', colors{i})
+            hold on
+        end
+        title('Transformed Sample Cycles: Phase, Residual')
+
+        figure(F3);
+        for i = 1:length(cyclesToPlot)
+            idx1 = round((50/1000)*d.Fs);
+            idx2 = idx1 + round((100/1000)*d.Fs);
+            idxs = round(linspace(idx1,idx2, 11));
+            plot(idxs,(b2(cycles(cyclesToPlot(i)), :) + m), 'Marker', 'o','MarkerSize', 10 , 'MarkerFaceColor', colors{i}, 'LineStyle', 'none', 'MarkerEdgeColor', [0 0 0])
+        end
+        title('Raw Sample Cycles with projected transform: Phase, Residual')        
+        
+    end
+    
+    % TIME, PCA
+    b1 = get_behavior(d, 'time', 'raw', 50, 100, 200);
+    b2 = get_behavior(d, 'time', 'pca', 50 , 100, 200, 2);
+    
+    % Run PCA on b1 to compare with b2.
+    m = mean(b1, 1, 'omitnan');
+    [coeff, score, latent] = pca(b1);
+    
+    % Check that scores 1 and 2 match b2. 
+    success = [success newline 'Pulled: behavior (Time, PCA)'];
+    if ~isequaln(score(:, 1:2), b2); success = [success '>> FAILED' ]; end
+    
+    % Check that the error on the full projections is low
+    b1_Full_proj = score * coeff' + repmat(m, size(b1,1), 1);
+    b1_proj_err = (b1 - b1_Full_proj)./b1;
+    err = max(max(b1_proj_err));
+    
+    % Check that error between data and rpojections is less than .01%
+    % RC20191202: NOTE: The error threshold here may need to be changed. 
+    success = [success newline 'Verified: PC Projection Error'];
+    if err >= 1e-4; success = [success '>> FAILED' ]; end
+    
+    
+    % Plot the projections of the two PCs of interest with the raw data.    
+    % Identify the cycles that were specified
+    if with_plots
+        cycles = find(~cellfun('isempty', d.rawBehav));
+        cyclesToPlot = round(linspace(1,length(cycles),5));
+        F5 = figure();
+        colors = {[1 0 0], [0 1 0], [0 0 1], [0 1 1], [1 0 1]};
+        for i = 1:length(cyclesToPlot)
+            plot(d.rawBehav{cycles(cyclesToPlot(i)),1}, 'color', colors{i})
+            hold on
+        end
+    end
+    
+    if with_plots
+        F6 = figure();
+        for i = 1:length(cyclesToPlot)
+            plot(b2(cycles(cyclesToPlot(i)),:), 'color', colors{i})
+            hold on
+        end
+        title('Transformed Sample Cycles: Phase, Residual')
+
+        figure(F5);
+        coeff_t = coeff';
+        b2_proj = b2 * coeff_t(1:2,:);
+        m = mean(b1,1,'omitnan');
+        colors2 = {};
+        for i = 1:length(cyclesToPlot)
+            idx1 = round((50/1000)*d.Fs);
+            idx2 = idx1 + round((100/1000)*d.Fs);
+            idxs = round(linspace(idx1,idx2, 200));
+            colors2{i} = colors{i}*.7;
+            plot(idxs,(b2_proj(cycles(cyclesToPlot(i)), :) + m),'LineWidth', 2 , 'LineStyle', ':', 'color', colors2{i})
+        end
+        title('Raw Sample Cycles with projected transform: Phase, Residual')        
+        
+    end
+    disp(success);
+catch e
+    e
+    global_errs{end+1} = {'Instantiating mi_data_behavior with ID and verbose'};
+    % Not possible to proceed without mi_data class
+    
+    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
+    for i=1:length(global_errs)
+        disp(global_errs{i});
+    end
+    disp(['----- ----- ----- ----- -----' newline]);
+    
+    error('FATAL ERROR: Unable to construct mi_data_behavior objects');
+end
 
 
 %%
