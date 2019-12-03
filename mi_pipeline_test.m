@@ -11,8 +11,8 @@ close('all')
 
 global_errs = {};
 
-% diary mi_pipeline_test_diary.txt
-% diary on
+diary mi_pipeline_test_diary.txt
+diary on
 
 with_plots = true;
 
@@ -512,7 +512,7 @@ try
     
     % Check that error between data and rpojections is less than .01%
     % RC20191202: NOTE: The error threshold here may need to be changed. 
-    success = [success newline 'Verified: PC Projection Error'];
+    success = [success newline 'Matched: all PCs projection with raw'];
     if err >= 1e-4; success = [success '>> FAILED' ]; end
     
     
@@ -535,7 +535,7 @@ try
             plot(b2(cycles(cyclesToPlot(i)),:), 'color', colors{i})
             hold on
         end
-        title('Transformed Sample Cycles: Phase, Residual')
+        title('Transformed Sample Cycles: Phase, PCA')
 
         figure(F5);
         coeff_t = coeff';
@@ -550,7 +550,7 @@ try
             colors2{i} = colors{i}*.7;
             plot(idxs,(b2_proj(cycles(cyclesToPlot(i)), :) + m),'LineWidth', 2 , 'LineStyle', ':', 'color', colors2{i})
         end
-        title('Raw Sample Cycles with projected transform: Phase, Residual')        
+        title('Raw Sample Cycles with projected transform: Phase, PCA')        
         
     end
     disp(success);
@@ -666,7 +666,7 @@ try
             plot(b1(cycles(cyclesToPlot(i)),:), 'color', colors{i})
             hold on
         end
-        title('Transformed Sample Cycles: Phase, Raw')
+        title('Transformed Sample Cycles: Time, Raw')
 
         figure(F1);
         for i = 1:length(cyclesToPlot)
@@ -675,14 +675,14 @@ try
             idxs = round(linspace(idx1,idx2, 11));
             plot(idxs,b1(cycles(cyclesToPlot(i)), :), 'Marker', 'o','MarkerSize', 10 , 'MarkerFaceColor', colors{i}, 'LineStyle', 'none', 'MarkerEdgeColor', [0 0 0])
         end
-        title('Raw Sample Cycles with projected transform: Phase, Raw')
+        title('Raw Sample Cycles with projected transform: Time, Raw')
     end
     
     % PHASE, Residual
     b2 = get_behavior(d, 'time', 'residual', 50 , 100, 11);
     
     % Check for correct size behavior residuals
-    success = [success newline 'Pulled: behavior (phase, residual)'];
+    success = [success newline 'Pulled: behavior (time, residual)'];
     m = mean(b1,1, 'omitnan');
     if sum(sum(~isnan(b1))) ~= sum(sum(~isnan(b2)))
         success = [success '>> FAILED' ];    
@@ -710,7 +710,7 @@ try
             plot(b2(cycles(cyclesToPlot(i)),:), 'color', colors{i})
             hold on
         end
-        title('Transformed Sample Cycles: Phase, Residual')
+        title('Transformed Sample Cycles: Time, Residual')
 
         figure(F3);
         for i = 1:length(cyclesToPlot)
@@ -719,7 +719,7 @@ try
             idxs = round(linspace(idx1,idx2, 11));
             plot(idxs,(b2(cycles(cyclesToPlot(i)), :) + m), 'Marker', 'o','MarkerSize', 10 , 'MarkerFaceColor', colors{i}, 'LineStyle', 'none', 'MarkerEdgeColor', [0 0 0])
         end
-        title('Raw Sample Cycles with projected transform: Phase, Residual')        
+        title('Raw Sample Cycles with projected transform: Time, Residual')        
         
     end
     
@@ -732,7 +732,7 @@ try
     [coeff, score, latent] = pca(b1);
     
     % Check that scores 1 and 2 match b2. 
-    success = [success newline 'Pulled: behavior (Time, PCA)'];
+    success = [success newline 'Pulled: behavior (time, PCA)'];
     if ~isequaln(score(:, 1:2), b2); success = [success '>> FAILED' ]; end
     
     % Check that the error on the full projections is low
@@ -742,7 +742,7 @@ try
     
     % Check that error between data and rpojections is less than .01%
     % RC20191202: NOTE: The error threshold here may need to be changed. 
-    success = [success newline 'Verified: PC Projection Error'];
+    success = [success newline 'Matched: all PCs projection with raw'];
     if err >= 1e-4; success = [success '>> FAILED' ]; end
     
     
@@ -765,7 +765,7 @@ try
             plot(b2(cycles(cyclesToPlot(i)),:), 'color', colors{i})
             hold on
         end
-        title('Transformed Sample Cycles: Phase, Residual')
+        title('Transformed Sample Cycles: Time, PCA')
 
         figure(F5);
         coeff_t = coeff';
@@ -779,7 +779,7 @@ try
             colors2{i} = colors{i}*.7;
             plot(idxs,(b2_proj(cycles(cyclesToPlot(i)), :) + m),'LineWidth', 2 , 'LineStyle', ':', 'color', colors2{i})
         end
-        title('Raw Sample Cycles with projected transform: Phase, Residual')        
+        title('Raw Sample Cycles with projected transform: Time, PCA')        
         
     end
     disp(success);

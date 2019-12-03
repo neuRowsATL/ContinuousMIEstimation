@@ -73,7 +73,12 @@ classdef mi_data_pressure < mi_data_behavior
                 [pressure_ts, pressure_wav] = read_Intan_RHD2000_nongui_adc(fullfile(obj.strFldr, obj.arrFiles{i}), obj.verbose);
 
                 
-                if v>2; disp(['Start time: ' num2str(pressure_ts(1)*1000.) ' ms']); end
+                if v>2
+                    disp(['Start time: ' num2str(pressure_ts(1)*1000.) ' ms']); 
+                    disp(['End time: ' num2str(pressure_ts(end)*1000) ' ms']); 
+                    disp(['Experiment start: ' num2str(min(min(cycle_times))) ' ms']);
+                    disp(['Experiment end: ' num2str(max(max(cycle_times))) ' ms']);
+                end
                 
                 % Filter Pressure Waves
 %                 filterData = obj.filterBehavior(pressure_wav, obj.Fs, filterFreq); % This will change once we update filterBehavior func
