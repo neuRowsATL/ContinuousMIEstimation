@@ -3,33 +3,61 @@ classdef mi_analysis < handle
     % 
     properties
         
-        vars % indicates which neuron(s)
+        varNames % indicates which data(s) to pull
         
         objData % Reference to which data object to pull from
+        
+        objBehav % Reference to which behavior object to pull from (optional)
         
         % BC: This will be a list/cell array of objMIcore instances (may need to index)
         % BC: cell array with structure: {{objMICore} {coeff} {k-value} {coreID}}
         arrMIcore % Reference to MIcore object 
 	
         sim_manager % Sim manager reference object
-        notes % Optional property, used to indicate how much data has been omitted
+        
+        verbose % level of output for progress and troubleshooting/debugging
+        
+        notes %Indicates how much data has been omitted (optional)
+        
     end
 
     methods
-        function obj = mi_analysis(objData, vars)
+        function obj = mi_analysis(objData, varNames, varargin)
             % This funtion inputs the data object reference and variable references
-            if nargin == 2
-                % BC 20190124: Design choice needs to be made....
-                % When specifying vars variable, we are only instantiating
-                % each analysis subclass object once, so vars should
-                % include ONLY the variables that are used for analysis
-                obj.objData = objData;
-                obj.vars = vars;   						
-            else
-                obj.objData = objData;
-                obj.vars = {};
-            end	   
-	   
+            
+            % Instantiate input parser
+            p = inputParser;
+            
+            % Set up required inputs
+            validate_objData = @(x) assert(isobject(x), 'objData must be a valid data object');
+            p.addRequired('objData', validate_objData);
+            
+            validate_varNames = @(x) assert(iscell(x), 'varNames must be a cell array of strings');
+            p.addRequired('varNames', validate_varNames);
+            
+            % Set up optional inputs
+            
+            % objBehav
+            % Default objBehav is empty struct for now? 
+            default_objBehav = struct(); 
+            validate_objBehav = @(x) assert(isobject(x) | isstruct(x), 'objBehav must be a valid behavior object');
+            p.addOptional('objBehav', default_objBehav, validate_objBehav);
+            
+            % verbose
+            default_verbose = 1;
+            validate_verbose = @(x) assert(isnumeric(x) && rem(x,1) == 0, 'verbose must be an integer');
+            p.addParameter('verbose', default_verbose, validate_verbose);
+            
+            % Parse the inputs
+            p.parse(objData, varNames, varargin{:});
+            
+            obj.objData = p.Results.objData;
+            obj.varNames = p.Results.varNames;
+            obj.objBehav = p.Results.objBehav;
+            obj.verbose = p.Results.verbose;
+            
+            % Temporarily set arrMIcore and instantiate a sim_manager
+            % object
             obj.arrMIcore = {};
             obj.sim_manager = mi_ksg_sims(1,3);
         end
