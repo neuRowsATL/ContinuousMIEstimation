@@ -60,6 +60,8 @@ classdef mi_analysis < handle
             % object
             obj.arrMIcore = {};
             obj.sim_manager = mi_ksg_sims(1,3);
+            
+            if obj.verbose > 0; disp([newline 'mi_analysis instantiated']); end
         end
 
         function buildMIs(obj, mi_data)
