@@ -65,29 +65,23 @@ classdef mi_analysis < handle
         end
 
         function buildMIs(obj, mi_data)
-            % NOTE- we still need to change the default k-value for this. 
-	        % BC: Move his for loop into the constructor for MI_KSG_data_analysis subclasses- DONE
+
+            % Set up empty array for obj.arrMIcore
             obj.arrMIcore = cell(size(mi_data,1),4);
             
+            % Define groups to fill in arrMIcore
             xGroups = mi_data{1};
             yGroups = mi_data{2};
             coeffs = mi_data{3};
             
+            v = obj.verbose;
+            
+            if v > 1; disp([newline '-->Assigning ID to each subgroup...']); end
+            
             for iGroup = 1:size(xGroups,1)
                 x = xGroups{iGroup,1};
                 y = yGroups{iGroup,1};
-		
-		if obj.objData.reparamData == 1
-                    for iDimension = 1:size(x,1)
-                        x(iDimension,:) = obj.objData.reparameterizeData(x(iDimension,:));
-                    end
-                    for iDimension = 1:size(y,1)
-                        y(iDimension,:) = obj.objData.reparameterizeData(y(iDimension,:));
-                    end
-                end
-		
-                % BC: Need to append new mi_core instance to the arrMICore object with associated information- DONE
-                % RC-  Is it a problem that we name the core object the same thing each iteration? 
+
               
                 while 1 % generate random key to keep track of which MI calculations belong together
                     key = num2str(dec2hex(round(rand(1)*100000)));
@@ -101,16 +95,24 @@ classdef mi_analysis < handle
                 end
                 % RC: Why do we set the k values in the core object and in
                 % the arrMIcore?
-                core1 = mi_ksg_core(obj.sim_manager, x, y, 3:8, 0);
+                core1 = mi_ksg_core(obj.sim_manager, x, y, 1:9, 0);
+                if v > 2; disp([newline '-->Core object instantiated for group:' num2str(iGroup)]); end
+                
+                if v > 2; disp([newline '--> --> Group ' num2str(iGroup) ' has ' num2str(max(size(x))) 'data points']); end
+                
 	            obj.arrMIcore(iGroup,:) = {core1 coeffs{iGroup,1} 0 key};
+                
+                if v > 2; disp([newline '--> --> arrMIcore assigned']); end
 	            % BC: The obj.findMIs function basically calls run_sims
             end
 	    % Sets up an MIcore object to calculate the MI values, and pushes the
 	    % data from this object to the MIcore process. 
+        
+            if v > 0; disp(['COMPLETE: Added all data to arrMIcore']); end
         end
         
         function calcMIs(obj)
-            disp('Calculating mutual information...');
+            if v > 0; disp('Calculating mutual information...'); end
             run_sims(obj.sim_manager);
         end
     end

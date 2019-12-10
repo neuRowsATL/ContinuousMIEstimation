@@ -808,6 +808,7 @@ end
 %%  mi_analysis
 try
     clear d
+    clear a
     disp([newline '===== ===== ===== ===== =====']);
     disp(['RUNNING: mi_analysis()' newline newline]);
 
@@ -825,11 +826,11 @@ try
     
     % Check for correct objData
     success = [success newline 'Assigned: objData'];
-    if ~strcmp(class(a.objData),'mi_data_neural'); success = [success '>> FAILED']; end
+    if ~isa(a.objData,'mi_data_neural'); success = [success '>> FAILED']; end
     
     % Check for correct varNames
     success = [success newline 'Assigned: varNames'];
-    if ~isequal(a.varnames, {'unit1', 'unit2'}); success = [success '>> FAILED']; end
+    if ~isequal(a.varNames, {'unit1', 'unit2'}); success = [success '>> FAILED']; end
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
@@ -837,13 +838,13 @@ try
     
     % Check for sim manager object
     success = [success newline 'Constructed: sim_manager'];
-    if ~strcmp(class(a.sim_manager),'mi_ksg_sims'); success = [success '>> FAILED']; end
+    if ~isa(a.sim_manager,'mi_ksg_sims'); success = [success '>> FAILED']; end
     
     % Check for integration with data object
     success = [success newline 'Matched: varNames to objData.data'];
-    if isfield(a.objData.data, a.varNames{1}) && isfield(a.objData.data, a.varNames{2}); success = [success '>> FAILED']; end
+    if ~isfield(a.objData.data, a.varNames{1}) || ~isfield(a.objData.data, a.varNames{2}); success = [success '>> FAILED']; end
     
-
+    disp(success)
     
 catch e
     e
