@@ -9,6 +9,10 @@ classdef mi_data_neural < mi_data
             add_data(obj, data, dataInfo, Fs, varargin{:});
         end
         
+        function add_cycleTimes(obj, data, dataInfo, Fs, varargin)
+            add_data(obj, data, dataInfo, Fs, 'cycleTimes', varargin{:});
+        end
+        
         function r = get_spikes(obj, varargin)
             v = obj.verbose;
             p = inputParser;

@@ -29,7 +29,7 @@ classdef mi_analysis < handle
             p = inputParser;
             
             % Set up required inputs
-            validate_objData = @(x) assert(isobject(x), 'objData must be a valid data object');
+            validate_objData = @(x) assert(isa(x, 'mi_data'), 'objData must be a valid data object');
             p.addRequired('objData', validate_objData);
             
             validate_varNames = @(x) assert(iscell(x), 'varNames must be a cell array of strings');
@@ -76,7 +76,7 @@ classdef mi_analysis < handle
             
             v = obj.verbose;
             
-            if v > 1; disp([newline '-->Assigning ID to each subgroup...']); end
+            if v > 1; disp([newline 'Assigning ID to each subgroup...']); end
             
             for iGroup = 1:size(xGroups,1)
                 x = xGroups{iGroup,1};
@@ -96,13 +96,13 @@ classdef mi_analysis < handle
                 % RC: Why do we set the k values in the core object and in
                 % the arrMIcore?
                 core1 = mi_ksg_core(obj.sim_manager, x, y, 1:9, 0);
-                if v > 2; disp([newline '-->Core object instantiated for group:' num2str(iGroup)]); end
+                if v > 2; disp([newline '--> Core object instantiated for group:' num2str(iGroup)]); end
                 
-                if v > 2; disp([newline '--> --> Group ' num2str(iGroup) ' has ' num2str(max(size(x))) 'data points']); end
+                if v > 2; disp([newline '--> Group ' num2str(iGroup) ' has ' num2str(max(size(x))) ' data points']); end
                 
 	            obj.arrMIcore(iGroup,:) = {core1 coeffs{iGroup,1} 0 key};
                 
-                if v > 2; disp([newline '--> --> arrMIcore assigned']); end
+                if v > 2; disp([newline '--> arrMIcore assigned']); end
 	            % BC: The obj.findMIs function basically calls run_sims
             end
 	    % Sets up an MIcore object to calculate the MI values, and pushes the

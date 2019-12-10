@@ -344,14 +344,14 @@ end
 %fpath = 'D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16';
 
 % RACHEL_lab:
-% fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
-% fnames = {fnames.name};
-% fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
+fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
+fnames = {fnames.name};
+fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
 
 % RACHEL_mac:
-fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
-fnames = {fnames.name};
-fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
+% fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
+% fnames = {fnames.name};
+% fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
 
 
 try
@@ -580,14 +580,14 @@ end
 %fpath = 'D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16';
 
 % RACHEL_lab:
-% fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
-% fnames = {fnames.name};
-% fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
+fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
+fnames = {fnames.name};
+fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
 
 % RACHEL_mac:
-fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
-fnames = {fnames.name};
-fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
+% fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
+% fnames = {fnames.name};
+% fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
 
 
 try
@@ -860,6 +860,64 @@ catch e
     error('FATAL ERROR: Unable to construct mi_analysis object');
 end
 
+%%  mi_analysis: calc_count_count
+try
+    clear d
+    clear a
+    disp([newline '===== ===== ===== ===== =====']);
+    disp(['RUNNING: mi_analysis()' newline newline]);
 
+    d = mi_data_neural('test', 'verbose', 5);
+
+    add_spikes(d, unit1, str_unit1, 30000, 'unit1');
+    add_spikes(d, unit2, str_unit2, 30000, 'unit2');
+    
+    add_cycleTimes(d, cycle_times, str_cycles, 30000);
+    
+    % Construct mi_analysis object
+    a = calc_count_count(d, {'unit1' , 'unit2'}, 'verbose', 5);
+    
+    
+    % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
+    success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
+    
+    % Check for correct objData
+    success = [success newline 'Assigned: objData'];
+    if ~isa(a.objData,'mi_data_neural'); success = [success '>> FAILED']; end
+    
+    % Check for correct varNames
+    success = [success newline 'Assigned: varNames'];
+    if ~isequal(a.varNames, {'unit1', 'unit2'}); success = [success '>> FAILED']; end
+    
+    % Check for verbose
+    success = [success newline 'Assigned: verbose'];
+    if a.verbose ~= 5; success = [success '>> FAILED']; end
+    
+    % Check for sim manager object
+    success = [success newline 'Constructed: sim_manager'];
+    if ~isa(a.sim_manager,'mi_ksg_sims'); success = [success '>> FAILED']; end
+    
+    % Check for integration with data object
+    success = [success newline 'Matched: varNames to objData.data'];
+    if ~isfield(a.objData.data, a.varNames{1}) || ~isfield(a.objData.data, a.varNames{2}); success = [success '>> FAILED']; end
+    
+    % Run buildMIs()
+    a.buildMIs();
+    
+    disp(success)
+    
+catch e
+    e
+    global_errs{end+1} = {'Instantiating mi_analysis'};
+    % Not possible to proceed without mi_analysis class
+    
+    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
+    for i=1:length(global_errs)
+        disp(global_errs{i});
+    end
+    disp(['----- ----- ----- ----- -----' newline]);
+    
+    error('FATAL ERROR: Unable to construct mi_analysis object');
+end
 %%
 diary off
