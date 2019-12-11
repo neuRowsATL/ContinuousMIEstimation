@@ -10,7 +10,7 @@ classdef calc_count_count < mi_analysis
     
     methods
 
-       function obj = calc_count_count(objData,varNames, varargin)
+       function obj = calc_count_count(objData, objBehav, varNames, varargin)
             % Required arguments: objData, varNames
             % Check required inputs for validity using input parser
             
@@ -21,21 +21,29 @@ classdef calc_count_count < mi_analysis
             validate_objData = @(x) assert(isa(x, 'mi_data_neural'), 'objData must be a neural data subclass');
             p.addRequired('objData', validate_objData);
             
+            validate_objBehav = @(x) assert(isa(x, 'mi_data_behavior'), 'objBehav must be a behavioral data subclass');
+            p.addRequired('objBehav', validate_objBehav);
+            
             validate_varNames = @(x) assert(iscell(x) && (length(x) == 2), 'varNames must be a cell of length 2');
             p.addRequired('varNames', validate_varNames);
             
-            p.parse(objData, varNames);
             
+            % Prepare InputParser to parse only desired inputs
+            p.KeepUnmatched = 1;
+            p.parse(objData, objBehav, varNames, varargin{:});
+            
+            % Define validated inputs to parent constructor
             objData = p.Results.objData;
+            objBehav = p.Results.objBehav;
             varNames = p.Results.varNames;
             
-            % Check that varNames references valid fields of objData
+            % One more validation: Check that varNames references valid fields of objData
             for ivarNames = 1:length(varNames)
                 assert(isfield(objData.data , varNames{ivarNames}), ['varName: ' varNames{ivarNames} 'is not a valid field of the neural data object']); 
             end
             
             % Call parent constructor
-            obj@mi_analysis(objData, varNames, varargin{:});
+            obj@mi_analysis(objData, objBehav, varNames, varargin{:});
         end
         
         function  buildMIs(obj)

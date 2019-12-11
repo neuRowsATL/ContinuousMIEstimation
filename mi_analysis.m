@@ -22,7 +22,7 @@ classdef mi_analysis < handle
     end
 
     methods
-        function obj = mi_analysis(objData, varNames, varargin)
+        function obj = mi_analysis(objData, objBehav, varNames, varargin)
             % This funtion inputs the data object reference and variable references
             
             % Instantiate input parser
@@ -32,16 +32,14 @@ classdef mi_analysis < handle
             validate_objData = @(x) assert(isa(x, 'mi_data'), 'objData must be a valid data object');
             p.addRequired('objData', validate_objData);
             
+            validate_objBehav = @(x) assert(isa(x, 'mi_data'), 'objBehav must be a valid behavior object');
+            p.addRequired('objBehav', validate_objBehav);
+            
             validate_varNames = @(x) assert(iscell(x), 'varNames must be a cell array of strings');
             p.addRequired('varNames', validate_varNames);
             
-            % Set up optional inputs
             
-            % objBehav
-            % Default objBehav is empty struct for now? 
-            default_objBehav = struct(); 
-            validate_objBehav = @(x) assert(isobject(x) | isstruct(x), 'objBehav must be a valid behavior object');
-            p.addOptional('objBehav', default_objBehav, validate_objBehav);
+            % Set up optional input
             
             % verbose
             default_verbose = 1;
@@ -49,7 +47,9 @@ classdef mi_analysis < handle
             p.addParameter('verbose', default_verbose, validate_verbose);
             
             % Parse the inputs
-            p.parse(objData, varNames, varargin{:});
+            % Set up InputParser to handle extra inputs from subclasses
+            p.KeepUnmatched = 1;
+            p.parse(objData, objBehav, varNames, varargin{:});
             
             obj.objData = p.Results.objData;
             obj.varNames = p.Results.varNames;

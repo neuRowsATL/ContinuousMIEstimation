@@ -9,10 +9,10 @@ classdef calc_timing_count < mi_analysis
     end
     
     methods
-        function obj = calc_timing_count(objData,varNames, varargin)
+        function obj = calc_timing_count(objData, objBehav, varNames, varargin)
             % Required arguments: objData, varNames
             % Check required inputs for validity using input parser
-            
+ 
             % Set up input parser
             p = inputParser;
             
@@ -20,29 +20,38 @@ classdef calc_timing_count < mi_analysis
             validate_objData = @(x) assert(isa(x, 'mi_data_neural'), 'objData must be a neural data subclass');
             p.addRequired('objData', validate_objData);
             
+            validate_objBehav = @(x) assert(isa(x, 'mi_data_behavior'), 'objBehav must be a behavioral data subclass');
+            p.addRequired('objBehav', validate_objBehav);
+            
             validate_varNames = @(x) assert(iscell(x) && (length(x) == 2), 'varNames must be a cell of length 2');
             p.addRequired('varNames', validate_varNames);
             
-            % Set parameter
+            
+            % Set parameters
             default_timebase = 'time';
             valid_timebases = {'time', 'phase'};
             validate_timebase = @(x) assert(ischar(x) && ismember(x, valid_timebases), 'timebase must be: time, phase');
             p.addParameter('timebase', default_timebase, validate_timebase); 
-            p.parse(objData, varNames, varargin{:});
             
-            
+            % Prepare InputParser to parse only desired inputs
+            p.KeepUnmatched = 1;
+            p.parse(objData, objBehav, varNames, varargin{:});
+                                   
+            % Define validated inputs to parent constructor
             objData = p.Results.objData;
+            objBehav = p.Results.objData;
             varNames = p.Results.varNames;
             
-            obj.timebase = p.Results.timebase
-            
-            % Check that varNames references valid fields of objData
+            % One more validation: Check that varNames references valid fields of objData
             for ivarNames = 1:length(varNames)
                 assert(isfield(objData.data , varNames{ivarNames}), ['varName: ' varNames{ivarNames} 'is not a valid field of the neural data object']); 
             end
             
             % Call parent constructor
-            obj@mi_analysis(objData, varNames, varargin{:});
+            obj@mi_analysis(objData, objBehav, varNames, varargin{:});
+            
+            % Define timebase property of subclass object
+            obj.timebase = p.Results.timebase;
 
         end
         

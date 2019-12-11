@@ -818,7 +818,7 @@ try
     add_spikes(d, unit2, str_unit2, 30000, 'unit2');
     
     % Construct mi_analysis object
-    a = mi_analysis(d, {'unit1' , 'unit2'}, 'verbose', 5);
+    a = mi_analysis(d, b {'unit1' , 'unit2'}, 'verbose', 5);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
@@ -872,10 +872,11 @@ try
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
     add_spikes(d, unit2, str_unit2, 30000, 'unit2');
     
-    add_cycleTimes(d, cycle_times, str_cycles, 30000);
+    b = mi_data_pressure('test', 'verbose', 5);
+    add_cycleTimes(b, cycle_times, str_cycles, 30000);
     
     % Construct mi_analysis object
-    a = calc_count_count(d, {'unit1' , 'unit2'}, 'verbose', 5);
+    a = calc_count_count(d, b, {'unit1' , 'unit2'}, 'verbose', 5);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
@@ -902,7 +903,7 @@ try
     if ~isfield(a.objData.data, a.varNames{1}) || ~isfield(a.objData.data, a.varNames{2}); success = [success '>> FAILED']; end
     
     % Run buildMIs()
-    a.buildMIs();
+    % a.buildMIs();
     
     disp(success)
     
@@ -927,15 +928,17 @@ try
     disp([newline '===== ===== ===== ===== =====']);
     disp(['RUNNING: mi_analysis(): timing_count' newline newline]);
 
+
     d = mi_data_neural('test', 'verbose', 5);
 
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
     add_spikes(d, unit2, str_unit2, 30000, 'unit2');
     
-    add_cycleTimes(d, cycle_times, str_cycles, 30000);
+    b = mi_data_pressure('test', 'verbose', 5);
+    add_cycleTimes(b, cycle_times, str_cycles, 30000);
     
     % Construct mi_analysis object
-    a = calc_timing_count(d, {'unit1' , 'unit2'}, 'verbose', 5);
+    a = calc_timing_count(d, b, {'unit1' , 'unit2'}, 'verbose', 5);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY

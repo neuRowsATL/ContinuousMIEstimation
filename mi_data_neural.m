@@ -9,10 +9,6 @@ classdef mi_data_neural < mi_data
             add_data(obj, data, dataInfo, Fs, varargin{:});
         end
         
-        function add_cycleTimes(obj, data, dataInfo, Fs, varargin)
-            add_data(obj, data, dataInfo, Fs, 'cycleTimes', varargin{:});
-        end
-        
         function r = get_spikes(obj, varargin)
             v = obj.verbose;
             p = inputParser;
@@ -157,7 +153,7 @@ classdef mi_data_neural < mi_data
             cycle_spike_ts = nan(size(cycle_ts,1), max(cycle_spike_counts));
 
             
-            % AVG run time: 0.9658 s
+            % AVG run time: 0.9658s
             for cycle_ix = 1:(size(cycle_ts,1))
                cycle_spikes_ix = find((spike_ts > cycle_ts(cycle_ix,1)) & (spike_ts < cycle_ts(cycle_ix,2)));
                if ~isempty(cycle_spikes_ix)
