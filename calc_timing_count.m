@@ -5,25 +5,55 @@ classdef calc_timing_count < mi_analysis
     %   Detailed explanation goes here
     
     properties
+        timebase
     end
     
     methods
-        function obj = calc_timing_count(objData,vars)
-            % vars - 2 x 1 vector specifying neuron numbers
-
-            if length(vars) ~= 2
-                error('Expected 2 variables specified');
+        function obj = calc_timing_count(objData,varNames, varargin)
+            % Required arguments: objData, varNames
+            % Check required inputs for validity using input parser
+            
+            % Set up input parser
+            p = inputParser;
+            
+            % Set required inputs
+            validate_objData = @(x) assert(isa(x, 'mi_data_neural'), 'objData must be a neural data subclass');
+            p.addRequired('objData', validate_objData);
+            
+            validate_varNames = @(x) assert(iscell(x) && (length(x) == 2), 'varNames must be a cell of length 2');
+            p.addRequired('varNames', validate_varNames);
+            
+            % Set parameter
+            default_timebase = 'time';
+            valid_timebases = {'time', 'phase'};
+            validate_timebase = @(x) assert(ischar(x) && ismember(x, valid_timebases), 'timebase must be: time, phase');
+            p.addParameter('timebase', default_timebase, validate_timebase); 
+            p.parse(objData, varNames, varargin{:});
+            
+            
+            objData = p.Results.objData;
+            varNames = p.Results.varNames;
+            
+            obj.timebase = p.Results.timebase
+            
+            % Check that varNames references valid fields of objData
+            for ivarNames = 1:length(varNames)
+                assert(isfield(objData.data , varNames{ivarNames}), ['varName: ' varNames{ivarNames} 'is not a valid field of the neural data object']); 
             end
-
-            obj@mi_analysis(objData, vars);
+            
+            % Call parent constructor
+            obj@mi_analysis(objData, varNames, varargin{:});
 
         end
         
         function buildMIs(obj)
-% Build the data and core objects necessary to run the sim manager for this analysis class            
+            % Build the data and core objects necessary to run the sim manager for this analysis class            
             % First, segment neural data into breath cycles
-            neuron = obj.vars(1);
-            x = obj.objData.getTiming(neuron);
+            v = obj.verbose;
+            
+            % Find total spike count in a cycle for neuron 1 
+            x_name  = obj.varNames{1};
+            x = obj.objData.get_spikes('name', x_name , 'format', 'timing', 'cycleTimes', obj.objData.data.cycleTimes.data, 'timebase', obj.timebase);
            
             % Find different subgroups
             xCounts = obj.objData.getCount(neuron);

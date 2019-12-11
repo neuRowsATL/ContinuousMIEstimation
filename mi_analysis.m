@@ -98,7 +98,7 @@ classdef mi_analysis < handle
                 % RC: Why do we set the k values in the core object and in
                 % the arrMIcore?
                 core1 = mi_ksg_core(obj.sim_manager, x, y, 1:9, 0);
-                if v > 2; disp([newline '--> Core object instantiated for group:' num2str(iGroup)]); end
+                if v > 2; disp([newline '--> Core object instantiated for group: ' num2str(iGroup)]); end
                 
                 if v > 2; disp([newline '--> Group ' num2str(iGroup) ' has ' num2str(max(size(x))) ' data points']); end
                 
