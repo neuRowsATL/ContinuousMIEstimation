@@ -52,7 +52,7 @@ classdef calc_count_count < mi_analysis
 
             % Find total spike count in a cycle for neuron 1 
             x_name  = obj.varNames{1};
-            x = obj.objData.get_spikes('name', x_name , 'format', 'count', 'cycleTimes', obj.objData.data.cycleTimes.data );
+            x = obj.objData.get_spikes('name', x_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
             
             % Audit Check
             if v > 3
@@ -68,12 +68,12 @@ classdef calc_count_count < mi_analysis
 
             % Next find spike count for neuron 2
             y_name = obj.varNames{2};
-            y = obj.objData.get_spikes('name', y_name, 'format', 'count', 'cycleTimes', obj.objData.data.cycleTimes.data );
+            y = obj.objData.get_spikes('name', y_name, 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
 
             % Audit Check
             if v > 3
                 if sum(y) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objData.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objData.data.cycleTimes.data(end,2))))
-                    error('Error: Spike Counts for x do not match that expected from objData.varNames{2}.');
+                   error('Error: Spike Counts for x do not match that expected from objData.varNames{2}.');
                 end
             end
             

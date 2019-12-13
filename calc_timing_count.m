@@ -62,15 +62,15 @@ classdef calc_timing_count < mi_analysis
             
             % Find total spike count in a cycle for neuron 1 
             x_name  = obj.varNames{1};
-            x = obj.objData.get_spikes('name', x_name , 'format', 'timing', 'cycleTimes', obj.objData.data.cycleTimes.data, 'timebase', obj.timebase);
+            x = obj.objData.get_spikes('name', x_name , 'format', 'timing', 'cycleTimes', obj.objBehav.data.cycleTimes.data, 'timebase', obj.timebase);
            
             % Find different subgroups
-            xCounts = obj.objData.getCount(neuron);
-            xConds = unique(xCounts);
+            xCounts = obj.objData.get_spikes('name', x_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
+            xConds= unique(xCounts);
 
             % Next segment other neuron into cycles and find the count
-            neuron = obj.vars(2);
-            y = obj.objData.getCount(neuron);
+            y_name = obj.varNames{2};
+            y = = obj.objData.get_spikes('name', y_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
 
 
             % AS WRITTEN- we put each subgroup for the calculation into an array. 

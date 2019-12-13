@@ -9,6 +9,7 @@
 clear all
 close('all')
 
+
 global_errs = {};
 
 diary mi_pipeline_test_diary.txt
@@ -58,7 +59,7 @@ catch e
     global_errs{end+1} = {'Intantiating mi_data with ID only'};
     disp([newline 'ERROR: Unable to instantiate mi_data with ID only']);
 end
-
+%% - FOR RUNNING IN EMACS
 try
     disp([newline newline]);
     clear d;
@@ -140,8 +141,10 @@ try
 
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
 
-    % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
-    success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
+
+    
+   % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
+success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
 
     % Check for correct ID
     success = [success newline 'Assigned: ID'];
@@ -175,7 +178,7 @@ try
     success = [success newline 'Pulled: raw data'];
     if any(size(get_spikes(d, 'format', 'raw', 'name', 'unit1')) ~= size(get_data(d,'unit1'))); success = [success '>> FAILED']; end
 
-    % VALIDATION CHECK
+       % VALIDATION CHECK - Check by plotting and functions
     % 1. Number of non-nan values = # spikes - # spikes outside of cycles
     % 2. Save validated matrix to check against
     
@@ -255,13 +258,14 @@ try
         ylabel('Cycle Index');
         title('Comparison of spike timing (phase)');
     end
-    
-    disp(success);
 catch e
     e
     global_errs{end+1} = {'Instantiating mi_data_neural'};
     disp([newline 'ERROR: Unable to instantiate mi_data_neural']);
 end
+    % PRINT RESULTS FROM CHECKS    
+    disp(success);
+
     
 %%
 
@@ -343,15 +347,15 @@ end
 %fnames = {fnames.name};
 %fpath = 'D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16';
 
-% RACHEL_lab:
-fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
-fnames = {fnames.name};
-fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
+% % RACHEL_lab:
+% fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
+% fnames = {fnames.name};
+% fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
 
 % RACHEL_mac:
-% fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
-% fnames = {fnames.name};
-% fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
+fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
+fnames = {fnames.name};
+fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
 
 
 try
@@ -579,15 +583,15 @@ end
 %fnames = {fnames.name};
 %fpath = 'D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16';
 
-% RACHEL_lab:
-fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
-fnames = {fnames.name};
-fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
-
-% RACHEL_mac:
-% fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
+% % RACHEL_lab:
+% fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
 % fnames = {fnames.name};
-% fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
+% fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
+
+%RACHEL_mac:
+fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
+fnames = {fnames.name};
+fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
 
 
 try
@@ -817,8 +821,11 @@ try
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
     add_spikes(d, unit2, str_unit2, 30000, 'unit2');
     
+    b = mi_data_pressure('test', 'verbose', 5);
+    add_cycleTimes(b, cycle_times, str_cycles, 30000);
+    
     % Construct mi_analysis object
-    a = mi_analysis(d, b {'unit1' , 'unit2'}, 'verbose', 5);
+    a = mi_analysis(d, b, {'unit1' , 'unit2'}, 'verbose', 5);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
