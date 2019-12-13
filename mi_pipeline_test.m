@@ -972,7 +972,7 @@ try
     if ~isfield(a.objData.data, a.varNames{1}) || ~isfield(a.objData.data, a.varNames{2}); success = [success '>> FAILED']; end
     
     % Run buildMIs()
-    %a.buildMIs();
+    a.buildMIs();
     
     disp(success)
     

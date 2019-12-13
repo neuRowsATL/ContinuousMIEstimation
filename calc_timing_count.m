@@ -39,7 +39,7 @@ classdef calc_timing_count < mi_analysis
                                    
             % Define validated inputs to parent constructor
             objData = p.Results.objData;
-            objBehav = p.Results.objData;
+            objBehav = p.Results.objBehav;
             varNames = p.Results.varNames;
             
             % One more validation: Check that varNames references valid fields of objData
@@ -70,7 +70,7 @@ classdef calc_timing_count < mi_analysis
 
             % Next segment other neuron into cycles and find the count
             y_name = obj.varNames{2};
-            y = = obj.objData.get_spikes('name', y_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
+            y = obj.objData.get_spikes('name', y_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
 
 
             % AS WRITTEN- we put each subgroup for the calculation into an array. 
@@ -87,7 +87,7 @@ classdef calc_timing_count < mi_analysis
                 Cond = xConds(iCond);
                 groupIdx = find(xCounts == Cond);
                 if Cond == 0
-                    num = sum(xCounts == Cond);
+                    num = length(groupIdx);
                     ratio = (num/length(xCounts))*100;
                     note = strcat('Omitting ', num2str(ratio), 'percent of cycles because zero spikes');
                     disp(note)
@@ -101,7 +101,7 @@ classdef calc_timing_count < mi_analysis
                     % of the Coeffs (the Coeffs will sum to 1 - n(zero)
                     continue
                 elseif Cond > sum(xCounts == Cond)
-                    num = sum(xCounts == Cond);
+                    num = length(groupIdx);
                     ratio = (num/length(xCounts))*100;
                     note = strcat('Omitting ', num2str(ratio), 'percent of cycles, where Cond = ' , num2str(Cond), 'because more spikes than data.');
                     disp(note)
@@ -111,7 +111,7 @@ classdef calc_timing_count < mi_analysis
                 end
                 ixGroup =  x(groupIdx,1:Cond);
                 xGroups{groupCount,1} = ixGroup;
-                coeffs{groupCount,1} = length(ixGroup)/length(xCounts);
+                coeffs{groupCount,1} = size(ixGroup,1)/length(xCounts);
                 yGroups{groupCount,1} = y(groupIdx)';
                 groupCount = groupCount + 1;
             end
