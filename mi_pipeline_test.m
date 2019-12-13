@@ -893,6 +893,10 @@ try
     success = [success newline 'Assigned: objData'];
     if ~isa(a.objData,'mi_data_neural'); success = [success '>> FAILED']; end
     
+    % Check for correct objBehav
+    success = [success newline 'Assigned: objBehav'];
+    if ~isa(a.objData,'mi_data_pressure'); success = [success '>> FAILED']; end
+    
     % Check for correct varNames
     success = [success newline 'Assigned: varNames'];
     if ~isequal(a.varNames, {'unit1', 'unit2'}); success = [success '>> FAILED']; end
@@ -910,7 +914,7 @@ try
     if ~isfield(a.objData.data, a.varNames{1}) || ~isfield(a.objData.data, a.varNames{2}); success = [success '>> FAILED']; end
     
     % Run buildMIs()
-    % a.buildMIs();
+    a.buildMIs();
     
     disp(success)
     
@@ -955,6 +959,10 @@ try
     success = [success newline 'Assigned: objData'];
     if ~isa(a.objData,'mi_data_neural'); success = [success '>> FAILED']; end
     
+    % Check for correct objBehav
+    success = [success newline 'Assigned: objBehav'];
+    if ~isa(a.objData,'mi_data_pressure'); success = [success '>> FAILED']; end
+    
     % Check for correct varNames
     success = [success newline 'Assigned: varNames'];
     if ~isequal(a.varNames, {'unit1', 'unit2'}); success = [success '>> FAILED']; end
@@ -962,6 +970,10 @@ try
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
     if a.verbose ~= 5; success = [success '>> FAILED']; end
+    
+    % Check for correct timebase (specific to timing subclass)
+    success = [success newline 'Assigned: timebase'];
+    if ~isequal(a.timebase, 'time'); success = [success '>> FAILED']; end
     
     % Check for sim manager object
     success = [success newline 'Constructed: sim_manager'];
@@ -973,6 +985,8 @@ try
     
     % Run buildMIs()
     a.buildMIs();
+    
+
     
     disp(success)
     

@@ -55,10 +55,8 @@ classdef calc_count_count < mi_analysis
             x = obj.objData.get_spikes('name', x_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
             
             % Audit Check
-            if v > 3
-                if sum(x) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objData.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objData.data.cycleTimes.data(end,2))))
-                    error('Error: Spike Counts for x do not match that expected from objData.varNames{1}.');
-                end
+            if sum(x) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objData.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objData.data.cycleTimes.data(end,2))))
+                error('Error: Spike Counts for x do not match that expected from objData.varNames{1}.');
             end
 
             % Set groups that will serve as x variable
@@ -71,10 +69,8 @@ classdef calc_count_count < mi_analysis
             y = obj.objData.get_spikes('name', y_name, 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
 
             % Audit Check
-            if v > 3
-                if sum(y) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objData.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objData.data.cycleTimes.data(end,2))))
-                   error('Error: Spike Counts for x do not match that expected from objData.varNames{2}.');
-                end
+            if sum(y) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objData.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objData.data.cycleTimes.data(end,2))))
+               error('Error: Spike Counts for x do not match that expected from objData.varNames{2}.');
             end
             
             % Audit Plots

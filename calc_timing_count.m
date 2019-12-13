@@ -63,15 +63,33 @@ classdef calc_timing_count < mi_analysis
             % Find total spike count in a cycle for neuron 1 
             x_name  = obj.varNames{1};
             x = obj.objData.get_spikes('name', x_name , 'format', 'timing', 'cycleTimes', obj.objBehav.data.cycleTimes.data, 'timebase', obj.timebase);
+            
+            % Audit Check
+            if sum(sum(~isnan(x))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+                error('Error: N Spikes in x do not match that expected from objData.varNames{1}.');
+            end
            
             % Find different subgroups
             xCounts = obj.objData.get_spikes('name', x_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
             xConds= unique(xCounts);
+            
+            % Audit Check
+            if sum(xCounts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+                error('Error: Spike Counts for x do not match that expected from objData.varNames{1}.');
+            end
+            if sum(xCounts) ~=  sum(sum(~isnan(x)))
+                error('Error: Spike counts for x do not matach N Spikes in x.'); 
+            end
+
 
             % Next segment other neuron into cycles and find the count
             y_name = obj.varNames{2};
             y = obj.objData.get_spikes('name', y_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
 
+            % Audit Check: number of spikes detected
+            if sum(sum(~isnan(y))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+                error('Error: N Spikes in x do not match that expected from objData.varNames{1}.');
+            end
 
             % AS WRITTEN- we put each subgroup for the calculation into an array. 
             % NOTE currently as this code is written, we dont worry about data limitations. 
@@ -83,15 +101,26 @@ classdef calc_timing_count < mi_analysis
             % Set Group counter
             groupCount = 1;
             noteCount = 1;
+            omitCoeff = 0;
+            
             for iCond = 1:length(xConds)
                 Cond = xConds(iCond);
                 groupIdx = find(xCounts == Cond);
                 if Cond == 0
+                    % Find ratio and percent of data that will be omitted. 
                     num = length(groupIdx);
-                    ratio = (num/length(xCounts))*100;
-                    note = strcat('Omitting ', num2str(ratio), 'percent of cycles because zero spikes');
+                    groupRatio = num/length(xCounts);
+                    percent = groupRatio*100;
+                    
+                    % Document how much data is omitted.
+                    note = strcat('Omitting ', num2str(percent), 'percent of cycles because zero spikes');
                     disp(note)
                     obj.notes{noteCount,1} = note;
+                    
+                    % Keep track of total omitted ratio
+                    omitCoeff = omitCoeff + groupRatio;
+                    
+                    % Increase note counter
                     noteCount = noteCount + 1;
                     % When there are zero spikes, the MI from timing is zero. This
                     % can't be accounted for in the calculation because
@@ -101,21 +130,40 @@ classdef calc_timing_count < mi_analysis
                     % of the Coeffs (the Coeffs will sum to 1 - n(zero)
                     continue
                 elseif Cond > sum(xCounts == Cond)
+                    % Find ratio and percent of data that will be omitted. 
                     num = length(groupIdx);
-                    ratio = (num/length(xCounts))*100;
-                    note = strcat('Omitting ', num2str(ratio), 'percent of cycles, where Cond = ' , num2str(Cond), 'because more spikes than data.');
+                    groupRatio = num/length(xCounts);
+                    percent = groupRatio*100;
+                    
+                    % Dicumen how much data is omitted. 
+                    note = strcat('Omitting ', num2str(percent), 'percent of cycles, where Cond = ' , num2str(Cond), 'because more spikes than data.');
                     disp(note)
                     obj.notes{noteCount,1} = note;
-                    noteCount = noteCount + 1;
+                    
+                    % Keep track of total omitted ratio
+                    omitCoeff = omitCoeff + groupRatio;
+                    
+                    % Increase note counter
+                    noteCount = noteCount + 1;                    
                     continue
-                end
+                end 
+                % Define xdata for iCond
                 ixGroup =  x(groupIdx,1:Cond);
                 xGroups{groupCount,1} = ixGroup;
+                
+                % Find coeff corresponding to iCond
                 coeffs{groupCount,1} = size(ixGroup,1)/length(xCounts);
+                
+                % Define y data for iCond
                 yGroups{groupCount,1} = y(groupIdx)';
+                
+                % Increase group counter
                 groupCount = groupCount + 1;
             end
-	    
+            % Audit: Check that omit coeffs and group coeffs sum to 1. 
+            if (sum(coeffs{:}) + sum(omitCoeff)) ~= 1; error('Error: Sum of coeffs and omitted data ratios does not equal 1'); end
+            
+            % Call parent class buildMIs()
             buildMIs@mi_analysis(obj, {xGroups yGroups coeffs});          
             
         end
