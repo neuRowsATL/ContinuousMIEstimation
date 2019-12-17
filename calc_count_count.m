@@ -55,7 +55,7 @@ classdef calc_count_count < mi_analysis
             x = obj.objData.get_spikes('name', x_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
             
             % Audit Check
-            if sum(x) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objData.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objData.data.cycleTimes.data(end,2))))
+            if sum(x) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
                 error('Error: Spike Counts for x do not match that expected from objData.varNames{1}.');
             end
 
@@ -69,39 +69,10 @@ classdef calc_count_count < mi_analysis
             y = obj.objData.get_spikes('name', y_name, 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
 
             % Audit Check
-            if sum(y) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objData.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objData.data.cycleTimes.data(end,2))))
+            if sum(y) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
                error('Error: Spike Counts for x do not match that expected from objData.varNames{2}.');
             end
             
-            % Audit Plots
-            if v > 4
-                figure()
-                histogram(x)
-                hold on
-                xlabel('Spike Count: X')
-                ylabel('N Cycles')
-                title('Histogram for X')
-
-                figure()
-                histogram(y)
-                hold on
-                xlabel('Spike Count: Y')
-                ylabel('N Cycles')
-                title('Histogram for Y')
-
-                % Add noise for joint histogram
-                x_plot = x + 1e-2*rand(size(x));
-                y_plot = y + 0.2*rand(size(y));
-                
-                
-                figure()
-                plot(x_plot , y_plot, 'x')
-                hold on
-                xlabel('Spike Count: X')
-                ylabel('Spike Count: Y')
-                title('P(X,Y) Count Joint Distribution')
-
-            end
             
             % Set groups that will serve as y variable
             % RC20191210: Nemenman code automatically adds noise. Removed

@@ -895,7 +895,7 @@ try
     
     % Check for correct objBehav
     success = [success newline 'Assigned: objBehav'];
-    if ~isa(a.objData,'mi_data_pressure'); success = [success '>> FAILED']; end
+    if ~isa(a.objBehav,'mi_data_pressure'); success = [success '>> FAILED']; end
     
     % Check for correct varNames
     success = [success newline 'Assigned: varNames'];
@@ -961,7 +961,7 @@ try
     
     % Check for correct objBehav
     success = [success newline 'Assigned: objBehav'];
-    if ~isa(a.objData,'mi_data_pressure'); success = [success '>> FAILED']; end
+    if ~isa(a.objBehav,'mi_data_pressure'); success = [success '>> FAILED']; end
     
     % Check for correct varNames
     success = [success newline 'Assigned: varNames'];

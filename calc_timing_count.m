@@ -87,7 +87,7 @@ classdef calc_timing_count < mi_analysis
             y = obj.objData.get_spikes('name', y_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
 
             % Audit Check: number of spikes detected
-            if sum(sum(~isnan(y))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+            if sum(y) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
                 error('Error: N Spikes in x do not match that expected from objData.varNames{1}.');
             end
 
@@ -160,8 +160,8 @@ classdef calc_timing_count < mi_analysis
                 % Increase group counter
                 groupCount = groupCount + 1;
             end
-            % Audit: Check that omit coeffs and group coeffs sum to 1. 
-            if (sum(coeffs{:}) + sum(omitCoeff)) ~= 1; error('Error: Sum of coeffs and omitted data ratios does not equal 1'); end
+            % Audit: Check that omit coeffs and group coeffs sum to 1 with a very small tolerance to account for matlab rounding error. 
+            if ~ismembertol((sum(cell2mat(coeffs)) + sum(omitCoeff)), 1, 1e-12);keyboard;  error('Error: Sum of coeffs and omitted data ratios does not equal 1'); end
             
             % Call parent class buildMIs()
             buildMIs@mi_analysis(obj, {xGroups yGroups coeffs});          
