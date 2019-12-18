@@ -109,6 +109,7 @@ classdef mi_analysis < handle
             end
 
             % Audit plots
+            % NOTE- Move these to functions in mi_ksg_viz eventually. 
             for iGroup = 1:size(xGroups)
                 coreObj = obj.arrMIcore{iGroup,1};
                 if v > 4
