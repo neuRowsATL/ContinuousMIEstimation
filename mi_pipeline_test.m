@@ -1036,7 +1036,94 @@ catch e
     
     error('FATAL ERROR: Unable to construct mi_analysis object');
 end
+%%  mi_analysis: calc_timing_timing
+try
+    clear d
+    clear b
+    clear a
+    disp([newline '===== ===== ===== ===== =====']);
+    disp(['RUNNING: mi_analysis(): timing_timing' newline newline]);
 
+
+    d = mi_data_neural('test', 'verbose', 5);
+
+    add_spikes(d, unit1, str_unit1, 30000, 'unit1');
+    add_spikes(d, unit2, str_unit2, 30000, 'unit2');
+    
+    b = mi_data_pressure('test', 'verbose', 5);
+    add_cycleTimes(b, cycle_times, str_cycles, 30000);
+    
+    
+    % Construct mi_analysis object
+    a = calc_timing_timing(d, b, {'unit1', 'unit2'}, 'verbose', 5);
+    
+    
+    % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
+    success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
+    
+    % Check for correct objData
+    success = [success newline 'Assigned: objData'];
+    if ~isa(a.objData,'mi_data_neural'); success = [success '>> FAILED']; end
+    
+    % Check for correct objBehav
+    success = [success newline 'Assigned: objBehav'];
+    if ~isa(a.objBehav,'mi_data_pressure'); success = [success '>> FAILED']; end
+    
+    % Check for correct varNames
+    success = [success newline 'Assigned: varNames'];
+    if ~isequal(a.varNames, {'unit1', 'unit2'}); success = [success '>> FAILED']; end
+    
+    % Check for verbose
+    success = [success newline 'Assigned: verbose'];
+    if a.verbose ~= 5; success = [success '>> FAILED']; end
+    
+    % Check for correct timebase (specific to timing subclass)
+    success = [success newline 'Assigned: n_timebase'];
+    if ~isequal(a.n_timeBase, 'time'); success = [success '>> FAILED']; end
+    
+    % Check for sim manager object
+    success = [success newline 'Constructed: sim_manager'];
+    if ~isa(a.sim_manager,'mi_ksg_sims'); success = [success '>> FAILED']; end
+    
+    % Check for integration with data object
+    success = [success newline 'Matched: varNames to objData.data'];
+    if ~isfield(a.objData.data, a.varNames{1}); success = [success '>> FAILED']; end
+    
+    % Run buildMIs()
+    a.buildMIs();
+    
+    % Check for unique subgroup IDs:
+    success = [success newline 'Assigned: Unique subgroup IDs'];
+    compVal = [];
+    for iSubgroup = 1:size(a.arrMIcore,1)
+        iID = a.arrMIcore{iSubgroup, 4};
+        for jSubgroup = 1:size(a.arrMIcore,1)
+            if iSubgroup == jSubgroup
+                continue
+            else
+                jID = a.arrMIcore{jSubgroup,4};
+                compVal = [compVal strcmp(iID, jID)];
+            end
+            
+        end
+    end
+    if sum(compVal) ~= 0; success = [success '>> FAILED']; end
+    
+    disp(success)
+    
+catch e
+    e
+    global_errs{end+1} = {'Instantiating mi_analysis'};
+    % Not possible to proceed without mi_analysis class
+    
+    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
+    for i=1:length(global_errs)
+        disp(global_errs{i});
+    end
+    disp(['----- ----- ----- ----- -----' newline]);
+    
+    error('FATAL ERROR: Unable to construct mi_analysis object');
+end
 %%  mi_analysis: calc_count_behav
 try
     clear d

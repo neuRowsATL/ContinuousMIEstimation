@@ -60,7 +60,7 @@ classdef calc_timing_count < mi_analysis
             % First, segment neural data into breath cycles
             v = obj.verbose;
             
-            % Find total spike count in a cycle for neuron 1 
+            % Find spike timings in cycles for neuron 1 
             x_name  = obj.varNames{1};
             x = obj.objData.get_spikes('name', x_name , 'format', 'timing', 'cycleTimes', obj.objBehav.data.cycleTimes.data, 'timeBase', obj.n_timeBase);
             
@@ -135,7 +135,7 @@ classdef calc_timing_count < mi_analysis
                     groupRatio = num/length(xCounts);
                     percent = groupRatio*100;
                     
-                    % Dicumen how much data is omitted. 
+                    % Document how much data is omitted. 
                     note = strcat('Omitting ', num2str(percent), 'percent of cycles, where Cond = ' , num2str(Cond), 'because more spikes than data.');
                     disp(note)
                     obj.notes{noteCount,1} = note;
