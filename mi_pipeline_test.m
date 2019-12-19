@@ -916,8 +916,21 @@ try
     % Run buildMIs()
     a.buildMIs();
     
-
-    success = [success newline 'Assigned: Subgroup IDs'];
+    % Check for unique subgroup IDs:
+    success = [success newline 'Assigned: Unique subgroup IDs'];
+    compVal = [];
+    for iSubgroup = 1:size(a.arrMIcore,1)
+        iID = a.arrMIcore{iSubgroup, 4};
+        for jSubgroup = 1:size(a.arrMIcore,1)
+            if iSubgroup == jSubgroup
+                continue
+            else
+                jID = a.arrMIcore{jSubgroup,4};
+                compVal = [compVal strcmp(iID, jID)];
+            end
+            
+        end
+    end
     if sum(compVal) ~= 0; success = [success '>> FAILED']; end
     
     disp(success)
@@ -991,6 +1004,22 @@ try
     a.buildMIs();
     
 
+    % Check for unique subgroup IDs:
+    success = [success newline 'Assigned: Unique subgroup IDs'];
+    compVal = [];
+    for iSubgroup = 1:size(a.arrMIcore,1)
+        iID = a.arrMIcore{iSubgroup, 4};
+        for jSubgroup = 1:size(a.arrMIcore,1)
+            if iSubgroup == jSubgroup
+                continue
+            else
+                jID = a.arrMIcore{jSubgroup,4};
+                compVal = [compVal strcmp(iID, jID)];
+            end
+            
+        end
+    end
+    if sum(compVal) ~= 0; success = [success '>> FAILED']; end
     
     disp(success)
     
@@ -1065,9 +1094,24 @@ try
     if ~isfield(a.objData.data, a.varNames{1}); success = [success '>> FAILED']; end
     
     % Run buildMIs()
-    %a.buildMIs();
+    a.buildMIs();
     
-
+    % Check for unique subgroup IDs:
+    success = [success newline 'Assigned: Unique subgroup IDs'];
+    compVal = [];
+    for iSubgroup = 1:size(a.arrMIcore,1)
+        iID = a.arrMIcore{iSubgroup, 4};
+        for jSubgroup = 1:size(a.arrMIcore,1)
+            if iSubgroup == jSubgroup
+                continue
+            else
+                jID = a.arrMIcore{jSubgroup,4};
+                compVal = [compVal strcmp(iID, jID)];
+            end
+            
+        end
+    end
+    if sum(compVal) ~= 0; success = [success '>> FAILED']; end
     
     disp(success)
     

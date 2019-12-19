@@ -5,12 +5,12 @@ classdef calc_timing_count < mi_analysis
     %   Detailed explanation goes here
     
     properties
-        timebase
+        n_timeBase
     end
     
     methods
         function obj = calc_timing_count(objData, objBehav, varNames, varargin)
-            % Required arguments: objData, varNames
+            % Required arguments: objData, objBehav,  varNames
             % Check required inputs for validity using input parser
  
             % Set up input parser
@@ -28,10 +28,10 @@ classdef calc_timing_count < mi_analysis
             
             
             % Set parameters
-            default_timebase = 'time';
-            valid_timebases = {'time', 'phase'};
-            validate_timebase = @(x) assert(ischar(x) && ismember(x, valid_timebases), 'timebase must be: time, phase');
-            p.addParameter('timebase', default_timebase, validate_timebase); 
+            default_n_timeBase = 'time';
+            valid_n_timeBases = {'time', 'phase'};
+            validate_n_timeBase = @(x) assert(ischar(x) && ismember(x, valid_n_timeBases), 'n_timeBase must be: time, phase');
+            p.addParameter('n_timeBase', default_n_timeBase, validate_n_timeBase); 
             
             % Prepare InputParser to parse only desired inputs
             p.KeepUnmatched = 1;
@@ -51,7 +51,7 @@ classdef calc_timing_count < mi_analysis
             obj@mi_analysis(objData, objBehav, varNames, varargin{:});
             
             % Define timebase property of subclass object
-            obj.timebase = p.Results.timebase;
+            obj.n_timeBase = p.Results.n_timeBase;
 
         end
         
@@ -62,7 +62,7 @@ classdef calc_timing_count < mi_analysis
             
             % Find total spike count in a cycle for neuron 1 
             x_name  = obj.varNames{1};
-            x = obj.objData.get_spikes('name', x_name , 'format', 'timing', 'cycleTimes', obj.objBehav.data.cycleTimes.data, 'timebase', obj.timebase);
+            x = obj.objData.get_spikes('name', x_name , 'format', 'timing', 'cycleTimes', obj.objBehav.data.cycleTimes.data, 'timeBase', obj.n_timeBase);
             
             % Audit Check
             if sum(sum(~isnan(x))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
