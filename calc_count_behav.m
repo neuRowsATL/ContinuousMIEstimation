@@ -79,7 +79,7 @@ classdef calc_count_behav < mi_analysis
             % Call parent constructor
             obj@mi_analysis(objData, objBehav, varNames, varargin{:});
             
-            % Define timebase property of subclass object
+            % Define other properties of subclass object
             obj.b_timeBase = p.Results.b_timeBase;
             obj.feature = p.Results.feature;
             obj.start = p.Results.start;
