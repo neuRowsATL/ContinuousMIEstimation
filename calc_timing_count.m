@@ -101,7 +101,7 @@ classdef calc_timing_count < mi_analysis
             % Set Group counter
             groupCount = 1;
             noteCount = 1;
-            omitCoeff = 0;
+            omitCoeff = [];
             
             for iCond = 1:length(xConds)
                 Cond = xConds(iCond);
@@ -118,7 +118,7 @@ classdef calc_timing_count < mi_analysis
                     obj.notes{noteCount,1} = note;
                     
                     % Keep track of total omitted ratio
-                    omitCoeff = omitCoeff + groupRatio;
+                    omitCoeff(noteCount) = groupRatio;
                     
                     % Increase note counter
                     noteCount = noteCount + 1;
@@ -141,7 +141,7 @@ classdef calc_timing_count < mi_analysis
                     obj.notes{noteCount,1} = note;
                     
                     % Keep track of total omitted ratio
-                    omitCoeff = omitCoeff + groupRatio;
+                    omitCoeff(noteCount) = groupRatio;
                     
                     % Increase note counter
                     noteCount = noteCount + 1;                    
@@ -161,7 +161,7 @@ classdef calc_timing_count < mi_analysis
                 groupCount = groupCount + 1;
             end
             % Audit: Check that omit coeffs and group coeffs sum to 1 with a very small tolerance to account for matlab rounding error. 
-            if ~ismembertol((sum(cell2mat(coeffs)) + sum(omitCoeff)), 1, 1e-12);keyboard;  error('Error: Sum of coeffs and omitted data ratios does not equal 1'); end
+            if ~ismembertol((sum(cell2mat(coeffs)) + sum(omitCoeff)), 1, 1e-12); error('Error: Sum of coeffs and omitted data ratios does not equal 1'); end
             
             % Call parent class buildMIs()
             buildMIs@mi_analysis(obj, {xGroups yGroups coeffs});          

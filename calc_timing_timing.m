@@ -116,7 +116,7 @@ classdef calc_timing_timing < mi_analysis
             % Set Group Counter
             noteCount = 1;
             groupCounter = 1;
-            omitCoeff = 0;
+            omitCoeff = [];
             
             for ixCond = 1:length(xConds)
                 xCond = xConds(ixCond);
@@ -124,7 +124,7 @@ classdef calc_timing_timing < mi_analysis
                 if xCond == 0
                     % Find ratio and percent of data that will be omitted.
                     num = length(xgroupIdx);
-                    groupRatio = (num/length(xCounts))
+                    groupRatio = (num/length(xCounts));
                     percent = groupRatio*100;
 
                     % Document how much data is omitted.
@@ -133,7 +133,7 @@ classdef calc_timing_timing < mi_analysis
                     obj.notes{noteCount,1} = note;
 
                     % Keep track of total omitted ratio
-                    omitCoeff = omitCoeff + groupRatio;
+                    omitCoeff(noteCount) =  groupRatio;
 
                     % Increase not counter.
                     noteCount = noteCount + 1;
@@ -144,7 +144,7 @@ classdef calc_timing_timing < mi_analysis
                     ygroupIdx = find(yCounts == yCond);
                     xygroupIdx = intersect(xgroupIdx,ygroupIdx);
                     if yCond == 0
-                        num = length(xygroupIdx)
+                        num = length(xygroupIdx);
                         groupRatio = (num/length(yCounts));
                         percent = groupRatio * 100;
                         note = strcat('Omitting ', num2str(percent),'where xCond = ', num2str(xCond),'and yCond = ',num2str(yCond), ' percent of cycles because zero spikes in y.');
@@ -152,7 +152,7 @@ classdef calc_timing_timing < mi_analysis
                         obj.notes{noteCount,1} = note;
 
                         % Keep track of total omitted ratio
-                        omitCoeff = omitCoeff + groupRatio;
+                        omitCoeff(noteCount) = groupRatio;
 
                         % Increase group count
                         noteCount = noteCount + 1;
@@ -169,7 +169,7 @@ classdef calc_timing_timing < mi_analysis
                         obj.notes{noteCount,1} = note;
 
                         % Keep track of total omitted ratio
-                        omittedCoeff = omitCoeff + groupRatio;
+                        omitCoeff(noteCount) = groupRatio;
 
                         % Increase note counter
                         noteCount = noteCount + 1;
@@ -177,7 +177,7 @@ classdef calc_timing_timing < mi_analysis
                         
                     elseif yCond > length(xygroupIdx)
                         num = length(xygroupIdx);
-                        groupRatio = (num/length(yCounts))*100;
+                        groupRatio = (num/length(yCounts));
                         percent = groupRatio * 100;
                         
                         % Document how much data is omitted. 
@@ -186,7 +186,7 @@ classdef calc_timing_timing < mi_analysis
                         obj.notes{noteCount,1} = note;
 
                         % Keep track of total omitted ratio
-                        omitCoeff = omitCoeff + groupRatio;
+                        omitCoeff(noteCount) = groupRatio;
 
                         % Increase note counter
                         noteCount = noteCount + 1;
@@ -200,8 +200,11 @@ classdef calc_timing_timing < mi_analysis
                     groupCounter = groupCounter + 1;
                 end
             end
-            
-           buildMIs@mi_analysis(obj, {xGroups yGroups coeffs});     
+
+            % Audit: Check that omit coeffs and group coeffs sum to 1 with a very small tolerance to account for matlab rounding error. 
+            if ~ismembertol((sum(cell2mat(coeffs)) + sum(omitCoeff)), 1, 1e-12); error('Error: Sum of coeffs and omitted data ratios does not equal 1'); end
+
+            buildMIs@mi_analysis(obj, {xGroups yGroups coeffs});     
             
         end
     end

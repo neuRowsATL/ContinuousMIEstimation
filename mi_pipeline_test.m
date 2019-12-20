@@ -989,8 +989,8 @@ try
     if a.verbose ~= 5; success = [success '>> FAILED']; end
     
     % Check for correct timebase (specific to timing subclass)
-    success = [success newline 'Assigned: timebase'];
-    if ~isequal(a.timebase, 'time'); success = [success '>> FAILED']; end
+    success = [success newline 'Assigned: n_timeBase'];
+    if ~isequal(a.n_timeBase, 'time'); success = [success '>> FAILED']; end
     
     % Check for sim manager object
     success = [success newline 'Constructed: sim_manager'];
