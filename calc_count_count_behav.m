@@ -88,26 +88,31 @@ classdef calc_count_count_behav < mi_analysis
             % core from here. Then we can use the output of MI core to fill
             % in the MI, kvalue, and errors.
 
-            % First, segment neuron 1 data into breath cycles
-            neuron = obj.vars(1);
-            n1 = obj.objData.getCount(neuron)';
+            % First, find the total spike count for  neuron 1.
+            n1_name = obj.varNames{1};
+            n1 = obj.objData.get_spikes('name', n1_name, 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data);
+
+
+            % Audit Check: n1
+            if sum(n1) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+                error('Error: Spike Counts for n1 do not match that expected from objData.varNames{1}.');
+            end
             
-            % Next segment neuron 2 data into cycles
-    	    neuron = obj.vars(2);
-            n2 = obj.objData.getCount(neuron)';
-            
+            % Next, find the total spike count for  neuron 2.
+            n2_name = obj.varNames{2};
+            n2 = obj.objData.get_spikes('name', n2_name, 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data);
+
+            % Audit Check: n1
+            if sum(n2) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+                error('Error: Spike Counts for n2 do not match that expected from objData.varNames{2}.');
+            end
+
             % Set up x data
             xGroups{1,1} = [n1 n2];
             
-            % Segment behavioral data into cycles
-            % RC- we should change this to choose what we want to do with
-            % the pressure. How do we do this? 
-            if nargin < 6
-                y = obj.objData.processBehavior();
-            elseif nargin == 6
-                y = obj.objData.processBehavior();
-            end
-            
+            % Get the behavioral data for analysis
+            y = get_behavior(obj.objBehav, obj.b_timeBase, obj.feature, obj.start, obj.dur, obj.nSamp,'nPC', obj.nPC );
+
             % Set up y data
             yGroups{1,1} = y;
             
