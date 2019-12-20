@@ -91,45 +91,72 @@ classdef calc_timing_count_behav < mi_analysis
         end
         
         function buildMIs(obj)
-            % So I propose that we use this method to prep the
-            % count_behavior data for the MI core and go ahead and run MI
-            % core from here. Then we can use the output of MI core to fill
-            % in the MI, kvalue, and errors.
-           %p Specify default parameters
-
             
-            % First, segment neural data into breath cycles
-            neuron = obj.vars(1);
-            n1 = obj.objData.getTiming(neuron);
+        % Build the data and core objects necessary to run the sim manager for this analysis class
+            
+            % Find spike timings in cycles for neuron 1 
+            n1_name  = obj.varNames{1};
+            n1 = obj.objData.get_spikes('name', n1_name , 'format', 'timing', 'cycleTimes', obj.objBehav.data.cycleTimes.data, 'timeBase', obj.n_timeBase);
+            
+            % Audit Check
+            if sum(sum(~isnan(n1))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+                error('Error: N Spikes in n1 do not match that expected from objData.varNames{1}.');
+            end
            
             % Find different subgroups
-            n1Counts = obj.objData.getCount(neuron);
-            n1Conds = unique(n1Counts);
+            n1Counts = obj.objData.get_spikes('name', n1_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
+            n1Conds= unique(n1Counts);
+            
+            % Audit Check
+            if sum(n1Counts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+                error('Error: Spike Counts for n1 do not match that expected from objData.varNames{1}.');
+            end
+            if sum(n1Counts) ~=  sum(sum(~isnan(n1)))
+                error('Error: Spike counts for n1 do not matach N Spikes in n1.'); 
+            end
+            
+            % First, segment neural data into breath cycles
+            n2_name = obj.varNames{2}
+            n2Counts =obj.objData.get_spikes('name', n2_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data, 'timeBase', obj.n_timeBase);
 
-            % Find count values for neuron 2
-            neuron = obj.vars(2);
-            n2Counts = obj.objData.getCount(neuron);
-            
-            % Segment behavioral data into cycles
-            y = obj.objData.processBehavior();
-            
+            % Audit Check: n2
+            if sum(n2Counts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+                error('Error: Spike Counts for n2 do not match that expected from objData.varNames{1}.');
+            end
+
+
+            % Get the behavioral data for analysis
+            y = get_behavior(obj.objBehav, obj.b_timeBase, obj.feature, obj.start, obj.dur, obj.nSamp,'nPC', obj.nPC );
+                        
             %Both neurons collectively will make up the x group. We will
-            %concatonate each condition. 
+            %concatonate each condition.
+            
             xGroups = {};
             yGroups = {};
             coeffs = {};
+            
             iGroup = 1;
             noteCount = 1;
+            omitCoeff = [];
+            
             for in1Cond = 1:length(n1Conds)
                 n1Cond = n1Conds(in1Cond);
                 n1groupIdx = find(n1Counts == n1Cond);
                 if n1Cond == 0
-                    num = sum(n1Counts == n1Cond);
-                    ratio = (num/length(n1Counts))*100;
-                    note = strcat('Omitting ', num2str(ratio), 'percent of cycles because zero spikes');
+                    num = length(n1groupIdx);
+                    groupRatio = (num/length(n1Counts));
+                    percent = groupRatio * 100;
+                    
+                    note = strcat('Omitting ', num2str(percent), 'percent of cycles because zero spikes');
                     disp(note)
                     obj.notes{noteCount,1} = note;
+
+                    % Keep track of total omitted ratio
+                    omitCoeff(noteCount) = groupRatio;
+
+                    % Increase note counter. 
                     noteCount = noteCount + 1;
+                    
                     % When there are zero spikes, the MI from timing is zero. This
                     % can't be accounted for in the calculation because
                     % there are no time values to send to MIxnyn.
@@ -138,24 +165,44 @@ classdef calc_timing_count_behav < mi_analysis
                     % of the Coeffs (the Coeffs will sum to 1 - n(zero)
                     continue
                 elseif n1Cond > sum(n1Counts == n1Cond)
-                    num = sum(n1Counts == n1Cond);
-                    ratio = (num/length(n1Counts))*100;
-                    note = strcat('Omitting ', num2str(ratio), 'percent of cycles, where n1Cond = ' , num2str(n1Cond), 'because more spikes than data.');
+                    num = length(n1groupIdx);
+                    groupRatio = (num/length(n1Counts));
+                    percent = groupRatio * 100;
+
+                    % Document how much data is omitted
+                    note = strcat('Omitting ', num2str(percent), 'percent of cycles, where n1Cond = ' , num2str(n1Cond), 'because more spikes than data.');                    
                     disp(note)
                     obj.notes{noteCount,1} = note;
+                    
+                    % Keep track of total omitted ratio.
+                    omitCoeff(noteCount) = groupRatio;
+
+                    % Increase note counter
                     noteCount = noteCount + 1;
                     continue
                 end
+                % Define x data for iCond
                 n1Group = n1(n1groupIdx,1:n1Cond);
                 n2Group = n2Counts(n1groupIdx)';
                 xGroup = [n1Group,n2Group];
                 xGroups{iGroup,1} = xGroup;
+
+                % Define y data for iCond
                 yGroup = y(n1groupIdx,1:end);
                 yGroups{iGroup,1} = yGroup;
+
+                % Find coeff corresponding to iCond
                 coeffs{iGroup,1} = length(n1groupIdx)/length(n1Counts);
+                % Increase group counter
                 iGroup = iGroup + 1;
+
+                
             end
-                buildMIs@mi_analysis(obj, {xGroups yGroups coeffs});     
+            % Audit: Check that omit coeffs and group coeffs sum to 1 with a very small tolerance to account for matlab rounding error. 
+            if ~ismembertol((sum(cell2mat(coeffs)) + sum(omitCoeff)), 1, 1e-12); error('Error: Sum of coeffs and omitted data ratios does not equal 1'); end
+            
+            % Call parent class buildMIs()
+            buildMIs@mi_analysis(obj, {xGroups yGroups coeffs});          
             end
 
             % From here, each entry in xGroups and yGroups will feed into
