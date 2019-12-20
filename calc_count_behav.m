@@ -14,8 +14,6 @@ classdef calc_count_behav < mi_analysis
     end
     
     methods
-
-
        function obj = calc_count_behav(objData, objBehav, varNames, varargin)
        % Required arguments: objData, varNames
        % Optional, string-style inputs: b_timebase, feature, start, dur, nSamp
@@ -86,7 +84,6 @@ classdef calc_count_behav < mi_analysis
             obj.dur = p.Results.dur;
             obj.nSamp = p.Results.nSamp;
             obj.nPC = p.Results.nPC;
-
         end
 
         function buildMIs(obj)
