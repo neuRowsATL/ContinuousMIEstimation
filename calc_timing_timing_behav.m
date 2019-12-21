@@ -97,37 +97,59 @@ classdef calc_timing_timing_behav < mi_analysis
         end
         
         function buildMIs(obj)
+            
             % So I propose that we use this method to prep the
             % count_behavior data for the MI core and go ahead and run MI
             % core from here. Then we can use the output of MI core to fill
             % in the MI, kvalue, and errors.
             
-
-            % First, segment neural data into breath cycles
-            neuron = obj.vars(1);
-            n1 = obj.objData.getTiming(neuron);
-           
-            % Find different subgroups for neuron 1
-            n1Counts = obj.objData.getCount(neuron);
-            n1Conds = unique(n1Counts);
-
-            % Segment neuron 2 into breath cycles
-            % Segment neuron 2 into breath cycles
-            neuron = obj.vars(2);
-            n2 = obj.objData.getTiming(neuron);
-
-            % Find different subgroups for neuron 2
-            n2Counts = obj.objData.getCount(neuron);
-            n2Conds = unique(n2Counts);
+                        % Find spike timings in cycles for neuron 1 
+            n1_name  = obj.varNames{1};
+            n1 = obj.objData.get_spikes('name', n1_name , 'format', 'timing', 'cycleTimes', obj.objBehav.data.cycleTimes.data, 'timeBase', obj.n_timeBase);
             
-            % Segment behavioral data into cycles
-
-            if nargin < 6
-                y = obj.objData.processBehavior();
-            elseif nargin == 6
-                y = obj.objData.processBehavior();
+            % Audit Check
+            if sum(sum(~isnan(n1))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+                error('Error: N Spikes in n1 do not match that expected from objData.varNames{1}.');
+            end
+           
+            % Find different subgroups
+            n1Counts = obj.objData.get_spikes('name', n1_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
+            n1Conds= unique(n1Counts);
+            
+            % Audit Check
+            if sum(n1Counts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+                error('Error: Spike Counts for n1 do not match that expected from objData.varNames{1}.');
+            end
+            if sum(n1Counts) ~=  sum(sum(~isnan(n1)))
+                error('Error: Spike counts for n1 do not matach N Spikes in n1.'); 
             end
             
+
+            % Find spike timings in cycles for neuron 1 
+            n2_name  = obj.varNames{2};
+            n2 = obj.objData.get_spikes('name', n2_name , 'format', 'timing', 'cycleTimes', obj.objBehav.data.cycleTimes.data, 'timeBase', obj.n_timeBase);
+            
+            % Audit Check
+            if sum(sum(~isnan(n2))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+                error('Error: N Spikes in n2 do not match that expected from objData.varNames{2}.');
+            end
+           
+            % Find different subgroups
+            n2Counts = obj.objData.get_spikes('name', n2_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
+            n2Conds= unique(n2Counts);
+            
+            % Audit Check
+            if sum(n2Counts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+                error('Error: Spike Counts for n1 do not match that expected from objData.varNames{1}.');
+            end
+            if sum(n2Counts) ~=  sum(sum(~isnan(n2)))
+                error('Error: Spike counts for n2 do not matach N Spikes in n2.'); 
+            end
+
+
+            % Get the behavioral data for analysis
+            y = get_behavior(obj.objBehav, obj.b_timeBase, obj.feature, obj.start, obj.dur, obj.nSamp,'nPC', obj.nPC );
+                        
             %Both neurons collectively will make up the x group. We will
             %concatonate each condition. 
             xGroups = {};
@@ -139,11 +161,18 @@ classdef calc_timing_timing_behav < mi_analysis
                 n1Cond = n1Conds(in1Cond);
                 n1groupIdx = find(n1Counts == n1Cond);
                 if n1Cond == 0
-                    num = sum(n1Counts == n1Cond);
-                    ratio = (num/length(n1Counts))*100;
-                    note = strcat('Omitting ', num2str(ratio), ' percent of cycles because zero spikes in x.');
+                    num = length(n1groupIdx);
+                    groupRatio = (num/length(n1Counts));
+                    percent = groupRatio*100;
+
+                    % Document how much data is omitted
+                    note = strcat('Omitting ', num2str(percent), ' percent of cycles because zero spikes in x.');
                     disp(note)
                     obj.notes{noteCount,1} = note;
+
+                    % Keep track of total omitted ratio
+                    omitCoeff(noteCount) = groupRatio;
+                    
                     noteCount = noteCount + 1;
                     continue
                 end
@@ -152,46 +181,45 @@ classdef calc_timing_timing_behav < mi_analysis
                     n2groupIdx = find(n2Counts == n2Cond);
                     xgroupIdx = intersect(n1groupIdx,n2groupIdx);
                     if n2Cond == 0
-                        num = sum(n2Counts == n2Cond);
-                        ratio = (num/length(n2Counts))*100;
-                        note = strcat('Omitting ', num2str(ratio), ' percent of cycles because zero spikes in y.');
+                        num = length(xgroupIdx)
+                        groupRatio = (num/length(n2Counts));
+                        percent = groupRatio * 100;
+                        note = strcat('Omitting ', num2str(percent),'where xCond = ', num2str(xCond),'and yCond = ',num2str(yCond), ' percent of cycles because zero spikes in y.');
                         disp(note)
                         obj.notes{noteCount,1} = note;
+
+                        % Keep track of total omitted ratio.
+                        omittedCoeff(noteCount) = groupRatio;
+
+                        % Increase group count
                         noteCount = noteCount + 1;
                         continue
                     elseif n1Cond + n2Cond > length(xgroupIdx)
-                        num = sum(n2Counts == n2Cond);
-                        ratio = (num/length(n2Counts))*100;
-                        note = strcat('Omitting ', num2str(ratio), ' percent of cycles,','where n1Cond = ',num2str(n1Cond), ' and n2Cond = ', num2str(n2Cond), 'because more spikes than data.');
+                        num = length(xgroupIdx)
+                        groupRatio = (num/length(n2Counts));
+                        percent = groupRatio * 100;
+                        note = strcat('Omitting ', num2str(percent),'where xCond = ', num2str(xCond),'and yCond = ',num2str(yCond), ' percent of cycles because zero spikes in y.');
+
                         disp(note)
                         obj.notes{noteCount,1} = note;
+
+                        % Keep track of total omitted ratio
+                        omittedCoeff(noteCount) = groupRatio;
+
+                        % Increase group count
                         noteCount = noteCount + 1;
                         continue
                     end
-%                     elseif n1Cond > length(xgroupIdx)
-%                         num = sum(n1Counts == n1Cond);
-%                         ratio = (num/length(n1Counts))*100;
-%                         note = strcat('Omitting ', num2str(ratio), ' percent of cycles, where n1Cond = ', num2str(n1Cond), 'because more spikes than data.');
-%                         disp(note)
-%                         obj.notes{noteCount,1} = note;
-%                         noteCount = noteCount + 1;
-%                         continue 
-%                     elseif n2Cond > length(xgroupIdx)
-%                         num = sum(n2Counts == n2Cond);
-%                         ratio = (num/length(n2Counts))*100;
-%                         note = strcat('Omitting ', num2str(ratio), ' percent of cycles, where n2Cond = ', num2str(n2Cond), 'because more spikes than data.');
-%                         disp(note)
-%                         obj.notes{noteCount,1} = note;
-%                         noteCount = noteCount + 1;
-%                         continue   
                     n1Group = n1(xgroupIdx,1:n1Cond);
                     n2Group = n2(xgroupIdx,1:n2Cond);
                     xGroup = [n1Group,n2Group];
-
                     xGroups{groupCounter,1} = xGroup;
+
+                    % Define y data for iCond
                     yGroup = y(xgroupIdx,1:end);
                     if length(xGroup) ~= length(yGroup)
-                        keyboard
+                        errorStr = strcat('Error: Length of x and y for group:', num2str(groupCounter), 'do not match.')
+                        error(errorStr);
                     end
                     yGroups{groupCounter,1} = yGroup;
                     coeffs{groupCounter,1} = length(xgroupIdx)/length(n1Counts);
@@ -199,6 +227,10 @@ classdef calc_timing_timing_behav < mi_analysis
                 end
                 
             end
+
+            % Audit: Check that omit coeffs and group coeffs sum to 1 with a very small tolerance to account for matlab rounding error. 
+            if ~ismembertol((sum(cell2mat(coeffs)) + sum(omitCoeff)), 1, 1e-12); error('Error: Sum of coeffs and omitted data ratios does not equal 1'); end
+
             buildMIs@mi_analysis(obj, {xGroups yGroups coeffs}); 
             
         end
