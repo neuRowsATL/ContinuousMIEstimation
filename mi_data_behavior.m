@@ -1,36 +1,35 @@
-classdef mi_data_behavior < handle
+classdef mi_data_behavior < mi_data
     properties
-        raw_source % array or struct of raw files and data information
+        rawBehav % struct of raw behavior data and information
         
-        cycleMethod % method used to calculate cycle times
-        cycleTimes % cycle onset times
-        cycleData % MAT object of raw data for each cycle
-        
-        verbose % boolean flag used to track progress and errors
+        arrFiles % list of files with raw behavioral data
+        strFldr % path to where the data files are saved
     end
     
     methods
-        function obj = mi_data_behavior(varargin)
-            p = inputParser;
-            addParameter(p, 'verbose', 1);
-            parse(p, varargin{:});
-            obj.verbose = p.Results.verbose;
+        function obj = mi_data_behavior(ID, varargin)
+            % Required arguments: ID
+            obj@mi_data(ID,varargin{:});
         end
         
-        function set_source()
-            %% This function is implemented to set the raw source variable based on data collection and storage methods
-            warning('Not implemented error: set_source()');
+        function add_cycleTimes(obj, data, dataInfo, Fs, varargin)
+            add_data(obj, data, dataInfo, Fs, 'cycleTimes', varargin{:});
         end
         
-        function calc_cycles()
-            %% Implemented to take raw behavior recording and identify onset times
-            warning('Not implemented error: calc_cycles()');
+        function build_behav(obj)
+            % Pull waveform data from data files according to
+            % data/cycleTimes
+            warning('NOT IMPLEMENTED ERROR');
         end
         
-        function get_feature()
-            %% Implemented to return different features of behavior cycles
-            % i.e., raw data, PCA, residual, area
-            warning('Not implemented error: get_feature()');
+        function r = get_behav(obj)
+            % Return behavior data as matrix of raw waveform/PCA/ICA/etc.
+            warning('NOT IMPLEMENTED ERROR');
+        end
+        
+        function r = get_cycleTimes(obj)
+            % Return behavior cycle times as matrix of on/off pairs
+            r = get_data(obj, 'cycleTimes');
         end
     end
 end
