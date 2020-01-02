@@ -96,12 +96,11 @@ try
     success = [success newline 'Pulled: data'];
     if ~all(size(get_data(d)) == size(unit1)); success = [success ' >> FAILED']; end
     
+    error('whoops');
+    
     disp(success);
 catch e
-    e.stack(1).name
-    e.stack(1).line
-    e
-    global_errs{end+1} = {'Intantiating mi_data with ID only'};
+    global_errs = show_errors(e, global_errs, 'Intantiating mi_data with ID only');
     disp([newline 'ERROR: Unable to instantiate mi_data with ID only']);
 end
 
@@ -163,18 +162,9 @@ try
     
     disp(success);
 catch e
-    e.stack(1).name
-    e.stack(1).line
-    e
-    global_errs{end+1} = {'Instantiating mi_data with ID and verbose'};
+    global_errs = show_errors(e, global_errs, 'Instantiating mi_data with ID and verbose');
     % Not possible to proceed without mi_data class
-    
-    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
-    for i=1:length(global_errs)
-        disp(global_errs{i});
-    end
-    disp(['----- ----- ----- ----- -----' newline]);
-    
+        
     error('FATAL ERROR: Unable to construct mi_data objects');
 end
 
@@ -307,10 +297,7 @@ success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
         title('Comparison of spike timing (phase)');
     end
 catch e
-    e.stack(1).name
-    e.stack(1).line
-    e
-    global_errs{end+1} = {'Instantiating mi_data_neural'};
+    global_errs = show_errors(e, global_errs, 'Instantiating mi_data_neural');
     disp([newline 'ERROR: Unable to instantiate mi_data_neural']);
 end
     % PRINT RESULTS FROM CHECKS    
@@ -376,17 +363,8 @@ try
     
     disp(success);
 catch e
-    e.stack(1).name
-    e.stack(1).line
-    e
-    global_errs{end+1} = {'Instantiating mi_data_behavior with ID and verbose'};
+    global_errs = show_errors(e, global_errs, 'Instantiating mi_data_behavior with ID and verbose');
     % Not possible to proceed without mi_data class
-    
-    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
-    for i=1:length(global_errs)
-        disp(global_errs{i});
-    end
-    disp(['----- ----- ----- ----- -----' newline]);
     
     error('FATAL ERROR: Unable to construct mi_data_behavior objects');
 end
@@ -599,24 +577,9 @@ try
     end
     disp(success);
 catch e
-    sprintf('Error in file %s\nLine %d\nName: %s\nTraceback:', ...
-        e.stack(1).file, e.stack(1).line, e.stack(1).name)
-
-    for i=1:(length(e.stack)-1)
-        sprintf('File: %s\nLine %d\n Name: %s', ...
-            e.stack(i+1).file, e.stack(i+1).line, e.stack(i+1).name)
-    end
-    
-    global_errs{end+1} = {'Instantiating mi_data_behavior with ID and verbose'};
+    global_errs = show_errors(e, global_errs, 'Instantiating mi_data_behavior with ID and verbose');
     % Not possible to proceed without mi_data class
     
-    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
-    for i=1:length(global_errs)
-        disp(global_errs{i});
-    end
-    disp(['----- ----- ----- ----- -----' newline]);
-    
-    diary off
     error('FATAL ERROR: Unable to construct mi_data_behavior objects');
 end
 
@@ -824,18 +787,9 @@ try
     end
     disp(success);
 catch e
-    e.stack(1).name
-    e.stack(1).line
-    e
-    global_errs{end+1} = {'Instantiating mi_data_behavior with ID and verbose'};
+    global_errs = show_errors(e, global_errs, 'Instantiating mi_data_behavior with ID and verbose');
     % Not possible to proceed without mi_data class
-    
-    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
-    for i=1:length(global_errs)
-        disp(global_errs{i});
-    end
-    disp(['----- ----- ----- ----- -----' newline]);
-    
+        
     error('FATAL ERROR: Unable to construct mi_data_behavior objects');
 end
 
@@ -884,17 +838,8 @@ try
     disp(success)
     
 catch e
-    e.stack(1).name
-    e.stack(1).line
-    e
-    global_errs{end+1} = {'Instantiating mi_analysis'};
+    global_errs = show_errors(e, global_errs, 'Instantiating mi_analysis');
     % Not possible to proceed without mi_analysis class
-    
-    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
-    for i=1:length(global_errs)
-        disp(global_errs{i});
-    end
-    disp(['----- ----- ----- ----- -----' newline]);
     
     error('FATAL ERROR: Unable to construct mi_analysis object');
 end
@@ -968,17 +913,8 @@ try
     disp(success)
     
 catch e
-    e.stack(1).name
-    e.stack(1).line
-    e
-    global_errs{end+1} = {'Instantiating mi_analysis'};
+    global_errs = show_errors(e, global_errs, 'Instantiating mi_analysis: count-count');
     % Not possible to proceed without mi_analysis class
-    
-    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
-    for i=1:length(global_errs)
-        disp(global_errs{i});
-    end
-    disp(['----- ----- ----- ----- -----' newline]);
     
     error('FATAL ERROR: Unable to construct mi_analysis object');
 end
@@ -1058,17 +994,8 @@ try
     disp(success)
     
 catch e
-    e.stack(1).name
-    e.stack(1).line
-    e
-    global_errs{end+1} = {'Instantiating mi_analysis'};
+    global_errs = show_errors(e, global_errs, 'Instantiating mi_analysis: timing-count');
     % Not possible to proceed without mi_analysis class
-    
-    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
-    for i=1:length(global_errs)
-        disp(global_errs{i});
-    end
-    disp(['----- ----- ----- ----- -----' newline]);
     
     error('FATAL ERROR: Unable to construct mi_analysis object');
 end
@@ -1148,17 +1075,8 @@ try
     disp(success)
     
 catch e
-    e.stack(1).name
-    e.stack(1).line
-    e
-    global_errs{end+1} = {'Instantiating mi_analysis'};
+    global_errs = show_errors(e, global_errs, 'Instantiating mi_analysis: timing-timing');
     % Not possible to proceed without mi_analysis class
-    
-    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
-    for i=1:length(global_errs)
-        disp(global_errs{i});
-    end
-    disp(['----- ----- ----- ----- -----' newline]);
     
     error('FATAL ERROR: Unable to construct mi_analysis object');
 end
@@ -1261,17 +1179,8 @@ try
     disp(success)
     
 catch e
-    e.stack(1).name
-    e.stack(1).line
-    e
-    global_errs{end+1} = {'Instantiating mi_analysis'};
+    global_errs = show_errors(e, global_errs, 'Instantiating mi_analysis: count-behav');
     % Not possible to proceed without mi_analysis class
-    
-    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
-    for i=1:length(global_errs)
-        disp(global_errs{i});
-    end
-    disp(['----- ----- ----- ----- -----' newline]);
     
     error('FATAL ERROR: Unable to construct mi_analysis object');
 end
@@ -1379,17 +1288,8 @@ try
     disp(success)
     
 catch e
-    e.stack(1).name
-    e.stack(1).line
-    e
-    global_errs{end+1} = {'Instantiating mi_analysis'};
+    global_errs = show_errors(e, global_errs, 'Instantiating mi_analysis: timing-behav');
     % Not possible to proceed without mi_analysis class
-    
-    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
-    for i=1:length(global_errs)
-        disp(global_errs{i});
-    end
-    disp(['----- ----- ----- ----- -----' newline]);
     
     error('FATAL ERROR: Unable to construct mi_analysis object');
 end
@@ -1493,17 +1393,8 @@ try
     disp(success)
     
 catch e
-    e.stack(1).name
-    e.stack(1).line
-    e
-    global_errs{end+1} = {'Instantiating mi_analysis'};
+    global_errs = show_errors(e, global_errs, 'Instantiating mi_analysis: count-count-behav');
     % Not possible to proceed without mi_analysis class
-    
-    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
-    for i=1:length(global_errs)
-        disp(global_errs{i});
-    end
-    disp(['----- ----- ----- ----- -----' newline]);
     
     error('FATAL ERROR: Unable to construct mi_analysis object');
 end
@@ -1608,17 +1499,8 @@ try
     disp(success)
     
 catch e
-    e.stack(1).name
-    e.stack(1).line
-    e
-    global_errs{end+1} = {'Instantiating mi_analysis'};
+    global_errs = show_errors(e, global_errs, 'Instantiating mi_analysis: timing-count-behav');
     % Not possible to proceed without mi_analysis class
-    
-    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
-    for i=1:length(global_errs)
-        disp(global_errs{i});
-    end
-    disp(['----- ----- ----- ----- -----' newline]);
     
     error('FATAL ERROR: Unable to construct mi_analysis object');
 end
@@ -1723,17 +1605,8 @@ try
     disp(success)
     
 catch e
-    e.stack(1).name
-    e.stack(1).line
-    e
-    global_errs{end+1} = {'Instantiating mi_analysis'};
+    global_errs = show_errors(e, global_errs, 'Instantiating mi_analysis: timing-timing-behav');
     % Not possible to proceed without mi_analysis class
-    
-    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
-    for i=1:length(global_errs)
-        disp(global_errs{i});
-    end
-    disp(['----- ----- ----- ----- -----' newline]);
     
     error('FATAL ERROR: Unable to construct mi_analysis object');
 end
@@ -1745,3 +1618,24 @@ disp('TESTS SUCCESSFULLY COMPLETED!!');
 disp('===== ===== ===== ===== ===== ');
 
 diary off
+
+
+function global_errs = show_errors(e, global_errs, msg)
+    sprintf('Error in file %s\nLine %d\nName: %s\nTraceback:', ...
+        e.stack(1).file, e.stack(1).line, e.stack(1).name)
+
+    for i=1:(length(e.stack)-1)
+        sprintf('File: %s\nLine %d\n Name: %s', ...
+            e.stack(i+1).file, e.stack(i+1).line, e.stack(i+1).name)
+    end
+    
+    global_errs{end+1} = {msg};
+    % Not possible to proceed without mi_data class
+    
+    disp([newline newline '===== ===== ===== ===== =====' newline 'GLOBAL ERRORS' newline]);
+    for i=1:length(global_errs)
+        disp(global_errs{i});
+    end
+    disp(['----- ----- ----- ----- -----' newline]);
+    diary off
+end
