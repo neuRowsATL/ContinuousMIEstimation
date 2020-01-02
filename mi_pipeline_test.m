@@ -4,18 +4,61 @@
 %
 % This script requires data files in the TestData folder
 %%
-% Instantiate data objects
 
 clear all
 close('all')
 
+with_plots = false;
+
+[ret name] = system('hostname');
+computer_name = split(name,'.');
+switch computer_name{1}
+    case 'BIO-SSOBER-32P'    
+        % BRYCE_lab:
+        fnames = dir('D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16\*.rhd');
+        fnames = {fnames.name};
+        fpath = 'D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16';
+
+    case 'Bryces-MBP'
+        % BRYCE_lab:
+        fnames = dir('/Users/brycechung/Google Drive/__Research/__SOBER/__PROJECTS/Mutual Information/ChungBarker_MIEstimation/neurowsatl_mbp/ContinuousMIEstimation/TestData/*.rhd');
+        fnames = {fnames.name};
+        fpath = '/Users/brycechung/Google Drive/__Research/__SOBER/__PROJECTS/Mutual Information/ChungBarker_MIEstimation/neurowsatl_mbp/ContinuousMIEstimation/TestData';
+        
+    case 'Rachel lab computer name'
+        % % RACHEL_lab:
+        % fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
+        % fnames = {fnames.name};
+        % fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
+    
+    case 'Rachel mac computer name'
+        % RACHEL_mac:
+        % fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
+        % fnames = {fnames.name};
+        % fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
+    otherwise
+        error('Unalbe to identify computer');
+end
+
+% Instantiate data objects
 
 global_errs = {};
 
-diary mi_pipeline_test_diary.txt
+diary_fname = 'mi_pipeline_test_diary.txt';
+if exist(diary_fname, 'file'); delete(diary_fname); end
+
+diary(diary_fname);
 diary on
 
-with_plots = true;
+sprintf('STARTING TEST LOG');
+sprintf('%s', datetime);
+
+% Adjust verbose levels to prevent plots when with_plots = false
+if with_plots
+    verbose_level = 5;
+else
+    verbose_level = 4;
+end
 
 %% RUN MI_DATA
 load('TestData/20191018_bl21lb21_171218_spikes.mat');
@@ -55,17 +98,20 @@ try
     
     disp(success);
 catch e
+    e.stack(1).name
+    e.stack(1).line
     e
     global_errs{end+1} = {'Intantiating mi_data with ID only'};
     disp([newline 'ERROR: Unable to instantiate mi_data with ID only']);
 end
+
 %% - FOR RUNNING IN EMACS
 try
     disp([newline newline]);
     clear d;
     disp([newline '===== ===== ===== ===== =====']);
     disp(['RUNNING: mi_data()' newline newline]);
-    d = mi_data('test', 'verbose', 5);
+    d = mi_data('test', 'verbose', verbose_level);
 
     add_data(d, unit1, str_unit1, 30000, 'unit1');
     add_data(d, unit2, str_unit2, 30000, 'unit2');
@@ -117,6 +163,8 @@ try
     
     disp(success);
 catch e
+    e.stack(1).name
+    e.stack(1).line
     e
     global_errs{end+1} = {'Instantiating mi_data with ID and verbose'};
     % Not possible to proceed without mi_data class
@@ -137,7 +185,7 @@ try
     disp([newline '===== ===== ===== ===== =====']);
     disp(['RUNNING: mi_data_neural()' newline newline]);
 
-    d = mi_data_neural('test', 'verbose', 5);
+    d = mi_data_neural('test', 'verbose', verbose_level);
 
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
 
@@ -259,6 +307,8 @@ success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
         title('Comparison of spike timing (phase)');
     end
 catch e
+    e.stack(1).name
+    e.stack(1).line
     e
     global_errs{end+1} = {'Instantiating mi_data_neural'};
     disp([newline 'ERROR: Unable to instantiate mi_data_neural']);
@@ -288,7 +338,7 @@ try
     clear d
     disp([newline '===== ===== ===== ===== =====']);
     disp(['RUNNING: mi_data_behavior()' newline newline]);
-    d = mi_data_behavior('test', 'verbose', 5);
+    d = mi_data_behavior('test', 'verbose', verbose_level);
 
     add_cycleTimes(d, [unit1' unit1'], str_unit1, 30000);
 
@@ -326,6 +376,8 @@ try
     
     disp(success);
 catch e
+    e.stack(1).name
+    e.stack(1).line
     e
     global_errs{end+1} = {'Instantiating mi_data_behavior with ID and verbose'};
     % Not possible to proceed without mi_data class
@@ -342,26 +394,10 @@ end
 
 %% CHECK mi_data_pressure: phase
 
-% BRYCE:
-%fnames = dir('D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16\*.rhd');
-%fnames = {fnames.name};
-%fpath = 'D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16';
-
-% % RACHEL_lab:
-% fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
-% fnames = {fnames.name};
-% fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
-
-% RACHEL_mac:
-fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
-fnames = {fnames.name};
-fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
-
-
 try
     disp([newline newline]);
     clear d
-    d = mi_data_pressure('test', 'verbose', 5);
+    d = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(d, cycle_times, str_cycles, 30000);
     set_data_files(d, fnames, fpath);
     
@@ -563,7 +599,14 @@ try
     end
     disp(success);
 catch e
-    e
+    sprintf('Error in file %s\nLine %d\nName: %s\nTraceback:', ...
+        e.stack(1).file, e.stack(1).line, e.stack(1).name)
+
+    for i=1:(length(e.stack)-1)
+        sprintf('File: %s\nLine %d\n Name: %s', ...
+            e.stack(i+1).file, e.stack(i+1).line, e.stack(i+1).name)
+    end
+    
     global_errs{end+1} = {'Instantiating mi_data_behavior with ID and verbose'};
     % Not possible to proceed without mi_data class
     
@@ -573,31 +616,16 @@ catch e
     end
     disp(['----- ----- ----- ----- -----' newline]);
     
+    diary off
     error('FATAL ERROR: Unable to construct mi_data_behavior objects');
 end
 
 %% CHECK mi_data_pressure: time
 
-% BRYCE:
-%fnames = dir('D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16\*.rhd');
-%fnames = {fnames.name};
-%fpath = 'D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16';
-
-% % RACHEL_lab:
-% fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
-% fnames = {fnames.name};
-% fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
-
-%RACHEL_mac:
-fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
-fnames = {fnames.name};
-fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
-
-
 try
     disp([newline newline]);
     clear d
-    d = mi_data_pressure('test', 'verbose', 5);
+    d = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(d, cycle_times, str_cycles, 30000);
     set_data_files(d, fnames, fpath);
     
@@ -796,6 +824,8 @@ try
     end
     disp(success);
 catch e
+    e.stack(1).name
+    e.stack(1).line
     e
     global_errs{end+1} = {'Instantiating mi_data_behavior with ID and verbose'};
     % Not possible to proceed without mi_data class
@@ -816,16 +846,16 @@ try
     disp([newline '===== ===== ===== ===== =====']);
     disp(['RUNNING: mi_analysis()' newline newline]);
 
-    d = mi_data_neural('test', 'verbose', 5);
+    d = mi_data_neural('test', 'verbose', verbose_level);
 
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
     add_spikes(d, unit2, str_unit2, 30000, 'unit2');
     
-    b = mi_data_pressure('test', 'verbose', 5);
+    b = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(b, cycle_times, str_cycles, 30000);
     
     % Construct mi_analysis object
-    a = mi_analysis(d, b, {'unit1' , 'unit2'}, 'verbose', 5);
+    a = mi_analysis(d, b, {'unit1' , 'unit2'}, 'verbose', verbose_level);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
@@ -854,6 +884,8 @@ try
     disp(success)
     
 catch e
+    e.stack(1).name
+    e.stack(1).line
     e
     global_errs{end+1} = {'Instantiating mi_analysis'};
     % Not possible to proceed without mi_analysis class
@@ -874,16 +906,16 @@ try
     disp([newline '===== ===== ===== ===== =====']);
     disp(['RUNNING: mi_analysis(): count_count' newline newline]);
 
-    d = mi_data_neural('test', 'verbose', 5);
+    d = mi_data_neural('test', 'verbose', verbose_level);
 
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
     add_spikes(d, unit2, str_unit2, 30000, 'unit2');
     
-    b = mi_data_pressure('test', 'verbose', 5);
+    b = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(b, cycle_times, str_cycles, 30000);
     
     % Construct mi_analysis object
-    a = calc_count_count(d, b, {'unit1' , 'unit2'}, 'verbose', 5);
+    a = calc_count_count(d, b, {'unit1' , 'unit2'}, 'verbose', verbose_level);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
@@ -936,6 +968,8 @@ try
     disp(success)
     
 catch e
+    e.stack(1).name
+    e.stack(1).line
     e
     global_errs{end+1} = {'Instantiating mi_analysis'};
     % Not possible to proceed without mi_analysis class
@@ -957,16 +991,16 @@ try
     disp(['RUNNING: mi_analysis(): timing_count' newline newline]);
 
 
-    d = mi_data_neural('test', 'verbose', 5);
+    d = mi_data_neural('test', 'verbose', verbose_level);
 
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
     add_spikes(d, unit2, str_unit2, 30000, 'unit2');
     
-    b = mi_data_pressure('test', 'verbose', 5);
+    b = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(b, cycle_times, str_cycles, 30000);
     
     % Construct mi_analysis object
-    a = calc_timing_count(d, b, {'unit1' , 'unit2'}, 'verbose', 5);
+    a = calc_timing_count(d, b, {'unit1' , 'unit2'}, 'verbose', verbose_level);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
@@ -1024,6 +1058,8 @@ try
     disp(success)
     
 catch e
+    e.stack(1).name
+    e.stack(1).line
     e
     global_errs{end+1} = {'Instantiating mi_analysis'};
     % Not possible to proceed without mi_analysis class
@@ -1045,17 +1081,17 @@ try
     disp(['RUNNING: mi_analysis(): timing_timing' newline newline]);
 
 
-    d = mi_data_neural('test', 'verbose', 5);
+    d = mi_data_neural('test', 'verbose', verbose_level);
 
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
     add_spikes(d, unit2, str_unit2, 30000, 'unit2');
     
-    b = mi_data_pressure('test', 'verbose', 5);
+    b = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(b, cycle_times, str_cycles, 30000);
     
     
     % Construct mi_analysis object
-    a = calc_timing_timing(d, b, {'unit1', 'unit2'}, 'verbose', 5);
+    a = calc_timing_timing(d, b, {'unit1', 'unit2'}, 'verbose', verbose_level);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
@@ -1112,6 +1148,8 @@ try
     disp(success)
     
 catch e
+    e.stack(1).name
+    e.stack(1).line
     e
     global_errs{end+1} = {'Instantiating mi_analysis'};
     % Not possible to proceed without mi_analysis class
@@ -1133,11 +1171,11 @@ try
     disp(['RUNNING: mi_analysis(): count_behav' newline newline]);
 
 
-    d = mi_data_neural('test', 'verbose', 5);
+    d = mi_data_neural('test', 'verbose', verbose_level);
 
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
     
-    b = mi_data_pressure('test', 'verbose', 5);
+    b = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(b, cycle_times, str_cycles, 30000);
     
     % Get behavior for pressure class
@@ -1146,7 +1184,7 @@ try
     build_behavior(b);
     
     % Construct mi_analysis object
-    a = calc_count_behav(d, b, {'unit1'}, 'verbose', 5);
+    a = calc_count_behav(d, b, {'unit1'}, 'verbose', verbose_level);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
@@ -1223,6 +1261,8 @@ try
     disp(success)
     
 catch e
+    e.stack(1).name
+    e.stack(1).line
     e
     global_errs{end+1} = {'Instantiating mi_analysis'};
     % Not possible to proceed without mi_analysis class
@@ -1249,7 +1289,7 @@ try
 
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
     
-    b = mi_data_pressure('test', 'verbose', 5);
+    b = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(b, cycle_times, str_cycles, 30000);
     
     % Get behavior for pressure class
@@ -1258,7 +1298,7 @@ try
     build_behavior(b);
     
     % Construct mi_analysis object
-    a = calc_timing_behav(d, b, {'unit1'}, 'verbose', 5);
+    a = calc_timing_behav(d, b, {'unit1'}, 'verbose', verbose_level);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
@@ -1339,6 +1379,8 @@ try
     disp(success)
     
 catch e
+    e.stack(1).name
+    e.stack(1).line
     e
     global_errs{end+1} = {'Instantiating mi_analysis'};
     % Not possible to proceed without mi_analysis class
@@ -1360,12 +1402,12 @@ try
     disp(['RUNNING: mi_analysis(): count_count_behav' newline newline]);
 
 
-    d = mi_data_neural('test', 'verbose', 5);
+    d = mi_data_neural('test', 'verbose', verbose_level);
 
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
     add_spikes(d, unit1, str_unit1, 30000, 'unit2');
     
-    b = mi_data_pressure('test', 'verbose', 5);
+    b = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(b, cycle_times, str_cycles, 30000);
     
     % Get behavior for pressure class
@@ -1374,7 +1416,7 @@ try
     build_behavior(b);
     
     % Construct mi_analysis object
-    a = calc_count_count_behav(d, b, {'unit1', 'unit2'}, 'verbose', 5);
+    a = calc_count_count_behav(d, b, {'unit1', 'unit2'}, 'verbose', verbose_level);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
@@ -1451,6 +1493,8 @@ try
     disp(success)
     
 catch e
+    e.stack(1).name
+    e.stack(1).line
     e
     global_errs{end+1} = {'Instantiating mi_analysis'};
     % Not possible to proceed without mi_analysis class
@@ -1473,12 +1517,12 @@ try
     disp(['RUNNING: mi_analysis(): timing_count_behav' newline newline]);
 
 
-    d = mi_data_neural('test', 'verbose', 5);
+    d = mi_data_neural('test', 'verbose', verbose_level);
 
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
     add_spikes(d, unit1, str_unit1, 30000, 'unit2');
     
-    b = mi_data_pressure('test', 'verbose', 5);
+    b = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(b, cycle_times, str_cycles, 30000);
     
     % Get behavior for pressure class
@@ -1487,7 +1531,7 @@ try
     build_behavior(b);
     
     % Construct mi_analysis object
-    a = calc_timing_count_behav(d, b, {'unit1', 'unit2'}, 'verbose', 5);
+    a = calc_timing_count_behav(d, b, {'unit1', 'unit2'}, 'verbose', verbose_level);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
@@ -1564,6 +1608,8 @@ try
     disp(success)
     
 catch e
+    e.stack(1).name
+    e.stack(1).line
     e
     global_errs{end+1} = {'Instantiating mi_analysis'};
     % Not possible to proceed without mi_analysis class
@@ -1586,12 +1632,12 @@ try
     disp(['RUNNING: mi_analysis(): timing_timing_behav' newline newline]);
 
 
-    d = mi_data_neural('test', 'verbose', 5);
+    d = mi_data_neural('test', 'verbose', verbose_level);
 
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
     add_spikes(d, unit1, str_unit1, 30000, 'unit2');
     
-    b = mi_data_pressure('test', 'verbose', 5);
+    b = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(b, cycle_times, str_cycles, 30000);
     
     % Get behavior for pressure class
@@ -1600,7 +1646,7 @@ try
     build_behavior(b);
     
     % Construct mi_analysis object
-    a = calc_timing_count_behav(d, b, {'unit1', 'unit2'}, 'verbose', 5);
+    a = calc_timing_count_behav(d, b, {'unit1', 'unit2'}, 'verbose', verbose_level);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
@@ -1677,6 +1723,8 @@ try
     disp(success)
     
 catch e
+    e.stack(1).name
+    e.stack(1).line
     e
     global_errs{end+1} = {'Instantiating mi_analysis'};
     % Not possible to proceed without mi_analysis class
@@ -1691,4 +1739,9 @@ catch e
 end
 
 %%
+
+disp('===== ===== ===== ===== ===== ');
+disp('TESTS SUCCESSFULLY COMPLETED!!');
+disp('===== ===== ===== ===== ===== ');
+
 diary off
