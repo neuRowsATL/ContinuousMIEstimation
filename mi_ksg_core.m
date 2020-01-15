@@ -88,7 +88,7 @@ classdef mi_ksg_core < handle
                 mi = [dataset{data_ixs,1}];
                 k = dataset{data_ixs(1),2};
                 
-                tmp_mi_data = cat(1, tmp_mi_data, {mean(mi) var(mi)^0.5 count k}); % append MI with error estimation
+                tmp_mi_data = cat(1, tmp_mi_data, {mean(mi) var(mi) count k}); % append MI with error estimation
             end
             obj.mi_data = sortrows(tmp_mi_data,[4,3]);
         end
@@ -106,17 +106,21 @@ classdef mi_ksg_core < handle
             k = listSplitSizes(2:end);
             variancePredicted = sum((k-1)./k.*listVariances)./sum((k-1));
             
-            N = size(obj.x,2);
-            Sml=variancePredicted*N;
-            varS = 2*Sml^2/sum((k-1)); %Estimated variance of the variance of the estimate of the mutual information at full N
-            stdvar = sqrt(varS/N^2); %the error bars on our estimate of the variance
+
+            
+% -------------THIS CALCULATES THE ERROR OF THE ERROR-----------------------------------            
+%             N = size(obj.x,2);
+%             Sml=variancePredicted*N;
+%             varS = 2*Sml^2/sum((k-1)); %Estimated variance of the variance of the estimate of the mutual information at full N
+%             stdvar = sqrt(varS/N^2); %the error bars on our estimate of the variance
+% --------------------------------------------------------------------------------------
 
             % 2019107 BC
             % Adding hack to filter mutual information results that are
             % within three S.D. from 0
-            if ((MIs(1) - errThreshold*(stdvar^0.5)) > 0 || errThreshold == 0) && (MIs(1) > 0)
+            if ((MIs(1) - errThreshold*(variancePredicted^0.5)) > 0 || errThreshold == 0) && (MIs(1) > 0)
                 r.mi = MIs(1);
-                r.err = stdvar^0.5;
+                r.err = variancePredicted^.5;
             else
                 r.mi = 0;
                 r.err = 0;
