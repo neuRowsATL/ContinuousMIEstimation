@@ -15,6 +15,8 @@ classdef mi_analysis < handle
 	
         sim_manager % Sim manager reference object
         
+        append % Specify whether to re-run analysis or just for k-values that have not been previously included
+        
         verbose % level of output for progress and troubleshooting/debugging
         
         notes %Indicates how much data has been omitted (optional)
@@ -40,6 +42,11 @@ classdef mi_analysis < handle
             
             
             % Set up optional input
+            
+            % append
+            default_append = true;
+            validate_append = @(x) assert(islogical(x), 'append must be a logical value');
+            p.addParameter('append', default_append, validate_append);
             
             % verbose
             default_verbose = 1;
@@ -97,7 +104,7 @@ classdef mi_analysis < handle
                 
                 % RC: Why do we set the k values in the core object and in
                 % the arrMIcore?
-                core1 = mi_ksg_core(obj.sim_manager, x, y, 1:9, 0);
+                core1 = mi_ksg_core(obj.sim_manager, x, y, 'ks_arr', 1:9, 'opt_k',1, 'verbose', obj.verbose);
                 if v > 2; disp([newline '--> Core object instantiated for group: ' num2str(iGroup)]); end
                 
                 if v > 2; disp([newline '--> Group ' num2str(iGroup) ' has ' num2str(max(size(x))) ' data points']); end

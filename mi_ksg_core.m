@@ -7,43 +7,69 @@ classdef mi_ksg_core < handle
         verbose % for debugging purposes
         
         x % matrix of x data
+        
         y % matrix of y data
+        
         k_values % array of k-values
+        
         mi_data % MI value, error estimate, data fraction, k-value
+        
         opt_k % optimized k value; if -1, only runs MI calculation without any error estimate
+        
         data_fracs = 10 % number of data fractions
+        
+        append % Taken from analysis object. 
+               % Specify whether to re-run all analysis or to just run analysis for k-values that have not been previously included. 
         
         sim_obj % sim_manager object
     end
     
     methods
-        function obj = mi_ksg_core(sim_obj, x, y, ks_arr, opt_k, verbose)
+        function obj = mi_ksg_core(sim_obj, x, y, varargin)
+            % This function generates the core object with the x and y
+            % values, desired k values to run, and whether to estimate the error. 
             
-            obj.x = x;
-            obj.y = y;            
-            obj.sim_obj = sim_obj;
-
-            if nargin == 3
-                warning('Using default k-value of 3...');
-                obj.k_values = 3;
-                obj.opt_k = 3;
-                obj.verbose = 0;
-            elseif nargin == 4
-                % Argument options for ks_arr
-                % int   calculate MI for k-value
-                % arr   calculate MI for multiple k-values
-                obj.k_values = ks_arr;
-                obj.opt_k = 0;
-                obj.verbose = 0;
-            elseif nargin == 5
-                obj.k_values = ks_arr;
-                obj.opt_k = opt_k;
-                obj.verbose = 0;
-            elseif nargin == 5
-                obj.k_values = ks_arr;
-                obj.opt_k = opt_k;
-                obj.verbose = verbose;
-            end
+            % Instantiate input parser
+            p = inputParser;
+            
+            % Set up required inputs
+            validate_sim_obj = @(x_var) assert(isa(x_var, 'mi_ksg_sims'), 'sim_obj must be a valid sim object');
+            p.addRequired('sim_obj', validate_sim_obj);
+            
+            validate_x = @(x_var) assert(ismatrix(x_var), 'x must be a matrix');
+            p.addRequired('x', validate_x);
+            
+            validate_y = @(x_var) assert(ismatrix(x_var), 'y must be a matrix');
+            p.addRequired('y', validate_y);
+            
+            % Add optional
+            
+            % ks_arr
+            default_ks_arr = 1:9;
+            validate_ks_arr = @(x_var) assert(ismatrix(x_var), 'ks_arr must be a vector of integers');
+            p.addParameter('ks_arr', default_ks_arr, validate_ks_arr);
+            
+            % opt_k
+            valid_opt_k = [0 1 -1];
+            default_opt_k = 1;
+            validate_opt_k = @(x_var) assert(ismember(x_var, valid_opt_k), 'opt_k must be 0, 1 or -1');
+            p.addParameter('opt_k', default_opt_k, validate_opt_k);
+            
+            % verbose
+            default_verbose = 1; 
+            validate_verbose = @(x_var) assert(isnumeric(x_var) && (rem(x_var,1) == 0), 'verbose must be an integer');
+            p.addParameter('verbose', default_verbose, validate_verbose);
+            
+            % Parse the inputs
+            p.KeepUnmatched = 1;
+            p.parse(sim_obj, x, y, varargin{:});
+            
+            obj.x = p.Results.x;
+            obj.y = p.Results.y;            
+            obj.sim_obj = p.Results.sim_obj;
+            obj.k_values = p.Results.ks_arr;
+            obj.opt_k = p.Results.opt_k;
+            obj.verbose = p.Results.verbose;
             
             add_sim(sim_obj, obj); % add this core obj to sim_manager list
         end
@@ -51,6 +77,8 @@ classdef mi_ksg_core < handle
         % These methods are used to interface with other classes for data
         % analysis and visualization        
         function r = get_core_dataset(obj)
+            
+            
             % get cell array of data for MI calculation
             r = cell(0,4);
             if obj.opt_k < 0
@@ -67,10 +95,34 @@ classdef mi_ksg_core < handle
                 end
             else
                 % run MI calculation with error estimates
-                for i=1:length(obj.k_values)
-                    % create datasets for data fractions with unique key
-                    % to track each simulation
-                    r = cat(1, r, fractionate_data(obj, obj.k_values(i)));
+                 if obj.append
+                    if isempty(obj.mi_data)
+                        % Run estimates for all k values if none have been
+                        % run yet
+                        for i = 1:length(obj.k_values)
+                            % create datasets for data fractions with unique key
+                            % to track each simulation
+                            r = cat(1, r, fractionate_data(obj, obj.k_values(i)));
+                        end
+                    else
+                        mi_data = cell2mat(obj.mi_data);
+                        k_finished = unique(mi_data(:,4));
+                        for i = 1:length(obj.k_values)
+                            if ismember(obj.k_values(i), k_finished)
+                                continue
+                            else
+                                % create datasets for data fractions with unique key
+                                % to track each simulation
+                                r = cat(1, r, fractionate_data(obj, obj.k_values(i)));
+                            end
+                        end
+                    end
+                else
+                    for i=1:length(obj.k_values)
+                        % create datasets for data fractions with unique key
+                        % to track each simulation
+                        r = cat(1, r, fractionate_data(obj, obj.k_values(i)));
+                    end
                 end
             end 
         end

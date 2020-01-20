@@ -25,11 +25,12 @@ switch computer_name{1}
         fnames = {fnames.name};
         fpath = '/Users/brycechung/Google Drive/__Research/__SOBER/__PROJECTS/Mutual Information/ChungBarker_MIEstimation/neurowsatl_mbp/ContinuousMIEstimation/TestData';
         
-    case 'Rachel lab computer name'
-        % % RACHEL_lab:
-        % fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
-        % fnames = {fnames.name};
-        % fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
+    case ['bio-ssober-37p' char(10) '']
+
+        % RACHEL_lab:
+        fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
+        fnames = {fnames.name};
+        fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
     
     case 'Rachel mac computer name'
         % RACHEL_mac:
@@ -96,7 +97,6 @@ try
     success = [success newline 'Pulled: data'];
     if ~all(size(get_data(d)) == size(unit1)); success = [success ' >> FAILED']; end
     
-    error('whoops');
     
     disp(success);
 catch e
@@ -104,7 +104,7 @@ catch e
     disp([newline 'ERROR: Unable to instantiate mi_data with ID only']);
 end
 
-%% - FOR RUNNING IN EMACS
+%% -
 try
     disp([newline newline]);
     clear d;
@@ -825,7 +825,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end
     
     % Check for sim manager object
     success = [success newline 'Constructed: sim_manager'];
@@ -880,7 +880,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end
     
     % Check for sim manager object
     success = [success newline 'Constructed: sim_manager'];
@@ -956,7 +956,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end
     
     % Check for correct timebase (specific to timing subclass)
     success = [success newline 'Assigned: n_timeBase'];
@@ -1038,7 +1038,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end
     
     % Check for correct timebase (specific to timing subclass)
     success = [success newline 'Assigned: n_timebase'];
@@ -1122,7 +1122,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end
     
     % Check for correct b_timebase (specific to behavior subclass)
     success = [success newline 'Assigned: b_timebase'];
@@ -1227,7 +1227,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end
     
     % Check for correct n_timebase (specific to timing subclass)
     success = [success newline 'Assigned: n_timebase'];
@@ -1336,7 +1336,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end    
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end    
     
     % Check for correct b_timebase (specific to behavior subclass)
     success = [success newline 'Assigned: b_timebase'];
@@ -1442,7 +1442,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end    
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end    
     
     % Check for correct b_timebase (specific to behavior subclass)
     success = [success newline 'Assigned: b_timebase'];
@@ -1548,7 +1548,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end    
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end    
     
     % Check for correct b_timebase (specific to behavior subclass)
     success = [success newline 'Assigned: b_timebase'];
