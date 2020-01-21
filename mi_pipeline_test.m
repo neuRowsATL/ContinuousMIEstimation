@@ -1528,7 +1528,7 @@ try
     build_behavior(b);
     
     % Construct mi_analysis object
-    a = calc_timing_count_behav(d, b, {'unit1', 'unit2'}, 'verbose', verbose_level);
+    a = calc_timing_timing_behav(d, b, {'unit1', 'unit2'}, 'verbose', verbose_level);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY

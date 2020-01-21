@@ -55,6 +55,11 @@ classdef mi_ksg_core < handle
             validate_opt_k = @(x_var) assert(ismember(x_var, valid_opt_k), 'opt_k must be 0, 1 or -1');
             p.addParameter('opt_k', default_opt_k, validate_opt_k);
             
+            % append
+            default_append= true;
+            validate_append = @(x_var) assert(islogical(x_var), 'append must be a logical value');
+            p.addParameter('append', default_append, validate_append);
+            
             % verbose
             default_verbose = 1; 
             validate_verbose = @(x_var) assert(isnumeric(x_var) && (rem(x_var,1) == 0), 'verbose must be an integer');
@@ -142,6 +147,11 @@ classdef mi_ksg_core < handle
                 
                 tmp_mi_data = cat(1, tmp_mi_data, {mean(mi) var(mi) count k}); % append MI with error estimation
             end
+            
+            if obj.append
+                tmp_mi_data = cat(1, tmp_mi_data, obj.mi_data);
+            end
+            
             obj.mi_data = sortrows(tmp_mi_data,[4,3]);
         end
         
