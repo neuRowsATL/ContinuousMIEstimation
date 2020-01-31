@@ -8,7 +8,7 @@
 clear all
 close('all')
 
-with_plots = false;
+with_plots = true;
 
 [ret name] = system('hostname');
 computer_name = split(name,'.');
@@ -62,19 +62,18 @@ else
 end
 
 %% RUN MI_DATA
-load('TestData/20191018_bl21lb21_171218_spikes.mat');
-unit1 = unit1*1000.;
-unit2 = unit2*1000.;
-unit3 = unit3*1000.;
+load('20200127_bl21lb21_spikedata.mat');
+unit1 = spikedata.unit1;
+unit2 = spikedata.unit3;
+unit3 = spikedata.unit4;
 
-str_unit1 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit1';
-str_unit2 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit2';
-str_unit3 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit3';
+str_unit1 = '20200127_bl21lb21_spikedata.mat/spikedata.unit1';
+str_unit2 = '20200127_bl21lb21_spikedata.mat/spikedata.unit2';
+str_unit3 = '20200127_bl21lb21_spikedata.mat/spikedata.unit3';
 
-load('TestData/20191018_bl21lb21_171218_cycles.mat');
-cycle_times = [cycle_times(1:end-1)' cycle_times(2:end)']; % Needs to be N x 2 matrix of [on off] x N
+cycle_times = [spikedata.pressure.Ontime(1:end-1,1) spikedata.pressure.Ontime(2:end,1)]; % Needs to be N x 2 matrix of [on off] x N
 
-str_cycles = 'TestData/20191018_bl21lb21_171218_cycles.mat';
+str_cycles = '20200127_bl21lb21_spikedata.mat/spikedata.pressure.Ontime';
 
 %%
 try
@@ -182,7 +181,7 @@ try
 
     
    % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
-success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
+    success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
 
     % Check for correct ID
     success = [success newline 'Assigned: ID'];
@@ -853,14 +852,14 @@ try
 
     d = mi_data_neural('test', 'verbose', verbose_level);
 
-    add_spikes(d, unit1, str_unit1, 30000, 'unit1');
     add_spikes(d, unit2, str_unit2, 30000, 'unit2');
+    add_spikes(d, unit3, str_unit3, 30000, 'unit3');
     
     b = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(b, cycle_times, str_cycles, 30000);
     
     % Construct mi_analysis object
-    a = calc_count_count(d, b, {'unit1' , 'unit2'}, 'verbose', verbose_level);
+    a = calc_count_count(d, b, {'unit2' , 'unit3'}, 'verbose', verbose_level);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY

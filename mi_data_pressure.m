@@ -144,7 +144,7 @@ classdef mi_data_pressure < mi_data_behavior
        end        
         
        function r = get_behavior(obj, timeBase, feature, start, dur, nSamp, varargin)
-            %% Implemented to return different features of behavior cycles after processing raw waveform matrix data
+            % Implemented to return different features of behavior cycles after processing raw waveform matrix data
             % i.e., raw data, PCA, residual, area
 
             v = obj.verbose;
