@@ -128,9 +128,9 @@ classdef mi_ksg_sims < handle
                 data_ixs = find(strcmp(sim_data(:,4), core_keys{key_ix}) == 1); % find data entries that belong to core obj
                 core_ix = find(strcmp([obj.mi_core_arr(:,2)], core_keys(key_ix)) == 1); % find core obj in list of mi_core
                 set_core_data(obj.mi_core_arr{core_ix}, sim_data(data_ixs,1:3)); % send data back to respective mi_core objs
-                if obj.mi_core_arr{core_ix}.opt_k == 0
-                    find_k_value(obj.mi_core_arr{core_ix}); % optimize k-value if opt_k == 0
-                end
+%                if obj.mi_core_arr{core_ix}.opt_k == 0
+%                    find_k_value(obj.mi_core_arr{core_ix}); % optimize k-value if opt_k == 0
+%                end
             end
         end
         

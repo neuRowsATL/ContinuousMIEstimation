@@ -180,13 +180,29 @@ classdef mi_ksg_core < handle
             % 2019107 BC
             % Adding hack to filter mutual information results that are
             % within three S.D. from 0
-            if ((MIs(1) - errThreshold*(variancePredicted^0.5)) > 0 || errThreshold == 0) && (MIs(1) > 0)
-                r.mi = MIs(1);
-                r.err = variancePredicted^.5;
-            else
-                r.mi = 0;
-                r.err = 0;
+            if errThreshold < 0
+                r.mi = mis(1);
+                r.err - variancePredicted.^.5;
+                
+            elseif errThreshold == 0
+                if MIs(1) >= 0
+                    r.mi = MIs(1);
+                else
+                    r.mi = 0;
+                end
+                r.err = variancePredicted.^.5
+
+            elseif errThreshold > 0
+                if ((MIs(1) - errThreshold*(variancePredicted^0.5)) > 0 || errThreshold == 0) && (MIs(1) > 0)
+                    r.mi = MIs(1);
+                    r.err = variancePredicted^.5;
+                else
+                    r.mi = 0;
+                    r.err = 0;
+                end
+                                
             end
+            
             
             
 %             % return MI value and error estimation
@@ -201,17 +217,100 @@ classdef mi_ksg_core < handle
             k_vals = [obj.mi_data{:,4}];
             ks = unique(k_vals);
             
-            weighted_dataFrac = zeros(length(ks),4);
-            
-            % Check for stability across at least four data fractions
-            for ik = ks
-                dataFracs = find(data(:,4) == ik);
+            k_goodDataFrac = []; 
                 for iFrac = 1:length(dataFracs)
+
+                    % Find MI and std for dataFrac of interest
+                    iMI = data(1, iFrac);
+                    ivar = data(2, iFrac);
+                    istd = ivar ^ 0.5
+
+                    % Find the MI and stds for N dataFracs larger than dataFrac of interest
+                    MIs = [data(1, dataFracs(iFrac + 1 :end))];
+                    vars = [data(2, dataFracs(iFrac + 1:end))];
+                    stds = vars.^0.5;                        
+
+                    % We have already compared the MI estimate with the previous data fracs, so set automatically to true.
+                    % Note- if they are really false, this will show up in one of the previous iterations of the for loop.
+                    known_matches =  [true(1, iFrac)];
+
+                    % Compare the MI estimate for this dataFrac with all the larger N dataFracs (all smaller data sizes). Return true if this MI is within error of the other MIs. 
+                    new_matches = iMI >= [MIs - stds] & iMI <= [MIs + stds];
                     
+                    match_dataFracs = [known_matches , new_matches];
+
+                    % Combine boolean values into a matrix of all the dataFracs compared to each other. 
+                    matching_set(iFrac, 1:end)  = match_dataFracs;
+
                 end
+
+                % Find the data fracs whose estimates that are in accord with all data sizes larger than it. 
+                good_DataFracs = all(matching_set,1);
+
+                % Compile the good data fracs into a matrix by k-value. 
+                k_goodDataFracs = [k_goodDataFracs; goodDataFracs];
+                                    
             end
+
             
+            % Identify which k-values have stable estimates for at least the first 4 data fracs.
+            kVals_okay = all(k_goodDataFracs(:,1:4), 2);
+
+            if ~any(kVals_okay)
+                obj.opt_k = {'AUDIT: No valid Ks identified'};
+            else
+                % Add a weight based on how many other estimates are in accord with the first four data fracs.
+                weighted_k = kVals_okay + .1.*sum(k_goodDataFracs(:,5:end),2);
+
+                % Find a tentative list of k values to use.
+                % Note- this would be a place to change how the weighted k values affects the choice of k. We could also consider propagating the list of weights down farther. 
+                list_ofKVals = ks(find(weighted_k >= 1));
+
+
+                % Check for consistency across ks for k values in the list.
+                final_MIs = zeros(size(list_ofKVals);
+                final_errs = zeros(size(list_ofKVals);
+                for ik = 1:length(list_ofKVals)
+                    % Run getMIs to return the raw estimated values
+                    k = list_ofKVals(ik);
+                    r = getMIs(obj, ik, -1);
+                    final_MIs(1,ik) = r.mi;
+                    final_stds(1,ik) = r.err;
+                end
+
+                % Similarly to how we checked data fracs, now we will check all k vals against each other
+                matching_kSet = zeros(length(list_ofKVals), length(list_ofKVals));
+                for ik = 1:length(list_ofKVals)
+                    mi_k = final_MIs(1,ik);
+                    std_k = final_stds(1,ik);
+
+                    % Find the remaining k vals to compare to
+                    MIs = final_MIs(1,ik+1:end);
+                    stds = final_stds(1,ik+1:end);
+
+                    % We know that the estimates for this k val agree with themselves.
+                    % Compare th eMI estimates for this k value with all the next consecutive k values. Previous k values have already been compared
+                    known_matches = [true(1,ik)];
+
+                    new_matches = mi_k >= [MIs-stds] & mi_k <= [MIs + stds];
+
+                    match_ks = [known_matches, new_matches];
+
+                    matching_kSet(ik, 1:end) = match_ks;
+                end
+
+                good_ks = all(matching_kSet, 1);
+
+                if all(good_ks)
+                    obj.opt_k = {'Good', [list_ofKVals, good_ks], matching_kSet};
+                else
+                    obj.opt_k = {'AUDIT: Not all ks agree', [list_ofKVals, good_ks] , matching_kSet};
+                end
+
+            end
+        end
             
+
             
 %             % find k-value that is least sensitive to changing k-value
 %             k_mi = zeros(1,length(ks));
@@ -255,7 +354,7 @@ classdef mi_ksg_core < handle
 %             else
 %                 obj.opt_k = obj.k_values;
 %             end
-        end
+
         
         function r = fractionate_data(obj, k)
             % return cell array of fractionated datasets with x-data,
