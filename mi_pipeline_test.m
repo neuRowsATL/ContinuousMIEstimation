@@ -875,7 +875,7 @@ try
     
     % Check for correct varNames
     success = [success newline 'Assigned: varNames'];
-    if ~isequal(a.varNames, {'unit1', 'unit2'}); success = [success '>> FAILED']; end
+    if ~isequal(a.varNames, {'unit2', 'unit3'}); success = [success '>> FAILED']; end
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];

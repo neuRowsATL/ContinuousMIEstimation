@@ -61,6 +61,7 @@ classdef mi_analysis < handle
             obj.objData = p.Results.objData;
             obj.varNames = p.Results.varNames;
             obj.objBehav = p.Results.objBehav;
+            obj.append = p.Results.append;
             obj.verbose = p.Results.verbose;
             
             % Temporarily set arrMIcore and instantiate a sim_manager
@@ -104,7 +105,7 @@ classdef mi_analysis < handle
                 
                 % RC: Why do we set the k values in the core object and in
                 % the arrMIcore?
-                core1 = mi_ksg_core(obj.sim_manager, x, y, 'ks_arr', 2:8, 'opt_k',1, 'append', obj.append, 'verbose', obj.verbose);
+                core1 = mi_ksg_core(obj.sim_manager, x, y, 'ks_arr', 1:9, 'opt_k',1, 'append', obj.append, 'verbose', obj.verbose);
                 if v > 2; disp([newline '--> Core object instantiated for group: ' num2str(iGroup)]); end
                 
                 if v > 2; disp([newline '--> Group ' num2str(iGroup) ' has ' num2str(max(size(x))) ' data points']); end
