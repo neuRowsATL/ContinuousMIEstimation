@@ -74,6 +74,7 @@ classdef mi_ksg_core < handle
             obj.sim_obj = p.Results.sim_obj;
             obj.k_values = p.Results.ks_arr;
             obj.opt_k = p.Results.opt_k;
+            obj.append = p.Results.append;
             obj.verbose = p.Results.verbose;
             
             add_sim(sim_obj, obj); % add this core obj to sim_manager list
@@ -181,8 +182,8 @@ classdef mi_ksg_core < handle
             % Adding hack to filter mutual information results that are
             % within three S.D. from 0
             if errThreshold < 0
-                r.mi = mis(1);
-                r.err - variancePredicted.^.5;
+                r.mi = MIs(1);
+                r.err = variancePredicted.^.5;
                 
             elseif errThreshold == 0
                 if MIs(1) >= 0
@@ -190,7 +191,7 @@ classdef mi_ksg_core < handle
                 else
                     r.mi = 0;
                 end
-                r.err = variancePredicted.^.5
+                r.err = variancePredicted.^.5;
 
             elseif errThreshold > 0
                 if ((MIs(1) - errThreshold*(variancePredicted^0.5)) > 0 || errThreshold == 0) && (MIs(1) > 0)
@@ -216,45 +217,53 @@ classdef mi_ksg_core < handle
             
             k_vals = [obj.mi_data{:,4}];
             ks = unique(k_vals);
-            
-            k_goodDataFrac = []; 
+            k_goodDataFracs = []; 
+            for ik = 1:length(ks)
+                dataFracs = data(find(data(:,4) == ks(ik)),3);
+                
+                dataFrac_data = data(find(data(:,4) == ks(ik)), 1:end);
+                
+                matching_set = zeros(length(dataFracs), length(dataFracs));
                 for iFrac = 1:length(dataFracs)
-
                     % Find MI and std for dataFrac of interest
-                    iMI = data(1, iFrac);
-                    ivar = data(2, iFrac);
-                    istd = ivar ^ 0.5
+                    iMI = dataFrac_data(iFrac, 1);
+                    ivar = dataFrac_data(iFrac, 2);
+                    istd = ivar ^ 0.5;
 
                     % Find the MI and stds for N dataFracs larger than dataFrac of interest
-                    MIs = [data(1, dataFracs(iFrac + 1 :end))];
-                    vars = [data(2, dataFracs(iFrac + 1:end))];
+                    MIs = dataFrac_data(iFrac + 1 :end,1);
+                    vars = dataFrac_data(iFrac + 1:end,2);
                     stds = vars.^0.5;                        
 
                     % We have already compared the MI estimate with the previous data fracs, so set automatically to true.
                     % Note- if they are really false, this will show up in one of the previous iterations of the for loop.
-                    known_matches =  [true(1, iFrac)];
+                    known_matches =  true(1, iFrac);
 
                     % Compare the MI estimate for this dataFrac with all the larger N dataFracs (all smaller data sizes). Return true if this MI is within error of the other MIs. 
-                    new_matches = iMI >= [MIs - stds] & iMI <= [MIs + stds];
+                    new_matches = iMI >= MIs - stds & iMI <= MIs + stds;
                     
-                    match_dataFracs = [known_matches , new_matches];
+                    match_dataFracs = [known_matches , new_matches'];
 
                     % Combine boolean values into a matrix of all the dataFracs compared to each other. 
                     matching_set(iFrac, 1:end)  = match_dataFracs;
+                    
 
                 end
-
+                % Store matching set in case we don't find a k-value that
+                % satisfies the conditions
+                k_matchingSets{1,ik} = matching_set;
+                
                 % Find the data fracs whose estimates that are in accord with all data sizes larger than it. 
                 good_DataFracs = all(matching_set,1);
 
                 % Compile the good data fracs into a matrix by k-value. 
-                k_goodDataFracs = [k_goodDataFracs; goodDataFracs];
-                                    
-            end
+                k_goodDataFracs = [k_goodDataFracs; good_DataFracs];
+            end                      
 
             
             % Identify which k-values have stable estimates for at least the first 4 data fracs.
-            kVals_okay = all(k_goodDataFracs(:,1:4), 2);
+            test_fracs = k_goodDataFracs(:,1:4);
+            kVals_okay = all(test_fracs, 2);
 
             if ~any(kVals_okay)
                 obj.opt_k = {'AUDIT: No valid Ks identified'};
@@ -268,12 +277,12 @@ classdef mi_ksg_core < handle
 
 
                 % Check for consistency across ks for k values in the list.
-                final_MIs = zeros(size(list_ofKVals);
-                final_errs = zeros(size(list_ofKVals);
+                final_MIs = zeros(size(list_ofKVals));
+                final_errs = zeros(size(list_ofKVals));
                 for ik = 1:length(list_ofKVals)
                     % Run getMIs to return the raw estimated values
                     k = list_ofKVals(ik);
-                    r = getMIs(obj, ik, -1);
+                    r = get_mi(obj, k, -1);
                     final_MIs(1,ik) = r.mi;
                     final_stds(1,ik) = r.err;
                 end
@@ -290,9 +299,9 @@ classdef mi_ksg_core < handle
 
                     % We know that the estimates for this k val agree with themselves.
                     % Compare th eMI estimates for this k value with all the next consecutive k values. Previous k values have already been compared
-                    known_matches = [true(1,ik)];
+                    known_matches = true(1,ik);
 
-                    new_matches = mi_k >= [MIs-stds] & mi_k <= [MIs + stds];
+                    new_matches = mi_k >= MIs-stds & mi_k <= MIs + stds;
 
                     match_ks = [known_matches, new_matches];
 
@@ -302,9 +311,9 @@ classdef mi_ksg_core < handle
                 good_ks = all(matching_kSet, 1);
 
                 if all(good_ks)
-                    obj.opt_k = {'Good', [list_ofKVals, good_ks], matching_kSet};
+                    obj.opt_k = {'Good', [list_ofKVals; good_ks], matching_kSet};
                 else
-                    obj.opt_k = {'AUDIT: Not all ks agree', [list_ofKVals, good_ks] , matching_kSet};
+                    obj.opt_k = {'AUDIT: Not all ks agree', [list_ofKVals; good_ks] , matching_kSet};
                 end
 
             end
