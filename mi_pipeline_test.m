@@ -34,9 +34,9 @@ switch computer_name{1}
     
     case 'Rachel mac computer name'
         % RACHEL_mac:
-        % fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
-        % fnames = {fnames.name};
-        % fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
+        fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
+        fnames = {fnames.name};
+        fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
     otherwise
         error('Unalbe to identify computer');
 end
