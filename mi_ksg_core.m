@@ -252,6 +252,8 @@ classdef mi_ksg_core < handle
                 % Store matching set in case we don't find a k-value that
                 % satisfies the conditions
                 k_matchingSets{1,ik} = matching_set;
+
+                keyboard
                 
                 % Find the data fracs whose estimates that are in accord with all data sizes larger than it. 
                 good_DataFracs = all(matching_set,1);
