@@ -56,6 +56,7 @@ classdef calc_count_count < mi_analysis
             
             % Audit Check
             if sum(x) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+                keyboard
                 error('Error: Spike Counts for x do not match that expected from objData.varNames{1}.');
             end
 
@@ -70,7 +71,8 @@ classdef calc_count_count < mi_analysis
 
             % Audit Check
             if sum(y) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
-               error('Error: Spike Counts for x do not match that expected from objData.varNames{2}.');
+                keyboard
+                error('Error: Spike Counts for y do not match that expected from objData.varNames{2}.');
             end
             
             

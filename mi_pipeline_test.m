@@ -8,7 +8,7 @@
 clear all
 close('all')
 
-with_plots = false;
+with_plots = true;
 
 [ret name] = system('hostname');
 computer_name = split(name,'.');
@@ -25,17 +25,18 @@ switch computer_name{1}
         fnames = {fnames.name};
         fpath = '/Users/brycechung/Google Drive/__Research/__SOBER/__PROJECTS/Mutual Information/ChungBarker_MIEstimation/neurowsatl_mbp/ContinuousMIEstimation/TestData';
         
-    case 'Rachel lab computer name'
-        % % RACHEL_lab:
-        % fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
-        % fnames = {fnames.name};
-        % fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
+    case ['bio-ssober-37p' char(10) '']
+
+        % RACHEL_lab:
+        fnames = dir('C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\*.rhd');
+        fnames = {fnames.name};
+        fpath = 'C:\Users\RBARKE2\Projects\MergingCode\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
     
     case 'Rachel mac computer name'
         % RACHEL_mac:
-        % fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
-        % fnames = {fnames.name};
-        % fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
+        fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
+        fnames = {fnames.name};
+        fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
     otherwise
         error('Unalbe to identify computer');
 end
@@ -61,19 +62,18 @@ else
 end
 
 %% RUN MI_DATA
-load('TestData/20191018_bl21lb21_171218_spikes.mat');
-unit1 = unit1*1000.;
-unit2 = unit2*1000.;
-unit3 = unit3*1000.;
+load('20200127_bl21lb21_spikedata.mat');
+unit1 = spikedata.unit1;
+unit2 = spikedata.unit3;
+unit3 = spikedata.unit4;
 
-str_unit1 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit1';
-str_unit2 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit2';
-str_unit3 = 'TestData/20191018_bl21lb21_171218_spikes.mat/unit3';
+str_unit1 = '20200127_bl21lb21_spikedata.mat/spikedata.unit1';
+str_unit2 = '20200127_bl21lb21_spikedata.mat/spikedata.unit2';
+str_unit3 = '20200127_bl21lb21_spikedata.mat/spikedata.unit3';
 
-load('TestData/20191018_bl21lb21_171218_cycles.mat');
-cycle_times = [cycle_times(1:end-1)' cycle_times(2:end)']; % Needs to be N x 2 matrix of [on off] x N
+cycle_times = [spikedata.pressure.Ontime(1:end-1,1) spikedata.pressure.Ontime(2:end,1)]; % Needs to be N x 2 matrix of [on off] x N
 
-str_cycles = 'TestData/20191018_bl21lb21_171218_cycles.mat';
+str_cycles = '20200127_bl21lb21_spikedata.mat/spikedata.pressure.Ontime';
 
 %%
 try
@@ -96,7 +96,6 @@ try
     success = [success newline 'Pulled: data'];
     if ~all(size(get_data(d)) == size(unit1)); success = [success ' >> FAILED']; end
     
-    error('whoops');
     
     disp(success);
 catch e
@@ -104,7 +103,7 @@ catch e
     disp([newline 'ERROR: Unable to instantiate mi_data with ID only']);
 end
 
-%% - FOR RUNNING IN EMACS
+%% -
 try
     disp([newline newline]);
     clear d;
@@ -182,7 +181,7 @@ try
 
     
    % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
-success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
+    success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
 
     % Check for correct ID
     success = [success newline 'Assigned: ID'];
@@ -825,7 +824,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end
     
     % Check for sim manager object
     success = [success newline 'Constructed: sim_manager'];
@@ -853,14 +852,14 @@ try
 
     d = mi_data_neural('test', 'verbose', verbose_level);
 
-    add_spikes(d, unit1, str_unit1, 30000, 'unit1');
     add_spikes(d, unit2, str_unit2, 30000, 'unit2');
+    add_spikes(d, unit3, str_unit3, 30000, 'unit3');
     
     b = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(b, cycle_times, str_cycles, 30000);
     
     % Construct mi_analysis object
-    a = calc_count_count(d, b, {'unit1' , 'unit2'}, 'verbose', verbose_level);
+    a = calc_count_count(d, b, {'unit2' , 'unit3'}, 'verbose', verbose_level);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
@@ -876,11 +875,11 @@ try
     
     % Check for correct varNames
     success = [success newline 'Assigned: varNames'];
-    if ~isequal(a.varNames, {'unit1', 'unit2'}); success = [success '>> FAILED']; end
+    if ~isequal(a.varNames, {'unit2', 'unit3'}); success = [success '>> FAILED']; end
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end
     
     % Check for sim manager object
     success = [success newline 'Constructed: sim_manager'];
@@ -956,7 +955,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end
     
     % Check for correct timebase (specific to timing subclass)
     success = [success newline 'Assigned: n_timeBase'];
@@ -1038,7 +1037,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end
     
     % Check for correct timebase (specific to timing subclass)
     success = [success newline 'Assigned: n_timebase'];
@@ -1122,7 +1121,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end
     
     % Check for correct b_timebase (specific to behavior subclass)
     success = [success newline 'Assigned: b_timebase'];
@@ -1227,7 +1226,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end
     
     % Check for correct n_timebase (specific to timing subclass)
     success = [success newline 'Assigned: n_timebase'];
@@ -1336,7 +1335,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end    
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end    
     
     % Check for correct b_timebase (specific to behavior subclass)
     success = [success newline 'Assigned: b_timebase'];
@@ -1442,7 +1441,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end    
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end    
     
     % Check for correct b_timebase (specific to behavior subclass)
     success = [success newline 'Assigned: b_timebase'];
@@ -1528,7 +1527,7 @@ try
     build_behavior(b);
     
     % Construct mi_analysis object
-    a = calc_timing_count_behav(d, b, {'unit1', 'unit2'}, 'verbose', verbose_level);
+    a = calc_timing_timing_behav(d, b, {'unit1', 'unit2'}, 'verbose', verbose_level);
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
@@ -1548,7 +1547,7 @@ try
     
     % Check for verbose
     success = [success newline 'Assigned: verbose'];
-    if a.verbose ~= 5; success = [success '>> FAILED']; end    
+    if a.verbose ~= verbose_level; success = [success '>> FAILED']; end    
     
     % Check for correct b_timebase (specific to behavior subclass)
     success = [success newline 'Assigned: b_timebase'];
