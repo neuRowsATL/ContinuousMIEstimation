@@ -244,7 +244,8 @@ classdef mi_ksg_core < handle
                     
                     match_dataFracs = [known_matches , new_matches'];
 
-                    % Combine boolean values into a matrix of all the dataFracs compared to each other. 
+                    % Combine boolean values into a matrix of all the
+                    % dataFracs compared to each other. 
                     matching_set(iFrac, 1:end)  = match_dataFracs;
                     
 
@@ -253,7 +254,6 @@ classdef mi_ksg_core < handle
                 % satisfies the conditions
                 k_matchingSets{1,ik} = matching_set;
 
-                keyboard
                 
                 % Find the data fracs whose estimates that are in accord with all data sizes larger than it. 
                 good_DataFracs = all(matching_set,1);
@@ -262,11 +262,14 @@ classdef mi_ksg_core < handle
                 k_goodDataFracs = [k_goodDataFracs; good_DataFracs];
             end                      
 
+            keyboard
             
             % Identify which k-values have stable estimates for at least the first 4 data fracs.
             test_fracs = k_goodDataFracs(:,1:4);
             kVals_okay = all(test_fracs, 2);
 
+            keyboard
+            
             if ~any(kVals_okay)
                 obj.opt_k = {'AUDIT: No valid Ks identified'};
             else
@@ -277,7 +280,8 @@ classdef mi_ksg_core < handle
                 % Note- this would be a place to change how the weighted k values affects the choice of k. We could also consider propagating the list of weights down farther. 
                 list_ofKVals = ks(find(weighted_k >= 1));
 
-
+                keyboard
+                
                 % Check for consistency across ks for k values in the list.
                 final_MIs = zeros(size(list_ofKVals));
                 final_errs = zeros(size(list_ofKVals));
@@ -308,6 +312,8 @@ classdef mi_ksg_core < handle
                     match_ks = [known_matches, new_matches];
 
                     matching_kSet(ik, 1:end) = match_ks;
+                    
+                    keyboard
                 end
 
                 good_ks = all(matching_kSet, 1);
