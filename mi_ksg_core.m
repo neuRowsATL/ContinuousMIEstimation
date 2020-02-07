@@ -156,20 +156,88 @@ classdef mi_ksg_core < handle
             obj.mi_data = sortrows(tmp_mi_data,[4,3]);
         end
         
-        function r = get_mi(obj, k, errThreshold)
-            % get mutual information and error estimates
-            data_ixs = cell2mat(obj.mi_data(:,4)) == k; % find MI calcs with k-value
+        function r = get_mi(obj, errThreshold, varargin)
             
-            % calculate estimated error
-            listSplitSizes = cell2mat(obj.mi_data(data_ixs,3));
-            MIs = cell2mat(obj.mi_data(data_ixs,1));
-            listVariances = cell2mat(obj.mi_data(data_ixs,2));
-            listVariances = listVariances(2:end);
+            p = inputParser;
             
-            k = listSplitSizes(2:end);
-            variancePredicted = sum((k-1)./k.*listVariances)./sum((k-1));
+            % Set required inputs
+            validate_obj = @(x) assert(isa(x, 'mi_ksg_core'), 'obj must be a core object');
+            p.addRequired('obj', validate_obj);
             
+            validate_errThreshold = @(x) assert(isnumeric(x), 'errThreshold must be a numeric quantity');
+            p.addRequired('errThreshold', validate_errThreshold);
+            
+            % Set Optional Input
+            default_k = 0;
+            validate_k = @(x) assert(rem(x,1) == 0, 'k value must be a whole number, divisable by 1');
+            p.addParameter('k', default_k, validate_k);
+            
+            % Parse inputs
+            p.parse(obj, errThreshold, varargin{:});
+            
+            % Define validated inputs
+            obj = p.Results.obj;
+            errThreshold = p.Results.errThreshold;
+            k = p.Results.k;
+            
+            keyboard
+            
+            % Find MIs differently depending on value of k
+            if k == 0
+                % We have either already optimized k, or we need to
+                % optimize k  
+                if ~iscell(obj.opt_k)
+                    % k has not been optimized yet. We need to run
+                    % find_k_value
+                    obj.find_k_value();
+                end
+               valid_ks = obj.opt_k{1,3};
+               MIs = obj.opt_k{1,1};
+               errs = obj.opt_k{1,2};
+               
+               keyboard
+               
+               if sum(valid_ks > 2) == 0
+                   if sum(valid_ks > 1) == 0
+                       error('Error: No k values have stable data fractions. Please manually select a k')
+                       
+                   else
+                       % Choose minimum k with maximum stability
+                       warning('Warning: K values are stable, but do not have consistent estimates. Selecting minimum k with maximum stability. Audit recommended.')
+                       best_weight = max(valid_ks(valid_ks > 1));
+                       best_kIdx = min(find(valid_k == best_weight));
+                       MI = MIs(best_kIdx);
+                       err = errs(best_kIdx);
+                   end
+               else
+                   % Choose minimum k with maximum stability
+                   best_weight = max(valid_ks(valid_ks > 1));
+                   best_kIdx = min(find(valid_ks == best_weight));                   
+                   MI = MIs(best_kIdx);
+                   err = errs(best_kIdx);     
+                   keyboard
+               end
+               
+                
+            else
+                
+            
+                % get mutual information and error estimates
+                data_ixs = cell2mat(obj.mi_data(:,4)) == k; % find MI calcs with k-value
 
+                % calculate estimated error
+                listSplitSizes = cell2mat(obj.mi_data(data_ixs,3));
+                MIs = cell2mat(obj.mi_data(data_ixs,1));
+                listVariances = cell2mat(obj.mi_data(data_ixs,2));
+                listVariances = listVariances(2:end);
+
+                k = listSplitSizes(2:end);
+                variancePredicted = sum((k-1)./k.*listVariances)./sum((k-1));
+                
+                MI = MIs(1);
+                err = variancePredicted.^0.5;
+            
+            end
             
 % -------------THIS CALCULATES THE ERROR OF THE ERROR-----------------------------------            
 %             N = size(obj.x,2);
@@ -182,36 +250,31 @@ classdef mi_ksg_core < handle
             % Adding hack to filter mutual information results that are
             % within three S.D. from 0
             if errThreshold < 0
-                r.mi = MIs(1);
-                r.err = variancePredicted.^.5;
+                r.mi = MI;
+                r.err = err;
                 
             elseif errThreshold == 0
-                if MIs(1) >= 0
-                    r.mi = MIs(1);
+                if MI >= 0
+                    r.mi = MI;
                 else
                     r.mi = 0;
                 end
-                r.err = variancePredicted.^.5;
+                r.err = err;
 
             elseif errThreshold > 0
-                if ((MIs(1) - errThreshold*(variancePredicted^0.5)) > 0 || errThreshold == 0) && (MIs(1) > 0)
-                    r.mi = MIs(1);
-                    r.err = variancePredicted^.5;
+                if (MI - errThreshold*(err)) > 0 || ((errThreshold == 0) && (MI > 0))
+                    r.mi = MI;
+                    r.err = err;
                 else
                     r.mi = 0;
-                    r.err = 0;
+                    r.err = err;
                 end
                                 
-            end
+            end          
             
-            
-            
-%             % return MI value and error estimation
-%             r.mi = MIs(1);
-%             r.err = stdvar^0.5;
         end
         
-        function r = find_k_value(obj)
+        function find_k_value(obj)
             % determine best k-value to use
             data = cell2mat(obj.mi_data);
             
