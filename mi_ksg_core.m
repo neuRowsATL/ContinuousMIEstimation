@@ -262,46 +262,46 @@ classdef mi_ksg_core < handle
                 k_goodDataFracs = [k_goodDataFracs; good_DataFracs];
             end                      
 
-            keyboard
             
             % Identify which k-values have stable estimates for at least the first 4 data fracs.
             test_fracs = k_goodDataFracs(:,1:4);
             kVals_okay = all(test_fracs, 2);
 
-            keyboard
             
-            if ~any(kVals_okay)
-                obj.opt_k = {'AUDIT: No valid Ks identified'};
-            else
                 % Add a weight based on how many other estimates are in accord with the first four data fracs.
                 weighted_k = kVals_okay + .1.*sum(k_goodDataFracs(:,5:end),2);
 
+                notBad_Ks = find(weighted_k >= 1);
+
+
                 % Find a tentative list of k values to use.
                 % Note- this would be a place to change how the weighted k values affects the choice of k. We could also consider propagating the list of weights down farther. 
-                list_ofKVals = ks(find(weighted_k >= 1));
-
-                keyboard
                 
                 % Check for consistency across ks for k values in the list.
-                final_MIs = zeros(size(list_ofKVals));
-                final_errs = zeros(size(list_ofKVals));
-                for ik = 1:length(list_ofKVals)
-                    % Run getMIs to return the raw estimated values
-                    k = list_ofKVals(ik);
+                final_MIs = zeros(size(kVals_okay));
+                final_errs = zeros(size(kVals_okay));
+
+                for ik = 1:length(ks)
+                    % Run getMIs to return the raw estimated values for all possible k-values
+                    k = ks(ik);
                     r = get_mi(obj, k, -1);
-                    final_MIs(1,ik) = r.mi;
-                    final_stds(1,ik) = r.err;
+                    final_MIs(ik,1) = r.mi;
+                    final_stds(ik,1) = r.err;
                 end
 
                 % Similarly to how we checked data fracs, now we will check all k vals against each other
-                matching_kSet = zeros(length(list_ofKVals), length(list_ofKVals));
-                for ik = 1:length(list_ofKVals)
-                    mi_k = final_MIs(1,ik);
-                    std_k = final_stds(1,ik);
+                matching_kSet = zeros(length(notBad_Ks), length(notBad_Ks));
+                
+                for ik = 1:length(notBad_Ks)
+
+                    k_idx = find(ks == notBad_Ks(ik));
+                    
+                    mi_k = final_MIs(k_idx, 1);
+                    std_k = final_stds(k_idx, 1);
 
                     % Find the remaining k vals to compare to
-                    MIs = final_MIs(1,ik+1:end);
-                    stds = final_stds(1,ik+1:end);
+                    MIs = final_MIs(notBad_Ks(ik+1:end), 1);
+                    stds = final_stds(notBad_Ks(ik+1:end), 1);
 
                     % We know that the estimates for this k val agree with themselves.
                     % Compare th eMI estimates for this k value with all the next consecutive k values. Previous k values have already been compared
@@ -309,22 +309,25 @@ classdef mi_ksg_core < handle
 
                     new_matches = mi_k >= MIs-stds & mi_k <= MIs + stds;
 
-                    match_ks = [known_matches, new_matches];
+
+                    match_ks = [known_matches ,  new_matches'];
 
                     matching_kSet(ik, 1:end) = match_ks;
+
                     
-                    keyboard
                 end
 
                 good_ks = all(matching_kSet, 1);
 
                 if all(good_ks)
-                    obj.opt_k = {'Good', [list_ofKVals; good_ks], matching_kSet};
+                    weighted_k(notBad_Ks, 1) = weighted_k(notBad_Ks,1) + 1;
+                    obj.opt_k = {final_MIs, final_stds, weighted_k, ['k < 1: Bad; 1 <= k < 2: Not Bad (Ks have data fraction stability, but do not match each othebr, see matrix); k > 2: Good! Ks in this range match and have consistent ' ...
+                                        'data fractions!'], matching_kSet};
                 else
-                    obj.opt_k = {'AUDIT: Not all ks agree', [list_ofKVals; good_ks] , matching_kSet};
+                    obj.opt_k = {final_MIs, final_stds, weighted_k, ['k < 1: Bad; 1 <= k < 2: Not Bad (Ks have data fraction stability, but do not match each othebr, see matrix); k >= 2: Good! Ks in this range match and have consistent ' ...
+                                        'datafractions!'], matching_kSet};
                 end
 
-            end
         end
             
 
