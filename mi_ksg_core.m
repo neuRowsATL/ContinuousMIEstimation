@@ -347,7 +347,7 @@ classdef mi_ksg_core < handle
                 for ik = 1:length(ks)
                     % Run getMIs to return the raw estimated values for all possible k-values
                     k = ks(ik);
-                    r = get_mi(obj, k, -1);
+                    r = get_mi(obj, -1, 'k', k);
                     final_MIs(ik,1) = r.mi;
                     final_stds(ik,1) = r.err;
                 end
