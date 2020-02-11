@@ -37,8 +37,21 @@ switch computer_name{1}
         fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
         fnames = {fnames.name};
         fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
+        
+    case ['KT',newline]
+        % Kyle_laptop:
+        fnames = dir('C:\Users\Kyle\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\bl21lb21_171218_140434*.rhd');
+        fnames = {fnames.name};
+        fpath = 'C:\Users\Kyle\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';%\bl21lb21_171218_140434';
+    
+    case ['bio-ssober-38p',newline]
+        % Kyle_lab:
+        fnames = dir('C:\Users\kthom88\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\bl21lb21_171218_140434.rhd');
+        fnames = {fnames.name};
+        fpath = 'C:\Users\kthom88\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
+           
     otherwise
-        error('Unalbe to identify computer');
+        error('Unable to identify computer');
 end
 
 % Instantiate data objects
@@ -62,19 +75,19 @@ else
 end
 
 %% RUN MI_DATA
-load('20200127_bl21lb21_spikedata.mat');
+load('TestData/20200127_bl21lb21_spikedata.mat');
 unit1 = spikedata.unit1;
 unit2 = spikedata.unit3;
 unit3 = spikedata.unit4;
 
-str_unit1 = '20200127_bl21lb21_spikedata.mat/spikedata.unit1';
-str_unit2 = '20200127_bl21lb21_spikedata.mat/spikedata.unit2';
-str_unit3 = '20200127_bl21lb21_spikedata.mat/spikedata.unit3';
+str_unit1 = 'TestData/20200127_bl21lb21_spikedata.mat/spikedata.unit1';
+str_unit2 = 'TestData/20200127_bl21lb21_spikedata.mat/spikedata.unit2';
+str_unit3 = 'TestData/20200127_bl21lb21_spikedata.mat/spikedata.unit3';
 
 cycle_times = [spikedata.pressure.Ontime(1:end-1,1) spikedata.pressure.Ontime(2:end,1)]; % Needs to be N x 2 matrix of [on off] x N
 
-str_cycles = '20200127_bl21lb21_spikedata.mat/spikedata.pressure.Ontime';
-
+str_cycles = 'TestData/20200127_bl21lb21_spikedata.mat/spikedata.pressure.Ontime';
+%Understood
 %%
 try
     disp([newline newline]);
@@ -102,8 +115,8 @@ catch e
     global_errs = show_errors(e, global_errs, 'Intantiating mi_data with ID only');
     disp([newline 'ERROR: Unable to instantiate mi_data with ID only']);
 end
-
-%% -
+%Understood
+%%
 try
     disp([newline newline]);
     clear d;
@@ -167,7 +180,7 @@ catch e
     error('FATAL ERROR: Unable to construct mi_data objects');
 end
 
-
+%Understood
 %%
 try
     clear d
@@ -226,7 +239,7 @@ try
     if sum(c1) ~= (sum(~isnan(unit1)) - sum(unit1 < cycle_times(1,1) | unit1 > cycle_times(end,2))); success = [success '>> FAILED']; end
     
     c2 = get_spikes(d, 'format', 'count', 'cycleTimes', cycle_times, 'name', 'unit1');
-
+    
     % Check for correct data from get_spikes, count
     success = [success newline 'Pulled: count data'];
     if sum(c2) ~= (sum(~isnan(unit1)) - (sum(unit1 < cycle_times(1,1) | unit1 > cycle_times(end,2)))); success = [success '>> FAILED']; end
@@ -302,7 +315,7 @@ end
     % PRINT RESULTS FROM CHECKS    
     disp(success);
 
-    
+%Understood    
 %%
 
 % In this script, we are just checking that the behavior class is
@@ -368,7 +381,7 @@ catch e
     error('FATAL ERROR: Unable to construct mi_data_behavior objects');
 end
 
-
+%Understood
 %% CHECK mi_data_pressure: phase
 
 try
@@ -419,11 +432,11 @@ try
     
     % Check for correct strFldr:
     success = [success newline 'Assigned: strFldr'];
-    if ~strcmp(d.strFldr, fpath); succes= [success '>> FAILED']; end
+    if ~strcmp(d.strFldr, fpath); success = [success '>> FAILED']; end
     
     % Check for correct arrFiles
     success = [success newline 'Assigned: arrFiles'];
-    if ~isequal(d.arrFiles, fnames); success = [success '>> FAILED' ]; end
+    if ~isequal(d.arrFiles, fnames); success = [success '>> FAILED']; end
     
 %     % NOTE: TEMPORARIlY THIS IS NOT WORKING BECAUSE WE ARE NOT USING ALL
 %     THE FILES CURRENTLY. ALSO, THIS MAY NEVER WORK DEPENDING ON HOW WE
@@ -632,7 +645,7 @@ try
     
     % Check for correct strFldr:
     success = [success newline 'Assigned: strFldr'];
-    if ~strcmp(d.strFldr, fpath); succes= [success '>> FAILED']; end
+    if ~strcmp(d.strFldr, fpath); success = [success '>> FAILED']; end
     
     % Check for correct arrFiles
     success = [success newline 'Assigned: arrFiles'];
@@ -1083,7 +1096,7 @@ end
 try
     clear d
     clear b
-    clear a
+    clear aD
     disp([newline '===== ===== ===== ===== =====']);
     disp(['RUNNING: mi_analysis(): count_behav' newline newline]);
 
@@ -1304,7 +1317,7 @@ try
     d = mi_data_neural('test', 'verbose', verbose_level);
 
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
-    add_spikes(d, unit1, str_unit1, 30000, 'unit2');
+    add_spikes(d, unit2, str_unit2, 30000, 'unit2'); %Kyle manual edit from unit1 to unit2
     
     b = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(b, cycle_times, str_cycles, 30000);
@@ -1410,7 +1423,7 @@ try
     d = mi_data_neural('test', 'verbose', verbose_level);
 
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
-    add_spikes(d, unit1, str_unit1, 30000, 'unit2');
+    add_spikes(d, unit2, str_unit2, 30000, 'unit2');
     
     b = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(b, cycle_times, str_cycles, 30000);
@@ -1516,7 +1529,7 @@ try
     d = mi_data_neural('test', 'verbose', verbose_level);
 
     add_spikes(d, unit1, str_unit1, 30000, 'unit1');
-    add_spikes(d, unit1, str_unit1, 30000, 'unit2');
+    add_spikes(d, unit2, str_unit2, 30000, 'unit2');
     
     b = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(b, cycle_times, str_cycles, 30000);
