@@ -86,5 +86,110 @@ classdef mi_ksg_viz < handle
         function plot_error_estimate()
             % make linear regression plot to estimate error
         end
+        
+    end
+    
+    methods(Static)
+        
+        function audit_plots(mi_data)
+            % Set up empty array for obj.arrMIcore
+            obj.arrMIcore = cell(size(mi_data,1),4);
+            
+            % Define groups to fill in arrMIcore
+            xGroups = mi_data{1};
+            yGroups = mi_data{2};
+            coeffs = mi_data{3};
+            
+            for iGroup = 1:size(xGroups)
+                coreObj = obj.arrMIcore{iGroup,1};
+                if v > 4
+                    % FOR NOW, NO AUDIT PLOTS FOR BEHAVIOR SUBCLASSES
+                    if contains(class(obj), 'behav')
+                        continue
+                    else
+                        
+                        % Check for data type
+                        % Histograms do not depend on data type
+                        % First make histogram with x data
+                        % RC 20191213: We should come back and set specific bin widths here.
+                        % The only issue we may run into is 
+                        x = coreObj.x;
+                        figure()
+                        histogram(x)
+                        hold on
+                        xlabel('X Value (binned)')
+                        ylabel('N Cycles')
+                        title('Histogram for X')
+
+                        % Histogram for y
+                        y = coreObj.y;
+                        figure()
+                        histogram(y)
+                        hold on
+                        xlabel('Y Value (binned)')
+                        ylabel('N Cycles')
+                        title('Histogram for Y')
+
+                        % Also skip audit plots for data where both x and y are multi-dimensional
+                        if all(size(x) > 1) & all(size(y) > 1)
+                            continue
+                        else
+                            % Check for discrete data in both variables
+                            if all(rem(x,1) == 0) & all(rem(y,1) == 0)
+                                % For discrete data, plot a jittered histogram
+
+                                % Add noise for joint histogram
+                                x_plot = x + 0.2*rand(size(x));
+                                y_plot = y + 0.2*rand(size(y));
+
+                                % Make figure
+                                figure()
+                                plot(x_plot , y_plot, 'x')
+                                hold on
+                                xlabel('Discrete Value: X')
+                                ylabel('Discrete Value: Y')
+                                title('P(X,Y) Discrete Joint Distribution')
+                            elseif all(rem(x,1) == 0) | all(rem(y,1) == 0)
+                                % Add jitter only to the variable that is discrete, which for our data, will always be the second variable.
+                                if all(rem(x,1) == 0)
+                                    x_plot = x + 0.2*rand(size(x));
+                                    x_L = 'Discrete Value: X';
+                                else
+                                    x_plot = x;
+                                    x_L = 'Continuous Value: X';
+                                end
+                                if all(rem(y,1) == 0)
+                                    y_plot = y + 0.2*rand(size(y));
+                                    y_L = 'Discrete Value: Y';
+                                else
+                                    y_plot = y;
+                                    y_L = 'Continuous Value: Y';
+                                end
+
+                                % Make figure
+                                figure()
+                                plot(x_plot, y_plot, 'x')
+                                hold on
+                                xlabel(x_L)
+                                ylabel(y_L)
+                                title('P(X,Y) Mixed Joint Distribution')
+                            else
+                                % The assumption is that both distributions are continuous if neither of the above if statements are true.
+
+                                % Make figure
+                                figure()
+                                plot(x,y, 'x')
+                                hold on
+                                xlabel('Continuous Variable: X')
+                                ylabel('Continuous Variable: Y')
+                                title('P(X,Y) Continuous Joint Distribution')
+                            end
+
+                        end
+                    end
+                end
+            end
+        end
+        
     end
 end
