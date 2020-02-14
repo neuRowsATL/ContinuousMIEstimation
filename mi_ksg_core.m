@@ -105,6 +105,9 @@ classdef mi_ksg_core < handle
                     if isempty(obj.mi_data)
                         % Run estimates for all k values if none have been
                         % run yet
+                        %Temporary to make the data fraction set
+                        %predictable across runs. 
+                        rng(0);
                         for i = 1:length(obj.k_values)
                             % create datasets for data fractions with unique key
                             % to track each simulation
