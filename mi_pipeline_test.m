@@ -74,6 +74,8 @@ else
     verbose_level = 4;
 end
 
+addpath('C:\Users\kthom88\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\kraskovStoegbauerGrassberger')
+
 %% RUN MI_DATA
 load('TestData/20200127_bl21lb21_spikedata.mat');
 unit1 = spikedata.unit1;
@@ -904,6 +906,9 @@ try
     
     % Run buildMIs()
     a.buildMIs();
+    
+    % Run calcMIs()
+    a.calcMIs();
     
     % Check for unique subgroup IDs:
     success = [success newline 'Assigned: Unique subgroup IDs'];
