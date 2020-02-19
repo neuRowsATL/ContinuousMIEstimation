@@ -182,8 +182,7 @@ classdef mi_ksg_core < handle
             obj = p.Results.obj;
             errThreshold = p.Results.errThreshold;
             k = p.Results.k;
-            
-            keyboard
+
             
             % Find MIs differently depending on value of k
             if k == 0
@@ -198,7 +197,6 @@ classdef mi_ksg_core < handle
                MIs = obj.opt_k{1,1};
                errs = obj.opt_k{1,2};
                
-               keyboard
                
                if sum(valid_ks > 2) == 0
                    if sum(valid_ks > 1) == 0
@@ -208,7 +206,7 @@ classdef mi_ksg_core < handle
                        % Choose minimum k with maximum stability
                        warning('Warning: K values are stable, but do not have consistent estimates. Selecting minimum k with maximum stability. Audit recommended.')
                        best_weight = max(valid_ks(valid_ks > 1));
-                       best_kIdx = min(find(valid_k == best_weight));
+                       best_kIdx = min(find(valid_ks == best_weight));
                        MI = MIs(best_kIdx);
                        err = errs(best_kIdx);
                    end
@@ -218,7 +216,6 @@ classdef mi_ksg_core < handle
                    best_kIdx = min(find(valid_ks == best_weight));                   
                    MI = MIs(best_kIdx);
                    err = errs(best_kIdx);     
-                   keyboard
                end
                
                 
