@@ -10,9 +10,8 @@ close('all')
 
 with_plots = true;
 
-[ret name] = system('hostname');
-computer_name = split(name,'.');
-switch computer_name{1}
+name = getenv('computername')
+switch name
     case 'BIO-SSOBER-32P'    
         % BRYCE_lab:
         fnames = dir('D:\EMG_Data\chung\for_analysis\bl21lb21_20171218\bl21lb21_trial1_ch1_ch16\*.rhd');
@@ -37,8 +36,12 @@ switch computer_name{1}
         fnames = dir('/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16/*.rhd');
         fnames = {fnames.name};
         fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
+    case 'BIO-SSOBER-25P'
+        fnames = dir('C:\Users\sachow4\Documents\Repos\dataFiles\bl21lb21_trial1_ch1_ch16\*.rhd');
+        fnames = {fnames.name}'
+        fpath = 'C:\Users\sachow4\Documents\Repos\dataFiles\bl21lb21_trial1_ch1_ch16'
     otherwise
-        error('Unalbe to identify computer');
+        error('Unable to identify computer');
 end
 
 % Instantiate data objects
@@ -62,18 +65,18 @@ else
 end
 
 %% RUN MI_DATA
-load('20200127_bl21lb21_spikedata.mat');
+load('TestData/20200127_bl21lb21_spikedata.mat');
 unit1 = spikedata.unit1;
 unit2 = spikedata.unit3;
 unit3 = spikedata.unit4;
 
-str_unit1 = '20200127_bl21lb21_spikedata.mat/spikedata.unit1';
-str_unit2 = '20200127_bl21lb21_spikedata.mat/spikedata.unit2';
-str_unit3 = '20200127_bl21lb21_spikedata.mat/spikedata.unit3';
+str_unit1 = 'TestData/20200127_bl21lb21_spikedata.mat/spikedata.unit1';
+str_unit2 = 'TestData/20200127_bl21lb21_spikedata.mat/spikedata.unit2';
+str_unit3 = 'TestData/20200127_bl21lb21_spikedata.mat/spikedata.unit3';
 
 cycle_times = [spikedata.pressure.Ontime(1:end-1,1) spikedata.pressure.Ontime(2:end,1)]; % Needs to be N x 2 matrix of [on off] x N
 
-str_cycles = '20200127_bl21lb21_spikedata.mat/spikedata.pressure.Ontime';
+str_cycles = 'TestData/20200127_bl21lb21_spikedata.mat/spikedata.pressure.Ontime';
 
 %%
 try
