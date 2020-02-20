@@ -81,6 +81,7 @@ classdef mi_ksg_viz < handle
     
     methods(Static)
         
+        % Audit Plots from mi_analysis class
         function audit_plots(mi_analysis)
             xGroups = mi_analysis(1);
             v = mi_analysis.verbose;
