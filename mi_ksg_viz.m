@@ -81,20 +81,14 @@ classdef mi_ksg_viz < handle
     
     methods(Static)
         
-        function audit_plots(mi_data)
-            % Set up empty array for obj.arrMIcore
-            obj.arrMIcore = cell(size(mi_data,1),4);
-            
-            % Define groups to fill in arrMIcore
-            xGroups = mi_data{1};
-            yGroups = mi_data{2};
-            coeffs = mi_data{3};
-            
+        function audit_plots(mi_analysis)
+            xGroups = mi_analysis(1);
+            v = mi_analysis.verbose;
             for iGroup = 1:size(xGroups)
-                coreObj = obj.arrMIcore{iGroup,1};
+                coreObj = mi_analysis.arrMIcore{iGroup,1};
                 if v > 4
                     % FOR NOW, NO AUDIT PLOTS FOR BEHAVIOR SUBCLASSES
-                    if contains(class(obj), 'behav')
+                    if contains(class(mi_analysis), 'behav')
                         continue
                     else
                         
