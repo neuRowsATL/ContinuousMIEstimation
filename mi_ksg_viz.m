@@ -6,7 +6,7 @@ classdef mi_ksg_viz < handle
         function plot_generic()
             % make generic plot of two variables
         end
-        function r_plot = plot_data_fraction(obj, obj_core, k, f)
+         function r_plot = plot_data_fraction(obj, obj_core, k, f, ax)
             % make data fraction plot
             if nargin == 3
                 fig = figure();
@@ -14,7 +14,6 @@ classdef mi_ksg_viz < handle
                 fig = figure(f);
             end
             
-            ax = subplot(1,1,1);
             
             bool_ixs = cell2mat(obj_core.mi_data(:,4)) == k;
             xs = cell2mat(obj_core.mi_data(bool_ixs,3));
@@ -22,22 +21,14 @@ classdef mi_ksg_viz < handle
             err = cell2mat(obj_core.mi_data(bool_ixs,2));
             r_plot = errorbar(ax, xs, ys, err, '-b', 'Marker', '.', 'MarkerSize', 15);
             
-            xlabel('Data Fraction (1/N)');
-            ylabel('Mutual Information');
-            title({'Kraskov-Stoegbauer-Grassberger' ['Data Fraction for k = ' num2str(k)]});
+            %xlabel('Data Fraction (1/N)');
+            %ylabel('Mutual Information');
+            title({[ 'k = ' num2str(k)]});
             
             xlim([min(xs)*0.8 max(xs)*1.1]);
             
-%             figure();
-%             plot(xs, err, 'bo');
-%             xlabel('Data Fraction (1/N)');
-%             ylabel('Mutual Info Std Dev');
-%             title('KSG - Variance Plot');
-%             
-%             xlim([0 11]);
-            
         end
-        function r_plot = plot_k_dependence(obj, obj_core, f)
+         function r_plot = plot_k_dependence(obj, obj_core, f, ax)
             % make k-dependence plot
             if nargin == 2
                 fig = figure();
@@ -45,7 +36,6 @@ classdef mi_ksg_viz < handle
                 fig = figure(f);
             end
             
-            ax = subplot(1,1,1);
             
             ks = obj_core.k_values;
             ys = zeros(1, length(ks));
@@ -57,8 +47,8 @@ classdef mi_ksg_viz < handle
             end
             r_plot = errorbar(ks, ys, err, '-b', 'Marker', '.', 'Markersize', 15);
             
-            xlabel('k-value');
-            ylabel('Mutual Information');
+            %xlabel('k-value');
+            %ylabel('Mutual Information');
             title({'Kraskov-Stoegbauer-Grassberger' 'k-dependence'});
             
             xlim([min(ks)*0.8 max(ks)*1.1]);
