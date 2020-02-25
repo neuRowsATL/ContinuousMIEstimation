@@ -83,9 +83,9 @@ classdef mi_ksg_viz < handle
         
         % Audit Plots from mi_analysis class
         function audit_plots(mi_analysis)
-            xGroups = mi_analysis(1);
+            
             v = mi_analysis.verbose;
-            for iGroup = 1:size(xGroups)
+            for iGroup = 1:size(size(mi_analysis.arrMIcore))
                 coreObj = mi_analysis.arrMIcore{iGroup,1};
                 if v > 4
                     % FOR NOW, NO AUDIT PLOTS FOR BEHAVIOR SUBCLASSES
