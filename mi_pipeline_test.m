@@ -10,7 +10,7 @@ close('all')
 
 with_plots = true;
 
-name = getenv('computername')
+name = getenv('computername');
 switch name
     case 'BIO-SSOBER-32P'    
         % BRYCE_lab:
@@ -38,8 +38,8 @@ switch name
         fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
     case 'BIO-SSOBER-25P'
         fnames = dir('C:\Users\sachow4\Documents\Repos\dataFiles\bl21lb21_trial1_ch1_ch16\*.rhd');
-        fnames = {fnames.name}'
-        fpath = 'C:\Users\sachow4\Documents\Repos\dataFiles\bl21lb21_trial1_ch1_ch16'
+        fnames = {fnames.name};
+        fpath = 'C:\Users\sachow4\Documents\Repos\dataFiles\bl21lb21_trial1_ch1_ch16';
     otherwise
         error('Unable to identify computer');
 end
