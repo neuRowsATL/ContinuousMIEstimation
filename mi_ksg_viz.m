@@ -18,7 +18,8 @@ classdef mi_ksg_viz < handle
             bool_ixs = cell2mat(obj_core.mi_data(:,4)) == k;
             xs = cell2mat(obj_core.mi_data(bool_ixs,3));
             ys = cell2mat(obj_core.mi_data(bool_ixs,1));
-            err = cell2mat(obj_core.mi_data(bool_ixs,2));
+            var = cell2mat(obj_core.mi_data(bool_ixs,2));
+            err = var.^.5
             r_plot = errorbar(ax, xs, ys, err, '-b', 'Marker', '.', 'MarkerSize', 15);
             
             %xlabel('Data Fraction (1/N)');
@@ -41,7 +42,7 @@ classdef mi_ksg_viz < handle
             ys = zeros(1, length(ks));
             err = zeros(1, length(ks));
             for k_ix=1:length(ks)
-                dat = get_mi(obj_core, ks(k_ix));
+                dat = get_mi(obj_core, -1,'k', ks(k_ix));
                 ys(k_ix) = dat.mi;
                 err(k_ix) = dat.err;
             end

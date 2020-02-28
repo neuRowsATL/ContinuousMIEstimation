@@ -200,8 +200,12 @@ classdef mi_ksg_core < handle
                
                if sum(valid_ks > 2) == 0
                    if sum(valid_ks > 1) == 0
-                       error('Error: No k values have stable data fractions. Please manually select a k')
-                       
+                       %error('Error: No k values have stable data fractions. Please manually select a k')
+                       warning('NO k values have stable data fractions. Please manually select a k. FOR NOW- selecting minimum k with max stability')
+                       best_weight = max(valid_ks);
+                       best_kIdx = min(find(valid_ks == best_weight));
+                       MI = MIs(best_kIdx);
+                       err = errs(best_kIdx);
                    else
                        % Choose minimum k with maximum stability
                        warning('Warning: K values are stable, but do not have consistent estimates. Selecting minimum k with maximum stability. Audit recommended.')
@@ -218,7 +222,36 @@ classdef mi_ksg_core < handle
                    err = errs(best_kIdx);     
                end
                
+               % Output k value that was selected
+               k_vals = [obj.mi_data{:,4}];
+               ks = unique(k_vals);
+               r.k = ks(best_kIdx);
+               
+               % Sanity check that our MI value matches what it would be if
+               % we had inputted the optimized k value
+               
+               %GET VALUES FOR SANITY CHECK
+               % Find MI calcs with k-value
+                test_data_ixs = cell2mat(obj.mi_data(:,4)) == r.k;
+               
+                % calculate estimated error
+                test_listSplitSizes = cell2mat(obj.mi_data(test_data_ixs,3));
+                test_MIs = cell2mat(obj.mi_data(test_data_ixs,1));
+                test_listVariances = cell2mat(obj.mi_data(test_data_ixs,2));
+                test_listVariances = test_listVariances(2:end);
+
+                test_k_err = test_listSplitSizes(2:end);
+                test_variancePredicted = sum((test_k_err-1)./test_k_err.*test_listVariances)./sum((test_k_err-1));
                 
+                test_MI = test_MIs(1);
+                test_err = test_variancePredicted.^0.5;
+                
+                % ACTUAL SANITY CHECK
+                if ~isequaln(MI,test_MI) | ~isequaln(err, test_err) 
+                    error('Optimized K MI does not match that stored in mi_data'); 
+                end
+               
+       
             else
                 
             
@@ -231,11 +264,12 @@ classdef mi_ksg_core < handle
                 listVariances = cell2mat(obj.mi_data(data_ixs,2));
                 listVariances = listVariances(2:end);
 
-                k = listSplitSizes(2:end);
-                variancePredicted = sum((k-1)./k.*listVariances)./sum((k-1));
+                k_err = listSplitSizes(2:end);
+                variancePredicted = sum((k_err-1)./k_err.*listVariances)./sum((k_err-1));
                 
                 MI = MIs(1);
                 err = variancePredicted.^0.5;
+                
             
             end
             
