@@ -238,6 +238,20 @@ classdef mi_ksg_core < handle
                 test_listSplitSizes = cell2mat(obj.mi_data(test_data_ixs,3));
                 test_MIs = cell2mat(obj.mi_data(test_data_ixs,1));
                 test_listVariances = cell2mat(obj.mi_data(test_data_ixs,2));
+                
+                if sum(isnan(test_MIs) ~= 0)
+                    if sum(~isnan(test_MIs)) >= 4
+                        test_listSplitSizes = test_listSplitSizes(~isnan(test_MIs));
+                        test_MIs = test_MIs(~isnan(test_MIs));
+                        test_listVariances = test_listVariances(~isnan(test_listVariances));
+                    end
+                    % Check that sizes are all still consistent
+                    if size(test_listSplitSizes) ~= size(test_MIs) | size(test_listSplitSizes) ~= size(test_listVariances)
+                        error('Error: Sizes of vectors without NaN values do not match')
+                    end
+                end
+                
+                
                 test_listVariances = test_listVariances(2:end);
 
                 test_k_err = test_listSplitSizes(2:end);
@@ -248,6 +262,7 @@ classdef mi_ksg_core < handle
                 
                 % ACTUAL SANITY CHECK
                 if ~isequaln(MI,test_MI) | ~isequaln(err, test_err) 
+                    keyboard
                     error('Optimized K MI does not match that stored in mi_data'); 
                 end
                
@@ -262,8 +277,21 @@ classdef mi_ksg_core < handle
                 listSplitSizes = cell2mat(obj.mi_data(data_ixs,3));
                 MIs = cell2mat(obj.mi_data(data_ixs,1));
                 listVariances = cell2mat(obj.mi_data(data_ixs,2));
-                listVariances = listVariances(2:end);
 
+                
+                if sum(isnan(MIs) ~= 0)
+                    if sum(~isnan(MIs)) >= 4
+                        listSplitSizes = listSplitSizes(~isnan(MIs));
+                        MIs = MIs(~isnan(MIs));
+                        listVariances = listVariances(~isnan(listVariances));
+                    end
+                    % Check that sizes are all still consistent
+                    if size(listSplitSizes) ~= size(MIs) | size(listSplitSizes) ~= size(listVariances)
+                        error('Error: Sizes of vectors without NaN values do not match')
+                    end
+                end
+                
+                listVariances = listVariances(2:end);
                 k_err = listSplitSizes(2:end);
                 variancePredicted = sum((k_err-1)./k_err.*listVariances)./sum((k_err-1));
                 
