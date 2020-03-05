@@ -105,6 +105,9 @@ classdef mi_ksg_core < handle
                     if isempty(obj.mi_data)
                         % Run estimates for all k values if none have been
                         % run yet
+                        %Temporary to make the data fraction set
+                        %predictable across runs. 
+                        rng(0);
                         for i = 1:length(obj.k_values)
                             % create datasets for data fractions with unique key
                             % to track each simulation
@@ -156,20 +159,147 @@ classdef mi_ksg_core < handle
             obj.mi_data = sortrows(tmp_mi_data,[4,3]);
         end
         
-        function r = get_mi(obj, k, errThreshold)
-            % get mutual information and error estimates
-            data_ixs = cell2mat(obj.mi_data(:,4)) == k; % find MI calcs with k-value
+        function r = get_mi(obj, errThreshold, varargin)
             
-            % calculate estimated error
-            listSplitSizes = cell2mat(obj.mi_data(data_ixs,3));
-            MIs = cell2mat(obj.mi_data(data_ixs,1));
-            listVariances = cell2mat(obj.mi_data(data_ixs,2));
-            listVariances = listVariances(2:end);
+            p = inputParser;
             
-            k = listSplitSizes(2:end);
-            variancePredicted = sum((k-1)./k.*listVariances)./sum((k-1));
+            % Set required inputs
+            validate_obj = @(x) assert(isa(x, 'mi_ksg_core'), 'obj must be a core object');
+            p.addRequired('obj', validate_obj);
             
+            validate_errThreshold = @(x) assert(isnumeric(x), 'errThreshold must be a numeric quantity');
+            p.addRequired('errThreshold', validate_errThreshold);
+            
+            % Set Optional Input
+            default_k = 0;
+            validate_k = @(x) assert(rem(x,1) == 0, 'k value must be a whole number, divisable by 1');
+            p.addParameter('k', default_k, validate_k);
+            
+            % Parse inputs
+            p.parse(obj, errThreshold, varargin{:});
+            
+            % Define validated inputs
+            obj = p.Results.obj;
+            errThreshold = p.Results.errThreshold;
+            k = p.Results.k;
 
+            
+            % Find MIs differently depending on value of k
+            if k == 0
+                % We have either already optimized k, or we need to
+                % optimize k  
+                if ~iscell(obj.opt_k)
+                    % k has not been optimized yet. We need to run
+                    % find_k_value
+                    obj.find_k_value();
+                end
+               valid_ks = obj.opt_k{1,3};
+               MIs = obj.opt_k{1,1};
+               errs = obj.opt_k{1,2};
+               
+               
+               if sum(valid_ks > 2) == 0
+                   if sum(valid_ks > 1) == 0
+                       %error('Error: No k values have stable data fractions. Please manually select a k')
+                       warning('NO k values have stable data fractions. Please manually select a k. FOR NOW- selecting minimum k with max stability')
+                       best_weight = max(valid_ks);
+                       best_kIdx = min(find(valid_ks == best_weight));
+                       MI = MIs(best_kIdx);
+                       err = errs(best_kIdx);
+                   else
+                       % Choose minimum k with maximum stability
+                       warning('Warning: K values are stable, but do not have consistent estimates. Selecting minimum k with maximum stability. Audit recommended.')
+                       best_weight = max(valid_ks(valid_ks > 1));
+                       best_kIdx = min(find(valid_ks == best_weight));
+                       MI = MIs(best_kIdx);
+                       err = errs(best_kIdx);
+                   end
+               else
+                   % Choose minimum k with maximum stability
+                   best_weight = max(valid_ks(valid_ks > 1));
+                   best_kIdx = min(find(valid_ks == best_weight));                   
+                   MI = MIs(best_kIdx);
+                   err = errs(best_kIdx);     
+               end
+               
+               % Output k value that was selected
+               k_vals = [obj.mi_data{:,4}];
+               ks = unique(k_vals);
+               r.k = ks(best_kIdx);
+               
+               % Sanity check that our MI value matches what it would be if
+               % we had inputted the optimized k value
+               
+               %GET VALUES FOR SANITY CHECK
+               % Find MI calcs with k-value
+                test_data_ixs = cell2mat(obj.mi_data(:,4)) == r.k;
+               
+                % calculate estimated error
+                test_listSplitSizes = cell2mat(obj.mi_data(test_data_ixs,3));
+                test_MIs = cell2mat(obj.mi_data(test_data_ixs,1));
+                test_listVariances = cell2mat(obj.mi_data(test_data_ixs,2));
+                
+                if sum(isnan(test_MIs) ~= 0)
+                    if sum(~isnan(test_MIs)) >= 4
+                        test_listSplitSizes = test_listSplitSizes(~isnan(test_MIs));
+                        test_MIs = test_MIs(~isnan(test_MIs));
+                        test_listVariances = test_listVariances(~isnan(test_listVariances));
+                    end
+                    % Check that sizes are all still consistent
+                    if size(test_listSplitSizes) ~= size(test_MIs) | size(test_listSplitSizes) ~= size(test_listVariances)
+                        error('Error: Sizes of vectors without NaN values do not match')
+                    end
+                end
+                
+                
+                test_listVariances = test_listVariances(2:end);
+
+                test_k_err = test_listSplitSizes(2:end);
+                test_variancePredicted = sum((test_k_err-1)./test_k_err.*test_listVariances)./sum((test_k_err-1));
+                
+                test_MI = test_MIs(1);
+                test_err = test_variancePredicted.^0.5;
+                
+                % ACTUAL SANITY CHECK
+                if ~isequaln(MI,test_MI) | ~isequaln(err, test_err) 
+                    keyboard
+                    error('Optimized K MI does not match that stored in mi_data'); 
+                end
+               
+       
+            else
+                
+            
+                % get mutual information and error estimates
+                data_ixs = cell2mat(obj.mi_data(:,4)) == k; % find MI calcs with k-value
+
+                % calculate estimated error
+                listSplitSizes = cell2mat(obj.mi_data(data_ixs,3));
+                MIs = cell2mat(obj.mi_data(data_ixs,1));
+                listVariances = cell2mat(obj.mi_data(data_ixs,2));
+
+                
+                if sum(isnan(MIs) ~= 0)
+                    if sum(~isnan(MIs)) >= 4
+                        listSplitSizes = listSplitSizes(~isnan(MIs));
+                        MIs = MIs(~isnan(MIs));
+                        listVariances = listVariances(~isnan(listVariances));
+                    end
+                    % Check that sizes are all still consistent
+                    if size(listSplitSizes) ~= size(MIs) | size(listSplitSizes) ~= size(listVariances)
+                        error('Error: Sizes of vectors without NaN values do not match')
+                    end
+                end
+                
+                listVariances = listVariances(2:end);
+                k_err = listSplitSizes(2:end);
+                variancePredicted = sum((k_err-1)./k_err.*listVariances)./sum((k_err-1));
+                
+                MI = MIs(1);
+                err = variancePredicted.^0.5;
+                
+            
+            end
             
 % -------------THIS CALCULATES THE ERROR OF THE ERROR-----------------------------------            
 %             N = size(obj.x,2);
@@ -182,36 +312,31 @@ classdef mi_ksg_core < handle
             % Adding hack to filter mutual information results that are
             % within three S.D. from 0
             if errThreshold < 0
-                r.mi = MIs(1);
-                r.err = variancePredicted.^.5;
+                r.mi = MI;
+                r.err = err;
                 
             elseif errThreshold == 0
-                if MIs(1) >= 0
-                    r.mi = MIs(1);
+                if MI >= 0
+                    r.mi = MI;
                 else
                     r.mi = 0;
                 end
-                r.err = variancePredicted.^.5;
+                r.err = err;
 
             elseif errThreshold > 0
-                if ((MIs(1) - errThreshold*(variancePredicted^0.5)) > 0 || errThreshold == 0) && (MIs(1) > 0)
-                    r.mi = MIs(1);
-                    r.err = variancePredicted^.5;
+                if (MI - errThreshold*(err)) > 0 || ((errThreshold == 0) && (MI > 0))
+                    r.mi = MI;
+                    r.err = err;
                 else
                     r.mi = 0;
-                    r.err = 0;
+                    r.err = err;
                 end
                                 
-            end
+            end          
             
-            
-            
-%             % return MI value and error estimation
-%             r.mi = MIs(1);
-%             r.err = stdvar^0.5;
         end
         
-        function r = find_k_value(obj)
+        function find_k_value(obj)
             % determine best k-value to use
             data = cell2mat(obj.mi_data);
             
@@ -244,7 +369,8 @@ classdef mi_ksg_core < handle
                     
                     match_dataFracs = [known_matches , new_matches'];
 
-                    % Combine boolean values into a matrix of all the dataFracs compared to each other. 
+                    % Combine boolean values into a matrix of all the
+                    % dataFracs compared to each other. 
                     matching_set(iFrac, 1:end)  = match_dataFracs;
                     
 
@@ -252,6 +378,7 @@ classdef mi_ksg_core < handle
                 % Store matching set in case we don't find a k-value that
                 % satisfies the conditions
                 k_matchingSets{1,ik} = matching_set;
+
                 
                 % Find the data fracs whose estimates that are in accord with all data sizes larger than it. 
                 good_DataFracs = all(matching_set,1);
@@ -265,37 +392,41 @@ classdef mi_ksg_core < handle
             test_fracs = k_goodDataFracs(:,1:4);
             kVals_okay = all(test_fracs, 2);
 
-            if ~any(kVals_okay)
-                obj.opt_k = {'AUDIT: No valid Ks identified'};
-            else
+            
                 % Add a weight based on how many other estimates are in accord with the first four data fracs.
                 weighted_k = kVals_okay + .1.*sum(k_goodDataFracs(:,5:end),2);
 
+                notBad_Ks = find(weighted_k >= 1);
+
+
                 % Find a tentative list of k values to use.
                 % Note- this would be a place to change how the weighted k values affects the choice of k. We could also consider propagating the list of weights down farther. 
-                list_ofKVals = ks(find(weighted_k >= 1));
-
-
+                
                 % Check for consistency across ks for k values in the list.
-                final_MIs = zeros(size(list_ofKVals));
-                final_errs = zeros(size(list_ofKVals));
-                for ik = 1:length(list_ofKVals)
-                    % Run getMIs to return the raw estimated values
-                    k = list_ofKVals(ik);
-                    r = get_mi(obj, k, -1);
-                    final_MIs(1,ik) = r.mi;
-                    final_stds(1,ik) = r.err;
+                final_MIs = zeros(size(kVals_okay));
+                final_errs = zeros(size(kVals_okay));
+
+                for ik = 1:length(ks)
+                    % Run getMIs to return the raw estimated values for all possible k-values
+                    k = ks(ik);
+                    r = get_mi(obj, -1, 'k', k);
+                    final_MIs(ik,1) = r.mi;
+                    final_stds(ik,1) = r.err;
                 end
 
                 % Similarly to how we checked data fracs, now we will check all k vals against each other
-                matching_kSet = zeros(length(list_ofKVals), length(list_ofKVals));
-                for ik = 1:length(list_ofKVals)
-                    mi_k = final_MIs(1,ik);
-                    std_k = final_stds(1,ik);
+                matching_kSet = zeros(length(notBad_Ks), length(notBad_Ks));
+                
+                for ik = 1:length(notBad_Ks)
+
+                    k_idx = find(ks == notBad_Ks(ik));
+                    
+                    mi_k = final_MIs(k_idx, 1);
+                    std_k = final_stds(k_idx, 1);
 
                     % Find the remaining k vals to compare to
-                    MIs = final_MIs(1,ik+1:end);
-                    stds = final_stds(1,ik+1:end);
+                    MIs = final_MIs(notBad_Ks(ik+1:end), 1);
+                    stds = final_stds(notBad_Ks(ik+1:end), 1);
 
                     % We know that the estimates for this k val agree with themselves.
                     % Compare th eMI estimates for this k value with all the next consecutive k values. Previous k values have already been compared
@@ -303,20 +434,25 @@ classdef mi_ksg_core < handle
 
                     new_matches = mi_k >= MIs-stds & mi_k <= MIs + stds;
 
-                    match_ks = [known_matches, new_matches];
+
+                    match_ks = [known_matches ,  new_matches'];
 
                     matching_kSet(ik, 1:end) = match_ks;
+
+                    
                 end
 
                 good_ks = all(matching_kSet, 1);
 
                 if all(good_ks)
-                    obj.opt_k = {'Good', [list_ofKVals; good_ks], matching_kSet};
+                    weighted_k(notBad_Ks, 1) = weighted_k(notBad_Ks,1) + 1;
+                    obj.opt_k = {final_MIs, final_stds, weighted_k, ['k < 1: Bad; 1 <= k < 2: Not Bad (Ks have data fraction stability, but do not match each othebr, see matrix); k > 2: Good! Ks in this range match and have consistent ' ...
+                                        'data fractions!'], matching_kSet};
                 else
-                    obj.opt_k = {'AUDIT: Not all ks agree', [list_ofKVals; good_ks] , matching_kSet};
+                    obj.opt_k = {final_MIs, final_stds, weighted_k, ['k < 1: Bad; 1 <= k < 2: Not Bad (Ks have data fraction stability, but do not match each othebr, see matrix); k >= 2: Good! Ks in this range match and have consistent ' ...
+                                        'datafractions!'], matching_kSet};
                 end
 
-            end
         end
             
 
