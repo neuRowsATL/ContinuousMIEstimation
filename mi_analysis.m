@@ -21,6 +21,8 @@ classdef mi_analysis < handle
         
         notes %Indicates how much data has been omitted (optional)
         
+        reparam %Do you reparameterize
+        
     end
 
     methods
@@ -53,6 +55,10 @@ classdef mi_analysis < handle
             validate_verbose = @(x) assert(isnumeric(x) && rem(x,1) == 0, 'verbose must be an integer');
             p.addParameter('verbose', default_verbose, validate_verbose);
             
+            default_reparam = 2;
+            validate_reparam = @(x) assert(isnumeric(x) && rem(x,1) == 0, 'reparam must be an integer');
+            p.addParameter('reparam', default_reparam, validate_reparam);
+            
             % Parse the inputs
             % Set up InputParser to handle extra inputs from subclasses
             p.KeepUnmatched = 1;
@@ -63,6 +69,7 @@ classdef mi_analysis < handle
             obj.objBehav = p.Results.objBehav;
             obj.append = p.Results.append;
             obj.verbose = p.Results.verbose;
+            obj.reparam = p.Results.reparam;
             
             % Temporarily set arrMIcore and instantiate a sim_manager
             % object
@@ -90,7 +97,22 @@ classdef mi_analysis < handle
                 x = xGroups{iGroup,1};
                 y = yGroups{iGroup,1};
 
-              
+                if obj.reparam >= 1
+                    if any(rem(x,1) ~= 0) % If continuous
+                        for rep = 1:size(x,2) % Reparameterize x data
+                            x(:,rep) = reparameterize_data(x(:,rep));
+                        end
+                    end
+                    
+                    if obj.reparam >= 2
+                        if any(rem(y,1) ~= 0)
+                            for rep = 1:size(y,2) % Reparameterize y data
+                                y(:,rep) = reparameterize_data(y(:,rep));
+                            end   
+                        end
+                    end
+                end
+                              
                 while 1 % generate random key to keep track of which MI calculations belong together
                     key = num2str(dec2hex(round(rand(1)*100000)));
                     % break the while loop if the key has not already been
@@ -115,11 +137,13 @@ classdef mi_analysis < handle
                 if v > 2; disp([newline '--> arrMIcore assigned']); end
 	            % BC: The obj.findMIs function basically calls run_sims
             end
-
+            
             % Audit plots
             % NOTE- Move these to functions in mi_ksg_viz eventually. 
             for iGroup = 1:size(xGroups)
+                clear r_2 out_p
                 coreObj = obj.arrMIcore{iGroup,1};
+                
                 if v > 4
                     % FOR NOW, NO AUDIT PLOTS FOR BEHAVIOR SUBCLASSES
                     if contains(class(obj), 'behav')
@@ -132,21 +156,21 @@ classdef mi_analysis < handle
                         % RC 20191213: We should come back and set specific bin widths here.
                         % The only issue we may run into is 
                         x = coreObj.x;
-                        figure()
-                        histogram(x)
-                        hold on
-                        xlabel('X Value (binned)')
-                        ylabel('N Cycles')
-                        title('Histogram for X')
+%                         figure()
+%                         histogram(x)
+%                         hold on
+%                         xlabel('X Value (binned)')
+%                         ylabel('N Cycles')
+%                         title('Histogram for X')
 
                         % Histogram for y
                         y = coreObj.y;
-                        figure()
-                        histogram(y)
-                        hold on
-                        xlabel('Y Value (binned)')
-                        ylabel('N Cycles')
-                        title('Histogram for Y')
+%                         figure()
+%                         histogram(y)
+%                         hold on
+%                         xlabel('Y Value (binned)')
+%                         ylabel('N Cycles')
+%                         title('Histogram for Y')
 
                         % Also skip audit plots for data where both x and y are multi-dimensional
                         if all(size(x) > 1) & all(size(y) > 1)
@@ -155,18 +179,23 @@ classdef mi_analysis < handle
                             % Check for discrete data in both variables
                             if all(rem(x,1) == 0) & all(rem(y,1) == 0)
                                 % For discrete data, plot a jittered histogram
-
+                                
                                 % Add noise for joint histogram
                                 x_plot = x + 0.2*rand(size(x));
                                 y_plot = y + 0.2*rand(size(y));
 
+                                [r_2,out_p] = DistLinearRegression(x,y);
+                                
                                 % Make figure
                                 figure()
+                                hold on
                                 plot(x_plot , y_plot, 'x')
+%                                 plot(x,out_p)
                                 hold on
                                 xlabel('Discrete Value: X')
                                 ylabel('Discrete Value: Y')
-                                title('P(X,Y) Discrete Joint Distribution')
+                                title('P(X,Y) Mixed Joint Distribution')
+%                                 title(['P(X,Y) Discrete Joint Distribution: R^2 = ',num2str(r_2)])
                             elseif all(rem(x,1) == 0) | all(rem(y,1) == 0)
                                 % Add jitter only to the variable that is discrete, which for our data, will always be the second variable.
                                 if all(rem(x,1) == 0)
@@ -183,14 +212,18 @@ classdef mi_analysis < handle
                                     y_plot = y;
                                     y_L = 'Continuous Value: Y';
                                 end
-
+                                
+%                                 [r_2,out_p] = DistLinearRegression(x,y);
+                                
                                 % Make figure
                                 figure()
-                                plot(x_plot, y_plot, 'x')
                                 hold on
+                                plot(x_plot, y_plot, 'x')
+%                                 plot(x,out_p)
                                 xlabel(x_L)
                                 ylabel(y_L)
                                 title('P(X,Y) Mixed Joint Distribution')
+%                                 title(['P(X,Y) Mixed Joint Distribution, Mean R^2 = ',num2str(mean(r_2)),', Range R^2 = ',num2str(max(r_2)-min(r_2))])
                             else
                                 % The assumption is that both distributions are continuous if neither of the above if statements are true.
 
@@ -219,5 +252,6 @@ classdef mi_analysis < handle
             if v > 0; disp('Calculating mutual information...'); end
             run_sims(obj.sim_manager);
         end
+        
     end
 end
