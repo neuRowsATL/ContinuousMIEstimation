@@ -254,11 +254,11 @@ classdef mi_analysis < handle
         end
 
         function getMIs(obj)
-            for iCores = 1:size(arrMIcore,1)
+            for iCores = 1:size(obj.arrMIcore,1)
                 core = obj.arrMIcore{iCores,1};
 
                 % Set the warning message to empty
-                warning('')
+                lastwarn('')
 
                 % Call core function to find k value and output MI and error
                 r = core.get_mi(-1);
@@ -276,10 +276,15 @@ classdef mi_analysis < handle
                 obj.arrMIcore{iCores,4} = r.mi;
                 obj.arrMIcore{iCores,5} = r.err;
                 
-            end
+            end           
             
         end
         
+        function r = returnMIs(obj)
+            % NOTE WE NEED TO EDIT THIS AS WE MAKE DESIGN DECISIONS!!
+            r.mi = nansum(cell2mat(obj.arrMIcore(:,4)).*cell2mat(obj.arrMIcore(:,2)));
+            r.err = nansum(cell2mat(obj.arrMIcore(:,5)).*cell2mat(obj.arrMIcore(:,2)));
+        end
         
     end
 end

@@ -140,16 +140,44 @@ classdef mi_ksg_core < handle
             % take sim_manager MI calculations and process results
             
             data_keys = unique([dataset(:,3)]); % extract simulation keys
+            
             tmp_mi_data = cell(0,4);
+
             for key_ix = 1:length(data_keys) % iterate through each MI error estimation set
                 tmp_match = strcmp([dataset(:,3)], data_keys(key_ix)); % find MI calculations that correspond to same data fractions
                 count = sum(tmp_match); % determine number of data fractions
                 data_ixs = find(tmp_match == 1); % identify which simulations to include
-                
-                mi = [dataset{data_ixs,1}];
-                k = dataset{data_ixs(1),2};
-                
-                tmp_mi_data = cat(1, tmp_mi_data, {mean(mi) var(mi) count k}); % append MI with error estimation
+                               
+                % Check to see if there are multiple k-values for this set
+                ks = unique(cell2mat(dataset(data_ixs,2)));
+                if length(ks) > 1
+                    % We have duplicate IDs and need to resolve
+                    for ik = 1:length(ks)
+                        k_idx = cell2mat(dataset(data_ixs,2)) == ks(ik);
+                        k_data_ixs = data_ixs(k_idx);
+                        % Find MI and k for ID specific to this k value
+                        mi = [dataset{k_data_ixs,1}];
+                        k = dataset{k_data_ixs(1),2};
+                        
+                        % Find new count for ID specific to this k value
+                        count = sum(k_idx);
+                        
+                        % Append for each k within the duplicate IDs
+                        tmp_mi_data = cat(1, tmp_mi_data, {mean(mi) var(mi) count k}); % append MI with error estimation
+                        
+                        %RC20200309: For debugging
+                        if size(obj.x,2) == 27
+                            keyboard
+                        end
+                    end
+
+                else
+                    % Set mi and k for this ID
+                    mi = [dataset{data_ixs,1}];
+                    k = dataset{data_ixs(1),2};
+                    tmp_mi_data = cat(1, tmp_mi_data, {mean(mi) var(mi) count k}); % append MI with error estimation
+                end
+
             end
             
             if obj.append
@@ -157,6 +185,11 @@ classdef mi_ksg_core < handle
             end
             
             obj.mi_data = sortrows(tmp_mi_data,[4,3]);
+            
+            %RC20200309: For debugging
+            if size(obj.x,2) == 27
+                keyboard
+            end
         end
         
         function r = get_mi(obj, errThreshold, varargin)
@@ -383,7 +416,10 @@ classdef mi_ksg_core < handle
                 % Find the data fracs whose estimates that are in accord with all data sizes larger than it. 
                 good_DataFracs = all(matching_set,1);
 
-                % Compile the good data fracs into a matrix by k-value. 
+                % Compile the good data fracs into a matrix by k-value.
+                if size(k_goodDataFracs,2) ~= size(good_DataFracs,2)
+                    keyboard
+                end
                 k_goodDataFracs = [k_goodDataFracs; good_DataFracs];
             end                      
 
@@ -504,8 +540,10 @@ classdef mi_ksg_core < handle
         function r = fractionate_data(obj, k)
             % return cell array of fractionated datasets with x-data,
             % y-data, k-value, and ix
+            
             n = length(obj.x);
             r = cell(sum(1:obj.data_fracs),4);
+            
             for frac_n = 1:obj.data_fracs
                 % determine length of subsample
                 a = randperm(n);
@@ -513,18 +551,19 @@ classdef mi_ksg_core < handle
                 
                 % generate unique key to track each simulation
                 while 1
-                    key = num2str(dec2hex(round(rand(1)*100000)));
-                    if ~any(strcmp(r(:,4), key))
+                    key = num2str(dec2hex(round(rand(1)*100000))); 
+                    if ~any(strcmp(r(:,4), key))                       
                         break;
                     end
                 end
-                    
+                
                 % select subsample of data and assign data and params to data cell array
                 for j=1:frac_n 
                     xT = obj.x(a(l(j)+1:l(j+1)));
                     yT = obj.y(a(l(j)+1:l(j+1)));
                     r(sum(1:(frac_n-1))+j,:) = {xT yT k key};
                 end
+            
             end
         end
         
