@@ -10,7 +10,7 @@ classdef mi_analysis < handle
         objBehav % Reference to which behavior object to pull from (optional)
         
         % BC: This will be a list/cell array of objMIcore instances (may need to index)
-        % BC: cell array with structure: {{objMICore} {coeff} {k-value} {coreID}}
+        % cell array with structure:{{objMICore} {coeff} {k-value} {MIestimate} {Error} {coreID}}
         arrMIcore % Reference to MIcore object 
 	
         sim_manager % Sim manager reference object
@@ -82,7 +82,7 @@ classdef mi_analysis < handle
         function buildMIs(obj, mi_data)
 
             % Set up empty array for obj.arrMIcore
-            obj.arrMIcore = cell(size(mi_data,1),4);
+            obj.arrMIcore = cell(size(mi_data,1),6);
             
             % Define groups to fill in arrMIcore
             xGroups = mi_data{1};
@@ -119,7 +119,7 @@ classdef mi_analysis < handle
                     % assigned.
                     if iGroup == 1
                         break
-                    elseif ~ismember({obj.arrMIcore{1:end,4}}, key)
+                    elseif ~ismember({obj.arrMIcore{1:end,6}}, key)
                         break
                     end
                 end
@@ -132,7 +132,7 @@ classdef mi_analysis < handle
                 
                 if v > 2; disp([newline '--> Group ' num2str(iGroup) ' has ' num2str(max(size(x))) ' data points']); end
                 
-	            obj.arrMIcore(iGroup,:) = {core1 coeffs{iGroup,1} 0 key};
+	            obj.arrMIcore(iGroup,:) = {core1 coeffs{iGroup,1} NaN NaN NaN key};
                 
                 if v > 2; disp([newline '--> arrMIcore assigned']); end
 	            % BC: The obj.findMIs function basically calls run_sims
@@ -252,6 +252,34 @@ classdef mi_analysis < handle
             if v > 0; disp('Calculating mutual information...'); end
             run_sims(obj.sim_manager);
         end
+
+        function getMIs(obj)
+            for iCores = 1:size(arrMIcore,1)
+                core = obj.arrMIcore{iCores,1};
+
+                % Set the warning message to empty
+                warning('')
+
+                % Call core function to find k value and output MI and error
+                r = core.get_mi(-1);
+
+                % Grab last warning message
+                w = lastwarn;
+
+                if isempty(w)
+                    obj.arrMIcore{iCores,3} = r.k;
+                else
+                    obj.arrMIcore{iCores,3} = w;
+                end
+
+                % Set temporary MI and error values
+                obj.arrMIcore{iCores,4} = r.mi;
+                obj.arrMIcore{iCores,5} = r.err;
+                
+            end
+            
+        end
+        
         
     end
 end
