@@ -234,23 +234,26 @@ classdef mi_ksg_core < handle
                if sum(valid_ks > 2) == 0
                    if sum(valid_ks > 1) == 0
                        %error('Error: No k values have stable data fractions. Please manually select a k')
-                       warning('NO k values have stable data fractions. Please manually select a k. FOR NOW- selecting minimum k with max stability')
+                       warning('NO k values have stable data fractions. Please manually select a k. FOR NOW- selecting minimum k with max stability that minimizes error')
                        best_weight = max(valid_ks);
-                       best_kIdx = min(find(valid_ks == best_weight));
+                       min_errIdx = find(errs == min(errs(valid_ks == best_weight)));
+                       best_kIdx = min(min_errIdx);
                        MI = MIs(best_kIdx);
                        err = errs(best_kIdx);
                    else
-                       % Choose minimum k with maximum stability
-                       warning('Warning: K values are stable, but do not have consistent estimates. Selecting minimum k with maximum stability. Audit recommended.')
+                       % Choose k with maximum stability that minimizes stdev
+                       warning('Warning: K values are stable, but do not have consistent estimates. Selecting minimum k with maximum stability that minimizes error. Audit recommended.')
                        best_weight = max(valid_ks(valid_ks > 1));
-                       best_kIdx = min(find(valid_ks == best_weight));
+                       min_errIdx = find(errs == min(errs(valid_ks == best_weight)));
+                       best_kIdx = min(min_errIdx);
                        MI = MIs(best_kIdx);
                        err = errs(best_kIdx);
                    end
                else
                    % Choose minimum k with maximum stability
-                   best_weight = max(valid_ks(valid_ks > 1));
-                   best_kIdx = min(find(valid_ks == best_weight));                   
+                   best_weight = max(valid_ks(valid_ks > 2));
+                   min_errIdx = find(errs == min(errs(valid_ks == best_weight)));
+                   best_kIdx = min(min_errIdx);
                    MI = MIs(best_kIdx);
                    err = errs(best_kIdx);     
                end
