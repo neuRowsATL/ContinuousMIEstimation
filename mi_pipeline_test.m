@@ -908,7 +908,11 @@ try
     a.buildMIs();
     
     % Run calcMIs()
+<<<<<<< HEAD
+%     a.calcMIs();
+=======
     a.calcMIs();
+>>>>>>> d90c89f3a9ba9777fb91543b34a53fef6f8c35b6
     
     % Check for unique subgroup IDs:
     success = [success newline 'Assigned: Unique subgroup IDs'];
@@ -936,6 +940,18 @@ catch e
     error('FATAL ERROR: Unable to construct mi_analysis object');
 end
 
+<<<<<<< HEAD
+%% Visualize MI ~Kyle Practice
+close all
+for subgroups = 1:size(a.arrMIcore,1)
+    makekplots_kyle(a,subgroups)
+    sgtitle(['Reparameterized: Subgroup ',num2str(subgroups)])
+    makekplots_kyle(a_raw,subgroups)
+    sgtitle(['Raw: Subgroup = ',num2str(subgroups)])
+end
+
+=======
+>>>>>>> d90c89f3a9ba9777fb91543b34a53fef6f8c35b6
 %%  mi_analysis: calc_timing_count
 try
     clear d
@@ -990,7 +1006,13 @@ try
     % Run buildMIs()
     a.buildMIs();
     
+<<<<<<< HEAD
+    % Run calcMIs()
+%     a.calcMIs();
+    
+=======
 
+>>>>>>> d90c89f3a9ba9777fb91543b34a53fef6f8c35b6
     % Check for unique subgroup IDs:
     success = [success newline 'Assigned: Unique subgroup IDs'];
     compVal = [];
@@ -1035,7 +1057,11 @@ try
     
     
     % Construct mi_analysis object
+<<<<<<< HEAD
+    a = calc_timing_timing(d, b, {'unit1', 'unit2'}, 'verbose', verbose_level,'reparam',0);
+=======
     a = calc_timing_timing(d, b, {'unit1', 'unit2'}, 'verbose', verbose_level);
+>>>>>>> d90c89f3a9ba9777fb91543b34a53fef6f8c35b6
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
