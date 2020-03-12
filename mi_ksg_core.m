@@ -237,25 +237,52 @@ classdef mi_ksg_core < handle
                        warning('NO k values have stable data fractions. Please manually select a k. FOR NOW- selecting minimum k with max stability that minimizes error')
                        best_weight = max(valid_ks);
                        min_errIdx = find(errs == min(errs(valid_ks == best_weight)));
-                       best_kIdx = min(min_errIdx);
-                       MI = MIs(best_kIdx);
-                       err = errs(best_kIdx);
+                       % RC 20200310: FOR NOW, we just return an NaN value
+                       if isempty(min_errIdx)
+                           best_kIdx = 1;
+                           % Place holder to get past test
+                           MI = MIs(1);
+                           err = NaN;
+                       else
+                           best_kIdx = min(min_errIdx);
+                           MI = MIs(best_kIdx);
+                           err = errs(best_kIdx);
+                       end
+
                    else
                        % Choose k with maximum stability that minimizes stdev
                        warning('Warning: K values are stable, but do not have consistent estimates. Selecting minimum k with maximum stability that minimizes error. Audit recommended.')
                        best_weight = max(valid_ks(valid_ks > 1));
                        min_errIdx = find(errs == min(errs(valid_ks == best_weight)));
+                       % RC 20200310: FOR NOW, we just return an NaN value
+                       if isempty(min_errIdx)
+                           best_kIdx = 1;
+                           % Place holder to get past test
+                           MI = MIs(1);
+                           err = NaN;
+                       else
+                           best_kIdx = min(min_errIdx);
+                           MI = MIs(best_kIdx);
+                           err = errs(best_kIdx);
+                       end
+
+                   end
+               else
+                   % Choose minimum k with maximum stability that minimizes stdev
+                   best_weight = max(valid_ks(valid_ks > 2));
+                   min_errIdx = find(errs == min(errs(valid_ks == best_weight)));
+                   % RC 20200310: FOR NOW, we just return an NaN value
+                   if isempty(min_errIdx)
+                       best_kIdx = 1;
+                       % Place holder to get past test. 
+                       MI = MIs(1);
+                       err = NaN;
+                   else
                        best_kIdx = min(min_errIdx);
                        MI = MIs(best_kIdx);
                        err = errs(best_kIdx);
-                   end
-               else
-                   % Choose minimum k with maximum stability
-                   best_weight = max(valid_ks(valid_ks > 2));
-                   min_errIdx = find(errs == min(errs(valid_ks == best_weight)));
-                   best_kIdx = min(min_errIdx);
-                   MI = MIs(best_kIdx);
-                   err = errs(best_kIdx);     
+                   end     
+
                end
                
                % Output k value that was selected
