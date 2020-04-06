@@ -38,17 +38,17 @@ switch computer_name{1}
         fnames = {fnames.name};
         fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
         
-    case ['KT',newline]
-        % Kyle_laptop:
-        fnames = dir('C:\Users\Kyle\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\bl21lb21_171218_140434*.rhd');
-        fnames = {fnames.name};
-        fpath = 'C:\Users\Kyle\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';%\bl21lb21_171218_140434';
+%     case ['KT',newline]
+%         % Kyle_laptop:
+%         fnames = dir('C:\Users\Kyle\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\bl21lb21_171218_140434*.rhd');
+%         fnames = {fnames.name};
+%         fpath = 'C:\Users\Kyle\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';%\bl21lb21_171218_140434';
     
-    case ['bio-ssober-38p',newline]
-        % Kyle_lab:
-        fnames = dir('C:\Users\kthom88\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\bl21lb21_171218_140434.rhd');
-        fnames = {fnames.name};
-        fpath = 'C:\Users\kthom88\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
+%     case ['bio-ssober-38p',newline]
+%         % Kyle_lab:
+%         fnames = dir('C:\Users\kthom88\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\bl21lb21_171218_140434.rhd');
+%         fnames = {fnames.name};
+%         fpath = 'C:\Users\kthom88\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
            
     otherwise
         error('Unable to identify computer');
@@ -74,7 +74,7 @@ else
     verbose_level = 4;
 end
 
-addpath('C:\Users\kthom88\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\kraskovStoegbauerGrassberger')
+% addpath('C:\Users\kthom88\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\kraskovStoegbauerGrassberger')
 
 %% RUN MI_DATA
 load('TestData/20200127_bl21lb21_spikedata.mat');
@@ -341,7 +341,7 @@ try
     disp(['RUNNING: mi_data_behavior()' newline newline]);
     d = mi_data_behavior('test', 'verbose', verbose_level);
 
-    add_cycleTimes(d, [unit1' unit1'], str_unit1, 30000);
+    add_cycleTimes(d, [unit1 unit1], str_unit1, 30000);
 
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
     success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
@@ -364,7 +364,7 @@ try
 
     % Check for correct data size
     success = [success newline 'Imported: data'];
-    if any(size(d.data.cycleTimes.data) ~= [size(unit1,2), 2]); success = [success '>> FAILED']; end
+    if any(size(d.data.cycleTimes.data) ~= [size(unit1,1), 2]); success = [success '>> FAILED']; end
 
     % Check for correct data info
     success = [success newline 'Imported: info'];
@@ -373,7 +373,7 @@ try
 
     % Check for correct data from get_cycleTimes
     success = [success newline 'Pulled: cycleTimes'];
-    if any(size(get_cycleTimes(d)) ~= [size(unit1,2) 2]); success = [success '>> FAILED']; end
+    if any(size(get_cycleTimes(d)) ~= [size(unit1,1) 2]); success = [success '>> FAILED']; end
     
     disp(success);
 catch e
@@ -946,8 +946,8 @@ try
 
     d = mi_data_neural('test', 'verbose', verbose_level);
 
-    add_spikes(d, unit1, str_unit1, 30000, 'unit1');
     add_spikes(d, unit2, str_unit2, 30000, 'unit2');
+    add_spikes(d, unit1, str_unit1, 30000, 'unit1');
     
     b = mi_data_pressure('test', 'verbose', verbose_level);
     add_cycleTimes(b, cycle_times, str_cycles, 30000);
