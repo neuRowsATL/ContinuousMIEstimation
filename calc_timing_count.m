@@ -44,7 +44,7 @@ classdef calc_timing_count < mi_analysis
             
             % One more validation: Check that varNames references valid fields of objData
             for ivarNames = 1:length(varNames)
-                assert(isfield(objData.data , varNames{ivarNames}), ['varName: ' varNames{ivarNames} 'is not a valid field of the neural data object']); 
+                assert(isfield(objData.data , varNames{ivarNames}), ['varName: ' varNames{ivarNames} ' is not a valid field of the neural data object']); 
             end
             
             % Call parent constructor

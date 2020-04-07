@@ -112,7 +112,7 @@ classdef mi_analysis < handle
                         end
                     end
                 end
-                              
+
                 while 1 % generate random key to keep track of which MI calculations belong together
                     key = num2str(dec2hex(round(rand(1)*100000)));
                     % break the while loop if the key has not already been
@@ -184,18 +184,15 @@ classdef mi_analysis < handle
                                 x_plot = x + 0.2*rand(size(x));
                                 y_plot = y + 0.2*rand(size(y));
 
-                                [r_2,out_p] = DistLinearRegression(x,y);
                                 
                                 % Make figure
-                                figure()
-                                hold on
-                                plot(x_plot , y_plot, 'x')
-%                                 plot(x,out_p)
-                                hold on
-                                xlabel('Discrete Value: X')
-                                ylabel('Discrete Value: Y')
-                                title('P(X,Y) Mixed Joint Distribution')
-%                                 title(['P(X,Y) Discrete Joint Distribution: R^2 = ',num2str(r_2)])
+%                                 figure()
+%                                 hold on
+%                                 plot(x_plot , y_plot, 'x')
+%                                 hold on
+%                                 xlabel('Discrete Value: X')
+%                                 ylabel('Discrete Value: Y')
+%                                 title('P(X,Y) Mixed Joint Distribution')                                
                             elseif all(rem(x,1) == 0) | all(rem(y,1) == 0)
                                 % Add jitter only to the variable that is discrete, which for our data, will always be the second variable.
                                 if all(rem(x,1) == 0)
@@ -212,21 +209,18 @@ classdef mi_analysis < handle
                                     y_plot = y;
                                     y_L = 'Continuous Value: Y';
                                 end
-                                
-%                                 [r_2,out_p] = DistLinearRegression(x,y);
-                                
+                                                                
                                 % Make figure
                                 figure()
                                 hold on
                                 plot(x_plot, y_plot, 'x')
-%                                 plot(x,out_p)
+                                hold off
                                 xlabel(x_L)
                                 ylabel(y_L)
                                 title('P(X,Y) Mixed Joint Distribution')
-%                                 title(['P(X,Y) Mixed Joint Distribution, Mean R^2 = ',num2str(mean(r_2)),', Range R^2 = ',num2str(max(r_2)-min(r_2))])
                             else
                                 % The assumption is that both distributions are continuous if neither of the above if statements are true.
-
+                                
                                 % Make figure
                                 figure()
                                 plot(x,y, 'x')
@@ -234,8 +228,7 @@ classdef mi_analysis < handle
                                 xlabel('Continuous Variable: X')
                                 ylabel('Continuous Variable: Y')
                                 title('P(X,Y) Continuous Joint Distribution')
-                            end
-
+                            end                            
                         end
                     end
                 end

@@ -44,7 +44,7 @@ switch computer_name{1}
         fnames = {fnames.name};
         fpath = 'C:\Users\Kyle\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';%\bl21lb21_171218_140434';
     
-    case ['bio-ssober-38p',newline]
+    case ['bio-ssober-22p',newline]
         % Kyle_lab:
         fnames = dir('C:\Users\kthom88\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\bl21lb21_171218_140434.rhd');
         fnames = {fnames.name};
@@ -908,11 +908,7 @@ try
     a.buildMIs();
     
     % Run calcMIs()
-<<<<<<< HEAD
-%     a.calcMIs();
-=======
     a.calcMIs();
->>>>>>> d90c89f3a9ba9777fb91543b34a53fef6f8c35b6
     
     % Check for unique subgroup IDs:
     success = [success newline 'Assigned: Unique subgroup IDs'];
@@ -940,7 +936,6 @@ catch e
     error('FATAL ERROR: Unable to construct mi_analysis object');
 end
 
-<<<<<<< HEAD
 %% Visualize MI ~Kyle Practice
 close all
 for subgroups = 1:size(a.arrMIcore,1)
@@ -950,8 +945,6 @@ for subgroups = 1:size(a.arrMIcore,1)
     sgtitle(['Raw: Subgroup = ',num2str(subgroups)])
 end
 
-=======
->>>>>>> d90c89f3a9ba9777fb91543b34a53fef6f8c35b6
 %%  mi_analysis: calc_timing_count
 try
     clear d
@@ -970,8 +963,7 @@ try
     
     % Construct mi_analysis object
     a = calc_timing_count(d, b, {'unit1' , 'unit2'}, 'verbose', verbose_level);
-    
-    
+        
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
     success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
     
@@ -1006,13 +998,12 @@ try
     % Run buildMIs()
     a.buildMIs();
     
-<<<<<<< HEAD
     % Run calcMIs()
-%     a.calcMIs();
-    
-=======
+    a.calcMIs();
 
->>>>>>> d90c89f3a9ba9777fb91543b34a53fef6f8c35b6
+    % Run getMIs()
+    a.getMIs();
+    
     % Check for unique subgroup IDs:
     success = [success newline 'Assigned: Unique subgroup IDs'];
     compVal = [];
@@ -1057,13 +1048,9 @@ try
     
     
     % Construct mi_analysis object
-<<<<<<< HEAD
-    a = calc_timing_timing(d, b, {'unit1', 'unit2'}, 'verbose', verbose_level,'reparam',0);
-=======
+
     a = calc_timing_timing(d, b, {'unit1', 'unit2'}, 'verbose', verbose_level);
->>>>>>> d90c89f3a9ba9777fb91543b34a53fef6f8c35b6
-    
-    
+
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY
     success = (['----- ----- ----- ----- -----' newline 'SUCCESSFUL:' newline]);
     

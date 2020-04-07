@@ -11,10 +11,16 @@ function makekplots_kyle(a,subgroups)
 
         subplot(3,3,k)
         hold on
-        scatter(frac,est,20,'filled','b');
-        errorbar(frac,est,sqrt(err),'b','linewidth',1)
+        if k == a.arrMIcore{subgroups,3}
+            scatter(frac,est,20,'filled','g');
+            errorbar(frac,est,sqrt(err),'g','linewidth',1)
+        else
+            scatter(frac,est,20,'filled','b');
+            errorbar(frac,est,sqrt(err),'b','linewidth',1)
+        end
     %     xlabel('data fracs')
     %     ylabel('MI Estimate')
         ylim([0,0.4])
         title(['k = ',num2str(k)])
     end
+end

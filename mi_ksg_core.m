@@ -448,7 +448,7 @@ classdef mi_ksg_core < handle
 
                 % Compile the good data fracs into a matrix by k-value.
                 if size(k_goodDataFracs,2) ~= size(good_DataFracs,2)
-                    keyboard
+%                     keyboard
                 end
                 k_goodDataFracs = [k_goodDataFracs; good_DataFracs];
             end                      
