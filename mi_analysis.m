@@ -135,13 +135,13 @@ classdef mi_analysis < handle
 	            obj.arrMIcore(iGroup,:) = {core1 coeffs{iGroup,1} NaN NaN NaN key};
                 
                 if v > 2; disp([newline '--> arrMIcore assigned']); end
-	            % BC: The obj.findMIs function basically calls run_sims
+	            % BC: The obj.calcMIs function basically calls run_sims
             end
             
             % Audit plots
             % NOTE- Move these to functions in mi_ksg_viz eventually. 
             for iGroup = 1:size(xGroups)
-                clear r_2 out_p
+%                 clear r_2 out_p
                 coreObj = obj.arrMIcore{iGroup,1};
                 
                 if v > 4
@@ -184,6 +184,10 @@ classdef mi_analysis < handle
                                 x_plot = x + 0.2*rand(size(x));
                                 y_plot = y + 0.2*rand(size(y));
 
+<<<<<<< HEAD
+=======
+%                                [r_2,out_p] = DistLinearRegression(x,y);
+>>>>>>> fb3aeb74e50c56db9422826998a393fde9b088b9
                                 
                                 % Make figure
 %                                 figure()

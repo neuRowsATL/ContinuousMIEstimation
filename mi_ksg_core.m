@@ -107,7 +107,10 @@ classdef mi_ksg_core < handle
                         % run yet
                         %Temporary to make the data fraction set
                         %predictable across runs. 
-                        rng(0);
+                        % RC 20200406: We will need to decide if we want to
+                        % set the seed prior to running estimates and where
+                        % we want to do that. 
+                        %rng(0);
                         for i = 1:length(obj.k_values)
                             % create datasets for data fractions with unique key
                             % to track each simulation
@@ -165,10 +168,6 @@ classdef mi_ksg_core < handle
                         % Append for each k within the duplicate IDs
                         tmp_mi_data = cat(1, tmp_mi_data, {mean(mi) var(mi) count k}); % append MI with error estimation
                         
-                        %RC20200309: For debugging
-                        if size(obj.x,2) == 27
-                            keyboard
-                        end
                     end
 
                 else
@@ -186,10 +185,6 @@ classdef mi_ksg_core < handle
             
             obj.mi_data = sortrows(tmp_mi_data,[4,3]);
             
-            %RC20200309: For debugging
-            if size(obj.x,2) == 27
-                keyboard
-            end
         end
         
         function r = get_mi(obj, errThreshold, varargin)
@@ -447,9 +442,6 @@ classdef mi_ksg_core < handle
                 good_DataFracs = all(matching_set,1);
 
                 % Compile the good data fracs into a matrix by k-value.
-                if size(k_goodDataFracs,2) ~= size(good_DataFracs,2)
-%                     keyboard
-                end
                 k_goodDataFracs = [k_goodDataFracs; good_DataFracs];
             end                      
 
@@ -459,11 +451,13 @@ classdef mi_ksg_core < handle
             kVals_okay = all(test_fracs, 2);
 
             
-                % Add a weight based on how many other estimates are in accord with the first four data fracs.
-                weighted_k = kVals_okay + .1.*sum(k_goodDataFracs(:,5:end),2);
+                % Add a weight based on how many other estimates are in accord with the first data fracs.
+                weighted_k = kVals_okay + .1.*sum(k_goodDataFracs(:,2:end),2);
 
                 notBad_Ks = find(weighted_k >= 1);
-
+                if all(weighted_k == 0)
+                    keyboard
+                end
 
                 % Find a tentative list of k values to use.
                 % Note- this would be a place to change how the weighted k values affects the choice of k. We could also consider propagating the list of weights down farther. 
@@ -522,7 +516,7 @@ classdef mi_ksg_core < handle
         end
             
 
-            
+% -------------------------ORIGINAL FIND K FUNCTION------------------------            
 %             % find k-value that is least sensitive to changing k-value
 %             k_mi = zeros(1,length(ks));
 %             for i=1:length(ks)
@@ -565,7 +559,7 @@ classdef mi_ksg_core < handle
 %             else
 %                 obj.opt_k = obj.k_values;
 %             end
-
+%--------------------------------------------------------------------------
         
         function r = fractionate_data(obj, k)
             % return cell array of fractionated datasets with x-data,
