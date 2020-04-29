@@ -5,7 +5,8 @@ classdef mi_data_pressure < mi_data_behavior
     % board_adc channel
     %
    properties
-       
+%        omitOutliers % boolean to indicate whether to omit cycles with outlier lengths from analysis
+%        outliers
    end
    methods
        function obj = mi_data_pressure(ID, varargin)
@@ -47,6 +48,29 @@ classdef mi_data_pressure < mi_data_behavior
            end
             if v>0; disp('COMPLETE: Data files set!'); end
        end
+       
+%        function r = outlierScrub(obj)
+%            
+%            % Find cycle intervals
+%            cycleTimes = obj.data.cycleTimes.data;
+%            cycleIntervals = diff(cycleTimes,1,2);
+%            
+%            % Find mean and stdev of cycle intervals
+%            m = mean(cycleIntervals);
+%            sd = std(cycleIntervals);
+%            
+%            % Find upper and lower bound for outliers using 3*stdev rule
+%            upBound = m + 3*sd;
+%            lowBound = m - 3*sd;
+%            
+%            % Get cycle indices for non-outliers
+%            cycleIdx_rmOutliers = find(cycleIntervals >= lowBound & cycleIntervals <= upBound);
+%            obj.outliers = find(cycleIntervals < lowBound | cycleIntervals > upBound);
+%            
+%            % Get cycle times without outliers
+%            cycleTimes_rmOutliers = cycleTimes(cycleIdx_rmOutliers, :);
+%            r = cycleTimes_rmOutliers;
+%        end
        
        function build_behavior(obj)
             % Process behavior pulls data to build raw waveform matrix
@@ -144,7 +168,7 @@ classdef mi_data_pressure < mi_data_behavior
        end        
         
        function r = get_behavior(obj, timeBase, feature, start, dur, nSamp, varargin)
-            %% Implemented to return different features of behavior cycles after processing raw waveform matrix data
+            % Implemented to return different features of behavior cycles after processing raw waveform matrix data
             % i.e., raw data, PCA, residual, area
 
             v = obj.verbose;

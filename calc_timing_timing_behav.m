@@ -44,7 +44,7 @@ classdef calc_timing_timing_behav < mi_analysis
             % Set parameters
             default_b_timeBase = 'phase';
             valid_b_timeBases = {'time', 'phase'};
-            validate_b_timeBase = @(x) assert(ischar(x) && ismember(x, valid_timeBases), 'b_timeBase must be: time, phase');
+            validate_b_timeBase = @(x) assert(ischar(x) && ismember(x, valid_b_timeBases), 'b_timeBase must be: time, phase');
             p.addParameter('b_timeBase', default_b_timeBase, validate_b_timeBase); 
 
             default_feature = 'residual';
@@ -166,12 +166,12 @@ classdef calc_timing_timing_behav < mi_analysis
                     percent = groupRatio*100;
 
                     % Document how much data is omitted
-                    note = strcat('Omitting ', num2str(percent), ' percent of cycles because zero spikes in x.');
+                    note = strcat('Omitting ', num2str(percent), ' percent of cycles because zero spikes in n1.');
                     disp(note)
                     obj.notes{noteCount,1} = note;
 
                     % Keep track of total omitted ratio
-                    omitCoeff(noteCount) = groupRatio;
+                    omittedCoeff(noteCount) = groupRatio;
                     
                     noteCount = noteCount + 1;
                     continue
@@ -181,10 +181,10 @@ classdef calc_timing_timing_behav < mi_analysis
                     n2groupIdx = find(n2Counts == n2Cond);
                     xgroupIdx = intersect(n1groupIdx,n2groupIdx);
                     if n2Cond == 0
-                        num = length(xgroupIdx)
+                        num = length(xgroupIdx);
                         groupRatio = (num/length(n2Counts));
                         percent = groupRatio * 100;
-                        note = strcat('Omitting ', num2str(percent),'where xCond = ', num2str(xCond),'and yCond = ',num2str(yCond), ' percent of cycles because zero spikes in y.');
+                        note = strcat('Omitting ', num2str(percent),'where n1Cond = ', num2str(n1Cond),'and n2Cond = ',num2str(n2Cond), ' percent of cycles because zero spikes in n2.');
                         disp(note)
                         obj.notes{noteCount,1} = note;
 
@@ -195,10 +195,10 @@ classdef calc_timing_timing_behav < mi_analysis
                         noteCount = noteCount + 1;
                         continue
                     elseif n1Cond + n2Cond > length(xgroupIdx)
-                        num = length(xgroupIdx)
+                        num = length(xgroupIdx);
                         groupRatio = (num/length(n2Counts));
                         percent = groupRatio * 100;
-                        note = strcat('Omitting ', num2str(percent),'where xCond = ', num2str(xCond),'and yCond = ',num2str(yCond), ' percent of cycles because zero spikes in y.');
+                        note = strcat('Omitting ', num2str(percent),'where n1Cond = ', num2str(n1Cond),'and n2Cond = ',num2str(n2Cond), ' percent of cycles because fewer spikes than data.');
 
                         disp(note)
                         obj.notes{noteCount,1} = note;
@@ -217,10 +217,10 @@ classdef calc_timing_timing_behav < mi_analysis
 
                     % Define y data for iCond
                     yGroup = y(xgroupIdx,1:end);
-                    if length(xGroup) ~= length(yGroup)
-                        errorStr = strcat('Error: Length of x and y for group:', num2str(groupCounter), 'do not match.')
-                        error(errorStr);
-                    end
+%                     if length(xGroup) ~= length(yGroup)
+%                         errorStr = strcat('Error: Length of x and y for group:', num2str(groupCounter), 'do not match.');
+%                         error(errorStr);
+%                     end
                     yGroups{groupCounter,1} = yGroup;
                     coeffs{groupCounter,1} = length(xgroupIdx)/length(n1Counts);
                     groupCounter = groupCounter + 1;
@@ -229,7 +229,9 @@ classdef calc_timing_timing_behav < mi_analysis
             end
 
             % Audit: Check that omit coeffs and group coeffs sum to 1 with a very small tolerance to account for matlab rounding error. 
-            if ~ismembertol((sum(cell2mat(coeffs)) + sum(omitCoeff)), 1, 1e-12); error('Error: Sum of coeffs and omitted data ratios does not equal 1'); end
+            if ~ismembertol((sum(cell2mat(coeffs)) + sum(omittedCoeff)), 1, 1e-12); 
+                error('Error: Sum of coeffs and omitted data ratios does not equal 1'); 
+            end
 
             buildMIs@mi_analysis(obj, {xGroups yGroups coeffs}); 
             
