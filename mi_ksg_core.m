@@ -107,7 +107,10 @@ classdef mi_ksg_core < handle
                         % run yet
                         %Temporary to make the data fraction set
                         %predictable across runs. 
-                        rng(0);
+                        % RC 20200406: We will need to decide if we want to
+                        % set the seed prior to running estimates and where
+                        % we want to do that. 
+                        %rng(0);
                         for i = 1:length(obj.k_values)
                             % create datasets for data fractions with unique key
                             % to track each simulation
@@ -140,16 +143,40 @@ classdef mi_ksg_core < handle
             % take sim_manager MI calculations and process results
             
             data_keys = unique([dataset(:,3)]); % extract simulation keys
+            
             tmp_mi_data = cell(0,4);
+
             for key_ix = 1:length(data_keys) % iterate through each MI error estimation set
                 tmp_match = strcmp([dataset(:,3)], data_keys(key_ix)); % find MI calculations that correspond to same data fractions
                 count = sum(tmp_match); % determine number of data fractions
                 data_ixs = find(tmp_match == 1); % identify which simulations to include
-                
-                mi = [dataset{data_ixs,1}];
-                k = dataset{data_ixs(1),2};
-                
-                tmp_mi_data = cat(1, tmp_mi_data, {mean(mi) var(mi) count k}); % append MI with error estimation
+                               
+                % Check to see if there are multiple k-values for this set
+                ks = unique(cell2mat(dataset(data_ixs,2)));
+                if length(ks) > 1
+                    % We have duplicate IDs and need to resolve
+                    for ik = 1:length(ks)
+                        k_idx = cell2mat(dataset(data_ixs,2)) == ks(ik);
+                        k_data_ixs = data_ixs(k_idx);
+                        % Find MI and k for ID specific to this k value
+                        mi = [dataset{k_data_ixs,1}];
+                        k = dataset{k_data_ixs(1),2};
+                        
+                        % Find new count for ID specific to this k value
+                        count = sum(k_idx);
+                        
+                        % Append for each k within the duplicate IDs
+                        tmp_mi_data = cat(1, tmp_mi_data, {mean(mi) var(mi) count k}); % append MI with error estimation
+                        
+                    end
+
+                else
+                    % Set mi and k for this ID
+                    mi = [dataset{data_ixs,1}];
+                    k = dataset{data_ixs(1),2};
+                    tmp_mi_data = cat(1, tmp_mi_data, {mean(mi) var(mi) count k}); % append MI with error estimation
+                end
+
             end
             
             if obj.append
@@ -157,6 +184,7 @@ classdef mi_ksg_core < handle
             end
             
             obj.mi_data = sortrows(tmp_mi_data,[4,3]);
+            
         end
         
         function r = get_mi(obj, errThreshold, varargin)
@@ -200,25 +228,103 @@ classdef mi_ksg_core < handle
                
                if sum(valid_ks > 2) == 0
                    if sum(valid_ks > 1) == 0
-                       error('Error: No k values have stable data fractions. Please manually select a k')
-                       
+                       %error('Error: No k values have stable data fractions. Please manually select a k')
+                       warning('NO k values have stable data fractions. Please manually select a k. FOR NOW- selecting minimum k with max stability that minimizes error')
+                       best_weight = max(valid_ks);
+                       min_errIdx = find(errs == min(errs(valid_ks == best_weight)));
+                       % RC 20200310: FOR NOW, we just return an NaN value
+                       if isempty(min_errIdx)
+                           best_kIdx = 1;
+                           % Place holder to get past test
+                           MI = MIs(1);
+                           err = NaN;
+                       else
+                           best_kIdx = min(min_errIdx);
+                           MI = MIs(best_kIdx);
+                           err = errs(best_kIdx);
+                       end
+
                    else
-                       % Choose minimum k with maximum stability
-                       warning('Warning: K values are stable, but do not have consistent estimates. Selecting minimum k with maximum stability. Audit recommended.')
+                       % Choose k with maximum stability that minimizes stdev
+                       warning('Warning: K values are stable, but do not have consistent estimates. Selecting minimum k with maximum stability that minimizes error. Audit recommended.')
                        best_weight = max(valid_ks(valid_ks > 1));
-                       best_kIdx = min(find(valid_ks == best_weight));
-                       MI = MIs(best_kIdx);
-                       err = errs(best_kIdx);
+                       min_errIdx = find(errs == min(errs(valid_ks == best_weight)));
+                       % RC 20200310: FOR NOW, we just return an NaN value
+                       if isempty(min_errIdx)
+                           best_kIdx = 1;
+                           % Place holder to get past test
+                           MI = MIs(1);
+                           err = NaN;
+                       else
+                           best_kIdx = min(min_errIdx);
+                           MI = MIs(best_kIdx);
+                           err = errs(best_kIdx);
+                       end
+
                    end
                else
-                   % Choose minimum k with maximum stability
-                   best_weight = max(valid_ks(valid_ks > 1));
-                   best_kIdx = min(find(valid_ks == best_weight));                   
-                   MI = MIs(best_kIdx);
-                   err = errs(best_kIdx);     
+                   % Choose minimum k with maximum stability that minimizes stdev
+                   best_weight = max(valid_ks(valid_ks > 2));
+                   min_errIdx = find(errs == min(errs(valid_ks == best_weight)));
+                   % RC 20200310: FOR NOW, we just return an NaN value
+                   if isempty(min_errIdx)
+                       best_kIdx = 1;
+                       % Place holder to get past test. 
+                       MI = MIs(1);
+                       err = NaN;
+                   else
+                       best_kIdx = min(min_errIdx);
+                       MI = MIs(best_kIdx);
+                       err = errs(best_kIdx);
+                   end     
+
                end
                
+               % Output k value that was selected
+               k_vals = [obj.mi_data{:,4}];
+               ks = unique(k_vals);
+               r.k = ks(best_kIdx);
+               
+               % Sanity check that our MI value matches what it would be if
+               % we had inputted the optimized k value
+               
+               %GET VALUES FOR SANITY CHECK
+               % Find MI calcs with k-value
+                test_data_ixs = cell2mat(obj.mi_data(:,4)) == r.k;
+               
+                % calculate estimated error
+                test_listSplitSizes = cell2mat(obj.mi_data(test_data_ixs,3));
+                test_MIs = cell2mat(obj.mi_data(test_data_ixs,1));
+                test_listVariances = cell2mat(obj.mi_data(test_data_ixs,2));
                 
+                if sum(isnan(test_MIs) ~= 0)
+                    if sum(~isnan(test_MIs)) >= 4
+                        test_listSplitSizes = test_listSplitSizes(~isnan(test_MIs));
+                        test_MIs = test_MIs(~isnan(test_MIs));
+                        test_listVariances = test_listVariances(~isnan(test_listVariances));
+                    end
+                    % Check that sizes are all still consistent
+                    if size(test_listSplitSizes) ~= size(test_MIs) | size(test_listSplitSizes) ~= size(test_listVariances)
+                        error('Error: Sizes of vectors without NaN values do not match')
+                    end
+                end
+                
+                
+                test_listVariances = test_listVariances(2:end);
+
+                test_k_err = test_listSplitSizes(2:end);
+                test_variancePredicted = sum((test_k_err-1)./test_k_err.*test_listVariances)./sum((test_k_err-1));
+                
+                test_MI = test_MIs(1);
+                test_err = test_variancePredicted.^0.5;
+                
+                % ACTUAL SANITY CHECK
+                if ~isequaln(MI,test_MI) | ~isequaln(err, test_err) 
+                    keyboard
+                    error('Optimized K MI does not match that stored in mi_data'); 
+                end
+               
+       
             else
                 
             
@@ -229,13 +335,27 @@ classdef mi_ksg_core < handle
                 listSplitSizes = cell2mat(obj.mi_data(data_ixs,3));
                 MIs = cell2mat(obj.mi_data(data_ixs,1));
                 listVariances = cell2mat(obj.mi_data(data_ixs,2));
-                listVariances = listVariances(2:end);
 
-                k = listSplitSizes(2:end);
-                variancePredicted = sum((k-1)./k.*listVariances)./sum((k-1));
+                
+                if sum(isnan(MIs) ~= 0)
+                    if sum(~isnan(MIs)) >= 4
+                        listSplitSizes = listSplitSizes(~isnan(MIs));
+                        MIs = MIs(~isnan(MIs));
+                        listVariances = listVariances(~isnan(listVariances));
+                    end
+                    % Check that sizes are all still consistent
+                    if size(listSplitSizes) ~= size(MIs) | size(listSplitSizes) ~= size(listVariances)
+                        error('Error: Sizes of vectors without NaN values do not match')
+                    end
+                end
+                
+                listVariances = listVariances(2:end);
+                k_err = listSplitSizes(2:end);
+                variancePredicted = sum((k_err-1)./k_err.*listVariances)./sum((k_err-1));
                 
                 MI = MIs(1);
                 err = variancePredicted.^0.5;
+                
             
             end
             
@@ -321,7 +441,7 @@ classdef mi_ksg_core < handle
                 % Find the data fracs whose estimates that are in accord with all data sizes larger than it. 
                 good_DataFracs = all(matching_set,1);
 
-                % Compile the good data fracs into a matrix by k-value. 
+                % Compile the good data fracs into a matrix by k-value.
                 k_goodDataFracs = [k_goodDataFracs; good_DataFracs];
             end                      
 
@@ -331,11 +451,13 @@ classdef mi_ksg_core < handle
             kVals_okay = all(test_fracs, 2);
 
             
-                % Add a weight based on how many other estimates are in accord with the first four data fracs.
-                weighted_k = kVals_okay + .1.*sum(k_goodDataFracs(:,5:end),2);
+                % Add a weight based on how many other estimates are in accord with the first data fracs.
+                weighted_k = kVals_okay + .1.*sum(k_goodDataFracs(:,2:end),2);
 
                 notBad_Ks = find(weighted_k >= 1);
-
+                if all(weighted_k == 0)
+                    keyboard
+                end
 
                 % Find a tentative list of k values to use.
                 % Note- this would be a place to change how the weighted k values affects the choice of k. We could also consider propagating the list of weights down farther. 
@@ -394,7 +516,7 @@ classdef mi_ksg_core < handle
         end
             
 
-            
+% -------------------------ORIGINAL FIND K FUNCTION------------------------            
 %             % find k-value that is least sensitive to changing k-value
 %             k_mi = zeros(1,length(ks));
 %             for i=1:length(ks)
@@ -437,13 +559,15 @@ classdef mi_ksg_core < handle
 %             else
 %                 obj.opt_k = obj.k_values;
 %             end
-
+%--------------------------------------------------------------------------
         
         function r = fractionate_data(obj, k)
             % return cell array of fractionated datasets with x-data,
             % y-data, k-value, and ix
+            
             n = length(obj.x);
             r = cell(sum(1:obj.data_fracs),4);
+            
             for frac_n = 1:obj.data_fracs
                 % determine length of subsample
                 a = randperm(n);
@@ -451,18 +575,19 @@ classdef mi_ksg_core < handle
                 
                 % generate unique key to track each simulation
                 while 1
-                    key = num2str(dec2hex(round(rand(1)*100000)));
-                    if ~any(strcmp(r(:,4), key))
+                    key = num2str(dec2hex(round(rand(1)*100000))); 
+                    if ~any(strcmp(r(:,4), key))                       
                         break;
                     end
                 end
-                    
+                
                 % select subsample of data and assign data and params to data cell array
                 for j=1:frac_n 
                     xT = obj.x(a(l(j)+1:l(j+1)));
                     yT = obj.y(a(l(j)+1:l(j+1)));
                     r(sum(1:(frac_n-1))+j,:) = {xT yT k key};
                 end
+            
             end
         end
         

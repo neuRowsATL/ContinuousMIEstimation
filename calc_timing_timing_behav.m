@@ -217,10 +217,10 @@ classdef calc_timing_timing_behav < mi_analysis
 
                     % Define y data for iCond
                     yGroup = y(xgroupIdx,1:end);
-                    if length(xGroup) ~= length(yGroup)
-                        errorStr = strcat('Error: Length of x and y for group:', num2str(groupCounter), 'do not match.');
-                        error(errorStr);
-                    end
+%                     if length(xGroup) ~= length(yGroup)
+%                         errorStr = strcat('Error: Length of x and y for group:', num2str(groupCounter), 'do not match.');
+%                         error(errorStr);
+%                     end
                     yGroups{groupCounter,1} = yGroup;
                     coeffs{groupCounter,1} = length(xgroupIdx)/length(n1Counts);
                     groupCounter = groupCounter + 1;
