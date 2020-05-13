@@ -123,7 +123,7 @@ classdef mi_analysis < handle
 	            % BC: The obj.findMIs function basically calls run_sims
             end
             
-            mi_ksg_viz.audit_plots(obj);
+            if v > 4; mi_ksg_viz.audit_plots(obj); end
             
 	    % Sets up an MIcore object to calculate the MI values, and pushes the
 	    % data from this object to the MIcore process. 
