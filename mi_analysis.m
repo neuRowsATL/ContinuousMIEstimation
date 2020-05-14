@@ -82,7 +82,7 @@ classdef mi_analysis < handle
         function buildMIs(obj, mi_data)
 
             % Set up empty array for obj.arrMIcore
-            obj.arrMIcore = cell(size(mi_data,1),6);
+            obj.arrMIcore = cell(size(mi_data,1),4);
             
             % Define groups to fill in arrMIcore
             xGroups = mi_data{1};
@@ -97,29 +97,14 @@ classdef mi_analysis < handle
                 x = xGroups{iGroup,1};
                 y = yGroups{iGroup,1};
 
-                if obj.reparam >= 1
-                    if any(rem(x,1) ~= 0) % If continuous
-                        for rep = 1:size(x,2) % Reparameterize x data
-                            x(:,rep) = reparameterize_data(x(:,rep));
-                        end
-                    end
-                    
-                    if obj.reparam >= 2
-                        if any(rem(y,1) ~= 0)
-                            for rep = 1:size(y,2) % Reparameterize y data
-                                y(:,rep) = reparameterize_data(y(:,rep));
-                            end   
-                        end
-                    end
-                end
-                              
+              
                 while 1 % generate random key to keep track of which MI calculations belong together
                     key = num2str(dec2hex(round(rand(1)*100000)));
                     % break the while loop if the key has not already been
                     % assigned.
                     if iGroup == 1
                         break
-                    elseif ~ismember({obj.arrMIcore{1:end,6}}, key)
+                    elseif ~ismember({obj.arrMIcore{1:end,4}}, key)
                         break
                     end
                 end
@@ -132,115 +117,14 @@ classdef mi_analysis < handle
                 
                 if v > 2; disp([newline '--> Group ' num2str(iGroup) ' has ' num2str(max(size(x))) ' data points']); end
                 
-	            obj.arrMIcore(iGroup,:) = {core1 coeffs{iGroup,1} NaN NaN NaN key};
+	            obj.arrMIcore(iGroup,:) = {core1 coeffs{iGroup,1} 0 key};
                 
                 if v > 2; disp([newline '--> arrMIcore assigned']); end
-	            % BC: The obj.calcMIs function basically calls run_sims
+	            % BC: The obj.findMIs function basically calls run_sims
             end
             
-            % Audit plots
-            % NOTE- Move these to functions in mi_ksg_viz eventually. 
-            for iGroup = 1:size(xGroups)
-%                 clear r_2 out_p
-                coreObj = obj.arrMIcore{iGroup,1};
-                
-                if v > 4
-                    % FOR NOW, NO AUDIT PLOTS FOR BEHAVIOR SUBCLASSES
-                    if contains(class(obj), 'behav')
-                        continue
-                    else
-                        
-                        % Check for data type
-                        % Histograms do not depend on data type
-                        % First make histogram with x data
-                        % RC 20191213: We should come back and set specific bin widths here.
-                        % The only issue we may run into is 
-                        x = coreObj.x;
-%                         figure()
-%                         histogram(x)
-%                         hold on
-%                         xlabel('X Value (binned)')
-%                         ylabel('N Cycles')
-%                         title('Histogram for X')
-
-                        % Histogram for y
-                        y = coreObj.y;
-%                         figure()
-%                         histogram(y)
-%                         hold on
-%                         xlabel('Y Value (binned)')
-%                         ylabel('N Cycles')
-%                         title('Histogram for Y')
-
-                        % Also skip audit plots for data where both x and y are multi-dimensional
-                        if all(size(x) > 1) & all(size(y) > 1)
-                            continue
-                        else
-                            % Check for discrete data in both variables
-                            if all(rem(x,1) == 0) & all(rem(y,1) == 0)
-                                % For discrete data, plot a jittered histogram
-                                
-                                % Add noise for joint histogram
-                                x_plot = x + 0.2*rand(size(x));
-                                y_plot = y + 0.2*rand(size(y));
-
-%                                [r_2,out_p] = DistLinearRegression(x,y);
-                                
-                                % Make figure
-                                figure()
-                                hold on
-                                plot(x_plot , y_plot, 'x')
-%                                 plot(x,out_p)
-                                hold on
-                                xlabel('Discrete Value: X')
-                                ylabel('Discrete Value: Y')
-                                title('P(X,Y) Mixed Joint Distribution')
-%                                 title(['P(X,Y) Discrete Joint Distribution: R^2 = ',num2str(r_2)])
-                            elseif all(rem(x,1) == 0) | all(rem(y,1) == 0)
-                                % Add jitter only to the variable that is discrete, which for our data, will always be the second variable.
-                                if all(rem(x,1) == 0)
-                                    x_plot = x + 0.2*rand(size(x));
-                                    x_L = 'Discrete Value: X';
-                                else
-                                    x_plot = x;
-                                    x_L = 'Continuous Value: X';
-                                end
-                                if all(rem(y,1) == 0)
-                                    y_plot = y + 0.2*rand(size(y));
-                                    y_L = 'Discrete Value: Y';
-                                else
-                                    y_plot = y;
-                                    y_L = 'Continuous Value: Y';
-                                end
-                                
-%                                 [r_2,out_p] = DistLinearRegression(x,y);
-                                
-                                % Make figure
-                                figure()
-                                hold on
-                                plot(x_plot, y_plot, 'x')
-%                                 plot(x,out_p)
-                                xlabel(x_L)
-                                ylabel(y_L)
-                                title('P(X,Y) Mixed Joint Distribution')
-%                                 title(['P(X,Y) Mixed Joint Distribution, Mean R^2 = ',num2str(mean(r_2)),', Range R^2 = ',num2str(max(r_2)-min(r_2))])
-                            else
-                                % The assumption is that both distributions are continuous if neither of the above if statements are true.
-
-                                % Make figure
-                                figure()
-                                plot(x,y, 'x')
-                                hold on
-                                xlabel('Continuous Variable: X')
-                                ylabel('Continuous Variable: Y')
-                                title('P(X,Y) Continuous Joint Distribution')
-                            end
-
-                        end
-                    end
-                end
-            end
-                
+            if v > 4; mi_ksg_viz.audit_plots(obj); end
+            
 	    % Sets up an MIcore object to calculate the MI values, and pushes the
 	    % data from this object to the MIcore process. 
         
