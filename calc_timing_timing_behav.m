@@ -107,44 +107,44 @@ classdef calc_timing_timing_behav < mi_analysis
             n1_name  = obj.varNames{1};
             n1 = obj.objData.get_spikes('name', n1_name , 'format', 'timing', 'cycleTimes', obj.objBehav.data.cycleTimes.data, 'timeBase', obj.n_timeBase);
             
-            % Audit Check
-            if sum(sum(~isnan(n1))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
-                error('Error: N Spikes in n1 do not match that expected from objData.varNames{1}.');
-            end
+%             % Audit Check
+%             if sum(sum(~isnan(n1))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%                 error('Error: N Spikes in n1 do not match that expected from objData.varNames{1}.');
+%             end
            
             % Find different subgroups
             n1Counts = obj.objData.get_spikes('name', n1_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
             n1Conds= unique(n1Counts);
             
-            % Audit Check
-            if sum(n1Counts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
-                error('Error: Spike Counts for n1 do not match that expected from objData.varNames{1}.');
-            end
-            if sum(n1Counts) ~=  sum(sum(~isnan(n1)))
-                error('Error: Spike counts for n1 do not matach N Spikes in n1.'); 
-            end
+%             % Audit Check
+%             if sum(n1Counts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%                 error('Error: Spike Counts for n1 do not match that expected from objData.varNames{1}.');
+%             end
+%             if sum(n1Counts) ~=  sum(sum(~isnan(n1)))
+%                 error('Error: Spike counts for n1 do not matach N Spikes in n1.'); 
+%             end
             
 
             % Find spike timings in cycles for neuron 1 
             n2_name  = obj.varNames{2};
             n2 = obj.objData.get_spikes('name', n2_name , 'format', 'timing', 'cycleTimes', obj.objBehav.data.cycleTimes.data, 'timeBase', obj.n_timeBase);
             
-            % Audit Check
-            if sum(sum(~isnan(n2))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
-                error('Error: N Spikes in n2 do not match that expected from objData.varNames{2}.');
-            end
+%             % Audit Check
+%             if sum(sum(~isnan(n2))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%                 error('Error: N Spikes in n2 do not match that expected from objData.varNames{2}.');
+%             end
            
             % Find different subgroups
             n2Counts = obj.objData.get_spikes('name', n2_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
             n2Conds= unique(n2Counts);
             
-            % Audit Check
-            if sum(n2Counts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
-                error('Error: Spike Counts for n1 do not match that expected from objData.varNames{1}.');
-            end
-            if sum(n2Counts) ~=  sum(sum(~isnan(n2)))
-                error('Error: Spike counts for n2 do not matach N Spikes in n2.'); 
-            end
+%             % Audit Check
+%             if sum(n2Counts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%                 error('Error: Spike Counts for n1 do not match that expected from objData.varNames{1}.');
+%             end
+%             if sum(n2Counts) ~=  sum(sum(~isnan(n2)))
+%                 error('Error: Spike counts for n2 do not matach N Spikes in n2.'); 
+%             end
 
 
             % Get the behavioral data for analysis

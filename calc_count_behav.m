@@ -96,10 +96,10 @@ classdef calc_count_behav < mi_analysis
             x_name = obj.varNames{1};
             x = obj.objData.get_spikes('name', x_name, 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data);
 
-            % Audit Check
-            if sum(x) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
-                error('Error: Spike Counts for x do not match that expected from objData.varNames{1}.');
-            end
+%             % Audit Check
+%             if sum(x) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%                 error('Error: Spike Counts for x do not match that expected from objData.varNames{1}.');
+%             end
 
             % Set the groups that will serve as the x variable.
             xGroups{1,1} = x;
