@@ -93,19 +93,19 @@ classdef calc_count_count_behav < mi_analysis
             n1 = obj.objData.get_spikes('name', n1_name, 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data);
 
 
-            % Audit Check: n1
-            if sum(n1) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
-                error('Error: Spike Counts for n1 do not match that expected from objData.varNames{1}.');
-            end
+%             % Audit Check: n1
+%             if sum(n1) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%                 error('Error: Spike Counts for n1 do not match that expected from objData.varNames{1}.');
+%             end
             
             % Next, find the total spike count for  neuron 2.
             n2_name = obj.varNames{2};
             n2 = obj.objData.get_spikes('name', n2_name, 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data);
-
-            % Audit Check: n1
-            if sum(n2) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
-                error('Error: Spike Counts for n2 do not match that expected from objData.varNames{2}.');
-            end
+% 
+%             % Audit Check: n1
+%             if sum(n2) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%                 error('Error: Spike Counts for n2 do not match that expected from objData.varNames{2}.');
+%             end
 
             % Set up x data
             xGroups{1,1} = [n1 n2];
