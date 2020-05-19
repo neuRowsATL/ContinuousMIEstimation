@@ -103,19 +103,19 @@ classdef calc_timing_behav < mi_analysis
             x_name  = obj.varNames{1};
             x = obj.objData.get_spikes('name', x_name , 'format', 'timing', 'cycleTimes', obj.objBehav.data.cycleTimes.data, 'timeBase', obj.n_timeBase);
             
-            % Audit Check
-            if sum(sum(~isnan(x))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
-                error('Error: N Spikes in x do not match that expected from objData.varNames{1}.');
-            end
-           
+%             % Audit Check
+%             if sum(sum(~isnan(x))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%                 error('Error: N Spikes in x do not match that expected from objData.varNames{1}.');
+%             end
+%            
             % Find different subgroups
             xCounts = obj.objData.get_spikes('name', x_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
             xConds= unique(xCounts);
             
-            % Audit Check
-            if sum(xCounts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
-                error('Error: Spike Counts for x do not match that expected from objData.varNames{1}.');
-            end
+%             % Audit Check
+%             if sum(xCounts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%                 error('Error: Spike Counts for x do not match that expected from objData.varNames{1}.');
+%             end
             if sum(xCounts) ~=  sum(sum(~isnan(x)))
                 error('Error: Spike counts for x do not matach N Spikes in x.'); 
             end
