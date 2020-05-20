@@ -110,7 +110,7 @@ classdef mi_ksg_core < handle
                         % RC 20200406: We will need to decide if we want to
                         % set the seed prior to running estimates and where
                         % we want to do that. 
-                        %rng(0);
+                        rng(0);
                         for i = 1:length(obj.k_values)
                             % create datasets for data fractions with unique key
                             % to track each simulation
