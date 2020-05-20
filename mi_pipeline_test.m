@@ -38,17 +38,17 @@ switch computer_name{1}
         fnames = {fnames.name};
         fpath = '/Users/Rachel/ContinuousMIEstimation/TestData/bl21lb21_trial1_ch1_ch16';
         
-%     case ['KT',newline]
-%         % Kyle_laptop:
-%         fnames = dir('C:\Users\Kyle\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\bl21lb21_171218_140434*.rhd');
-%         fnames = {fnames.name};
-%         fpath = 'C:\Users\Kyle\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';%\bl21lb21_171218_140434';
+    case ['KT',newline]
+        % Kyle_laptop:
+        fnames = dir('C:\Users\Kyle\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\bl21lb21_171218_140434*.rhd');
+        fnames = {fnames.name};
+        fpath = 'C:\Users\Kyle\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';%\bl21lb21_171218_140434';
     
-%     case ['bio-ssober-38p',newline]
-%         % Kyle_lab:
-%         fnames = dir('C:\Users\kthom88\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\bl21lb21_171218_140434.rhd');
-%         fnames = {fnames.name};
-%         fpath = 'C:\Users\kthom88\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
+    case ['bio-ssober-22p',newline]
+        % Kyle_lab:
+        fnames = dir('C:\Users\kthom88\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16\bl21lb21_171218_140434.rhd');
+        fnames = {fnames.name};
+        fpath = 'C:\Users\kthom88\OneDrive - Georgia Institute of Technology\Year 1 PhD\Lab - Sober\ContinuousMIEstimation\TestData\bl21lb21_trial1_ch1_ch16';
            
     otherwise
         error('Unable to identify computer');
@@ -89,7 +89,6 @@ str_unit3 = 'TestData/20200127_bl21lb21_spikedata.mat/spikedata.unit3';
 cycle_times = [spikedata.pressure.Ontime(1:end-1,1) spikedata.pressure.Ontime(2:end,1)]; % Needs to be N x 2 matrix of [on off] x N
 
 str_cycles = 'TestData/20200127_bl21lb21_spikedata.mat/spikedata.pressure.Ontime';
-%Understood
 %%
 try
     disp([newline newline]);
@@ -117,7 +116,6 @@ catch e
     global_errs = show_errors(e, global_errs, 'Intantiating mi_data with ID only');
     disp([newline 'ERROR: Unable to instantiate mi_data with ID only']);
 end
-%Understood
 %%
 try
     disp([newline newline]);
@@ -182,7 +180,6 @@ catch e
     error('FATAL ERROR: Unable to construct mi_data objects');
 end
 
-%Understood
 %%
 try
     clear d
@@ -317,7 +314,6 @@ end
     % PRINT RESULTS FROM CHECKS    
     disp(success);
 
-%Understood    
 %%
 
 % In this script, we are just checking that the behavior class is
@@ -383,7 +379,6 @@ catch e
     error('FATAL ERROR: Unable to construct mi_data_behavior objects');
 end
 
-%Understood
 %% CHECK mi_data_pressure: phase
 
 try
@@ -908,11 +903,7 @@ try
     a.buildMIs();
     
     % Run calcMIs()
-<<<<<<< HEAD
-%     a.calcMIs();
-=======
     a.calcMIs();
->>>>>>> d90c89f3a9ba9777fb91543b34a53fef6f8c35b6
     
     % Check for unique subgroup IDs:
     success = [success newline 'Assigned: Unique subgroup IDs'];
@@ -940,7 +931,6 @@ catch e
     error('FATAL ERROR: Unable to construct mi_analysis object');
 end
 
-<<<<<<< HEAD
 %% Visualize MI ~Kyle Practice
 close all
 for subgroups = 1:size(a.arrMIcore,1)
@@ -950,8 +940,6 @@ for subgroups = 1:size(a.arrMIcore,1)
     sgtitle(['Raw: Subgroup = ',num2str(subgroups)])
 end
 
-=======
->>>>>>> d90c89f3a9ba9777fb91543b34a53fef6f8c35b6
 %%  mi_analysis: calc_timing_count
 try
     clear d
@@ -1006,13 +994,9 @@ try
     % Run buildMIs()
     a.buildMIs();
     
-<<<<<<< HEAD
     % Run calcMIs()
-%     a.calcMIs();
+    a.calcMIs();
     
-=======
-
->>>>>>> d90c89f3a9ba9777fb91543b34a53fef6f8c35b6
     % Check for unique subgroup IDs:
     success = [success newline 'Assigned: Unique subgroup IDs'];
     compVal = [];
@@ -1057,11 +1041,8 @@ try
     
     
     % Construct mi_analysis object
-<<<<<<< HEAD
-    a = calc_timing_timing(d, b, {'unit1', 'unit2'}, 'verbose', verbose_level,'reparam',0);
-=======
+
     a = calc_timing_timing(d, b, {'unit1', 'unit2'}, 'verbose', verbose_level);
->>>>>>> d90c89f3a9ba9777fb91543b34a53fef6f8c35b6
     
     
     % CHECK OBJECT FOR INSTANTIATION CONSISTENCY

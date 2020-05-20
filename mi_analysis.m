@@ -183,11 +183,6 @@ classdef mi_analysis < handle
                                 % Add noise for joint histogram
                                 x_plot = x + 0.2*rand(size(x));
                                 y_plot = y + 0.2*rand(size(y));
-
-<<<<<<< HEAD
-=======
-%                                [r_2,out_p] = DistLinearRegression(x,y);
->>>>>>> fb3aeb74e50c56db9422826998a393fde9b088b9
                                 
                                 % Make figure
 %                                 figure()
