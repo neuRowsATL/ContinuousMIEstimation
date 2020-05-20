@@ -400,166 +400,153 @@ classdef mi_ksg_core < handle
             
             k_vals = [obj.mi_data{:,4}];
             ks = unique(k_vals);
-            k_goodDataFracs = []; 
+            weighted_k = zeros(size(ks)); 
             for ik = 1:length(ks)
-                dataFracs = data(find(data(:,4) == ks(ik)),3);
+                % Find data fraction stability matrix for each k
+                dataFrac_stab = get_stabMat_dataFrac(obj,ks(ik));
                 
-                dataFrac_data = data(find(data(:,4) == ks(ik)), 1:end);
-                
-                matching_set = zeros(length(dataFracs), length(dataFracs));
-                for iFrac = 1:length(dataFracs)
-                    % Find MI and std for dataFrac of interest
-                    iMI = dataFrac_data(iFrac, 1);
-                    ivar = dataFrac_data(iFrac, 2);
-                    istd = ivar ^ 0.5;
-
-                    % Find the MI and stds for N dataFracs larger than dataFrac of interest
-                    MIs = dataFrac_data(iFrac + 1 :end,1);
-                    vars = dataFrac_data(iFrac + 1:end,2);
-                    stds = vars.^0.5;                        
-
-                    % We have already compared the MI estimate with the previous data fracs, so set automatically to true.
-                    % Note- if they are really false, this will show up in one of the previous iterations of the for loop.
-                    known_matches =  true(1, iFrac);
-
-                    % Compare the MI estimate for this dataFrac with all the larger N dataFracs (all smaller data sizes). Return true if this MI is within error of the other MIs. 
-                    new_matches = iMI >= MIs - stds & iMI <= MIs + stds;
-                    
-                    match_dataFracs = [known_matches , new_matches'];
-
-                    % Combine boolean values into a matrix of all the
-                    % dataFracs compared to each other. 
-                    matching_set(iFrac, 1:end)  = match_dataFracs;
-                    
-
-                end
-                % Store matching set in case we don't find a k-value that
-                % satisfies the conditions
-                k_matchingSets{1,ik} = matching_set;
-
-                
-                % Find the data fracs whose estimates that are in accord with all data sizes larger than it. 
-                good_DataFracs = all(matching_set,1);
-
-                % Compile the good data fracs into a matrix by k-value.
-                k_goodDataFracs = [k_goodDataFracs; good_DataFracs];
+                % Get stability metric value for each k
+                weighted_k(ik) = test_dataFrac_stab(obj, dataFrac_stab);               
             end                      
 
+            % Identify k values that satisfy the minimum criteria for
+            % stability
+            notBad_Ks = find(weighted_k >= 1);
             
-            % Identify which k-values have stable estimates for at least the first 4 data fracs.
-            test_fracs = k_goodDataFracs(:,1:4);
-            kVals_okay = all(test_fracs, 2);
 
             
-                % Add a weight based on how many other estimates are in accord with the first data fracs.
-                weighted_k = kVals_okay + .1.*sum(k_goodDataFracs(:,2:end),2);
+            if all(weighted_k == 0)
+                keyboard
+            end
 
-                notBad_Ks = find(weighted_k >= 1);
-                if all(weighted_k == 0)
-                    keyboard
-                end
-
-                % Find a tentative list of k values to use.
-                % Note- this would be a place to change how the weighted k values affects the choice of k. We could also consider propagating the list of weights down farther. 
-                
-                % Check for consistency across ks for k values in the list.
-                final_MIs = zeros(size(kVals_okay));
-                final_errs = zeros(size(kVals_okay));
-
-                for ik = 1:length(ks)
-                    % Run getMIs to return the raw estimated values for all possible k-values
-                    k = ks(ik);
-                    r = get_mi(obj, -1, 'k', k);
-                    final_MIs(ik,1) = r.mi;
-                    final_stds(ik,1) = r.err;
-                end
-
-                % Similarly to how we checked data fracs, now we will check all k vals against each other
-                matching_kSet = zeros(length(notBad_Ks), length(notBad_Ks));
-                
-                for ik = 1:length(notBad_Ks)
-
-                    k_idx = find(ks == notBad_Ks(ik));
-                    
-                    mi_k = final_MIs(k_idx, 1);
-                    std_k = final_stds(k_idx, 1);
-
-                    % Find the remaining k vals to compare to
-                    MIs = final_MIs(notBad_Ks(ik+1:end), 1);
-                    stds = final_stds(notBad_Ks(ik+1:end), 1);
-
-                    % We know that the estimates for this k val agree with themselves.
-                    % Compare th eMI estimates for this k value with all the next consecutive k values. Previous k values have already been compared
-                    known_matches = true(1,ik);
-
-                    new_matches = mi_k >= MIs-stds & mi_k <= MIs + stds;
-
-
-                    match_ks = [known_matches ,  new_matches'];
-
-                    matching_kSet(ik, 1:end) = match_ks;
-
-                    
-                end
-
-                good_ks = all(matching_kSet, 1);
-
-                if all(good_ks)
-                    weighted_k(notBad_Ks, 1) = weighted_k(notBad_Ks,1) + 1;
-                    obj.opt_k = {final_MIs, final_stds, weighted_k, ['k < 1: Bad; 1 <= k < 2: Not Bad (Ks have data fraction stability, but do not match each othebr, see matrix); k > 2: Good! Ks in this range match and have consistent ' ...
-                                        'data fractions!'], matching_kSet};
-                else
-                    obj.opt_k = {final_MIs, final_stds, weighted_k, ['k < 1: Bad; 1 <= k < 2: Not Bad (Ks have data fraction stability, but do not match each othebr, see matrix); k >= 2: Good! Ks in this range match and have consistent ' ...
-                                        'datafractions!'], matching_kSet};
-                end
-
+            % Find matrix to describe stability across good k values
+            if all(weighted_k < 1)
+                k_stab = [];
+            else
+                k_stab = get_stabMat_kvals(obj, ks(notBad_Ks));
+            end
+            % Get stability metric value for k stability
+            if all(weighted_k < 1)
+                k_stability_weights = zeros(size(ks));
+            else
+                k_stability_weights = test_k_stab(obj, ks, notBad_Ks, k_stab);
+            end
+            % Get new weights for ks according to k stability matrix
+            weighted_k = weighted_k + k_stability_weights;
+            
+            % Get MIs and STDs to return to core objects
+            final_MIs = [];
+            final_stds = [];
+            for ik = 1:length(ks)
+                k = ks(ik);
+                r = get_mi(obj, -1, 'k', k);
+                final_MIs(ik) = r.mi;
+                final_stds(ik) = r.err;
+            end
+            
+            % Return all values to core object
+            obj.opt_k = {final_MIs, final_stds, weighted_k, ['k < 1: Bad; 1 <= k < 2: Not Bad (Ks have data fraction stability, but do not match each othebr, see matrix); k > 2: Good! Ks in this range match and have consistent ' ...
+                                    'data fractions!'], k_stab};
         end
+        
+        function r = get_stabMat_dataFrac(obj,k)
             
+                data = cell2mat(obj.mi_data);
+                
+                dataFracs = data(find(data(:,4) == k),3);
+                
+                dataFrac_data = data(find(data(:,4) == k), 1:end);
+                
+                stability_matrix = zeros(length(dataFracs), length(dataFracs));
+            for iFrac_row = 1:length(dataFracs)
+                % Find MI dataFrac row number
+                iMI = dataFrac_data(iFrac_row, 1);
+                
+                % Iterate through each column for this row
+                for jFrac_column = 1:length(dataFracs)
+                    jMI = dataFrac_data(jFrac_column,1);
+                    jvar = dataFrac_data(jFrac_column, 2);
+                    jstd = jvar ^ 0.5; 
+                    if jFrac_column == 1
+                        % Fill in with zero automatically
+                        stability_matrix(iFrac_row, jFrac_column) = 0;
+                    else                    
+                        % Test that MI is within 1 stdev of others
+                        stability_matrix(iFrac_row, jFrac_column) = ((iMI - jMI)/jstd)^2;
+                    end
+                end                
+            end
+            % Output stability matrix
+            r = stability_matrix;                     
+        end
+        
+        function r = test_dataFrac_stab(obj, dataFrac_stab_matrix)
+            % For now we are keeping the 4 stable data frac minimum and adding to the weight based on the number of consistent data fracs
+            % This function returns a data fraction stability weight for
+            % a single k value
+            
+            % First, assess stability of each data frac comparison
+            stability_boolean = dataFrac_stab_matrix < 1;
+            
+            % Determine if the frist four data fracs are stable
+            if all(stability_boolean(1:4,1:4))
+                stability_weight = 1;
+            else
+                stability_weight = 0;
+            end
+            
+            % Add to the weight based on the total number of stable data
+            % fracs
+            n_stableFracs = sum(sum(stability_boolean));
+            
+            % Find total number of comparisons
+            nFracPairs = numel(dataFrac_stab_matrix);
+            
+            % Add stability number to weight
+            stability_weight = stability_weight + n_stableFracs/nFracPairs;
+            
+            % Return stability weight
+            r = stability_weight;
+        end
+        
+        function r = get_stabMat_kvals(obj, ks)
 
-% -------------------------ORIGINAL FIND K FUNCTION------------------------            
-%             % find k-value that is least sensitive to changing k-value
-%             k_mi = zeros(1,length(ks));
-%             for i=1:length(ks)
-%                 k_ix = find([obj.mi_data{:,4}] == ks(i) & [obj.mi_data{:,3}] == 1);
-%                 k_mi(i) = obj.mi_data{k_ix,1};
-%             end
-%             if length(ks) > 1
-%                 for i=1:length(ks)
-%                     if i == 1
-%                         weighted_dataFrac(i,1) = (k_mi(i+1)-k_mi(i))/k_mi(i);
-%                     elseif i == length(ks)
-%                         weighted_dataFrac(i,1) = (k_mi(i) - k_mi(i-1))/k_mi(i);
-%                     else
-%                         weighted_dataFrac(i,1) = mean((k_mi([i-1 i+1])-k_mi(i))/k_mi(i));
-%                     end
-%                 end
-% 
-%                 % find k-value with stable data fractions
-% 
-%                 % first column
-%                 % second column: percent difference from data frac = 1
-%                 % third column: std of percent difference from data frac = 1
-%                 % fourth column: std of data frac std
-% 
-%                 for i=1:length(ks)
-%                     k_ixs = find(k_vals == ks(i));
-%                     mi_vals = [obj.mi_data{k_ixs,1}];
-%                     perc_mi_vals = (mi_vals - mi_vals(1))/mi_vals(1); % percent difference from 1 data fraction
-% 
-%                     weighted_dataFrac(i,2) = sign(mean(perc_mi_vals(2:end)))*mean(perc_mi_vals(2:end).^2)^0.5;
-%                     weighted_dataFrac(i,3) = std(perc_mi_vals(2:end));
-% 
-%                     weighted_dataFrac(i,4) = std([obj.mi_data{k_ixs,2}]);
-%                 end
-% 
-%                 % provide some quantification of confidence?
-% 
-%                 [~,ix] = min(sum(weighted_dataFrac.^2,2));
-%                 obj.opt_k = ks(ix);
-%             else
-%                 obj.opt_k = obj.k_values;
-%             end
-%--------------------------------------------------------------------------
+            % Fill in stability matrix for all data fraction stable k
+            % values
+            for ik_row = 1:length(ks)
+                % Run getMIs to return the raw estimated values for all possible k-values
+                k = ks(ik_row);
+                r = get_mi(obj, -1, 'k', k);
+                ifinal_MI = r.mi;
+                for jk_column = 1:length(ks)
+                    k = ks(ik_row);
+                    r = get_mi(obj, -1, 'k', k);
+                    jfinal_MI = r.mi;
+                    jfinal_std = r.err;
+                    
+                    % Input values into matrix
+                    k_stability_matrix(ik_row, jk_column) = ((ifinal_MI - jfinal_MI)/jfinal_std)^2;
+                end
+            end
+            r = k_stability_matrix;
+        end
+        
+        function r = test_k_stab(obj, ks, stable_Ks, k_stability_matrix)
+            
+            % First assess stability of each k value comparison
+            stability_boolean = k_stability_matrix < 1;
+            
+            % Make k stability weight placeholder vector
+            k_stability_weights = zeros(size(ks));
+            
+            % Determine whether all ks are within error of each other
+            if all(stability_boolean)
+                k_stability_weights(stable_Ks) = 1;
+            end
+            
+            % Return k stability weight vector
+            r = k_stability_weights;
+        end
         
         function r = fractionate_data(obj, k)
             % return cell array of fractionated datasets with x-data,

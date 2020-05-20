@@ -54,6 +54,7 @@ classdef calc_count_count < mi_analysis
             x_name  = obj.varNames{1};
             x = obj.objData.get_spikes('name', x_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
             
+<<<<<<< HEAD
             % Audit Check
             if sum(x) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data))...
                     - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) ...
@@ -61,6 +62,13 @@ classdef calc_count_count < mi_analysis
                 keyboard
                 error('Error: Spike Counts for x do not match that expected from objData.varNames{1}.');
             end
+=======
+%             % Audit Check
+%             if sum(x) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%                 keyboard
+%                 error('Error: Spike Counts for x do not match that expected from objData.varNames{1}.');
+%             end
+>>>>>>> 012cb64efdd5ed3fe7d4fefe2e47a1e7139205f7
 
             % Set groups that will serve as x variable
             % RC20191210: Nemenman code automatically adds noise. Removed
@@ -71,11 +79,11 @@ classdef calc_count_count < mi_analysis
             y_name = obj.varNames{2};
             y = obj.objData.get_spikes('name', y_name, 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
 
-            % Audit Check
-            if sum(y) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
-                keyboard
-                error('Error: Spike Counts for y do not match that expected from objData.varNames{2}.');
-            end
+%             % Audit Check
+%             if sum(y) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%                 keyboard
+%                 error('Error: Spike Counts for y do not match that expected from objData.varNames{2}.');
+%             end
             
             
             % Set groups that will serve as y variable
