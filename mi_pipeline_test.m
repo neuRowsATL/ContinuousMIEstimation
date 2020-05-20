@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 %%
 % This script will systematically test the mutual information analysis
 % pipeline in order to identify errors and bugs.
@@ -1664,7 +1664,7 @@ function global_errs = show_errors(e, global_errs, msg)
     disp(['----- ----- ----- ----- -----' newline]);
     diary off
 end
-=======
+
 %%
 % This script will systematically test the mutual information analysis
 % pipeline in order to identify errors and bugs.
@@ -3323,4 +3323,3 @@ function global_errs = show_errors(e, global_errs, msg)
     disp(['----- ----- ----- ----- -----' newline]);
     diary off
 end
->>>>>>> 012cb64efdd5ed3fe7d4fefe2e47a1e7139205f7

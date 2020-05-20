@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 classdef mi_analysis < handle
     %  MI_KSG_data_analysis is a parent class used to set up a separate object for each pair of variables to feed into the MI calculations
     % 
@@ -281,7 +281,7 @@ classdef mi_analysis < handle
         
     end
 end
-=======
+
 classdef mi_analysis < handle
     %  MI_KSG_data_analysis is a parent class used to set up a separate object for each pair of variables to feed into the MI calculations
     % 
@@ -456,4 +456,3 @@ classdef mi_analysis < handle
         
     end
 end
->>>>>>> 012cb64efdd5ed3fe7d4fefe2e47a1e7139205f7
