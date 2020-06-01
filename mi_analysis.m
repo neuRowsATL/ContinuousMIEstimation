@@ -94,7 +94,7 @@ classdef mi_analysis < handle
             if v > 1; disp([newline 'Assigning ID to each subgroup...']); end
             
             for iGroup = 1:size(xGroups,1)
-                x = xGroups{iGroup,1};
+                x = xGroups{iGroup,1};                                                                                                                                                                                                                                    
                 y = yGroups{iGroup,1};
 
               
