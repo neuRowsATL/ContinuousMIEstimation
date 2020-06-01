@@ -110,7 +110,7 @@ classdef mi_ksg_core < handle
                         % RC 20200406: We will need to decide if we want to
                         % set the seed prior to running estimates and where
                         % we want to do that. 
-                        %rng(0);
+                        rng(0);
                         for i = 1:length(obj.k_values)
                             % create datasets for data fractions with unique key
                             % to track each simulation
@@ -276,14 +276,22 @@ classdef mi_ksg_core < handle
                        best_kIdx = min(min_errIdx);
                        MI = MIs(best_kIdx);
                        err = errs(best_kIdx);
+                       
+                       k_vals = [obj.mi_data{:,4}];
+                       ks = unique(k_vals);
+                       if ks(best_kIdx) == 1 %& MI - err >= 0
+                           warning('Warning: K values are stable and consistent, but k = 1 was selected. Audit recommended')
+                       end
                    end     
 
                end
                
                % Output k value that was selected
+               % 
                k_vals = [obj.mi_data{:,4}];
                ks = unique(k_vals);
                r.k = ks(best_kIdx);
+               
                
                % Sanity check that our MI value matches what it would be if
                % we had inputted the optimized k value
@@ -413,26 +421,34 @@ classdef mi_ksg_core < handle
             % stability
             notBad_Ks = find(weighted_k >= 1);
             
-
             
             if all(weighted_k == 0)
                 keyboard
             end
 
-            % Find matrix to describe stability across good k values
-            if all(weighted_k < 1)
+            % Only check for stability across ks if there are more than 1
+            % stable k values. Otherwise, audit is necessary
+            if length(notBad_Ks) > 1
+
+                % Find matrix to describe stability across good k values
+                if all(weighted_k < 1)
+                    k_stab = [];
+                else
+                    k_stab = get_stabMat_kvals(obj, ks(notBad_Ks));
+                end
+                % Get stability metric value for k stability
+                if all(weighted_k < 1)
+                    k_stability_weights = zeros(size(ks));
+                else
+                    k_stability_weights = test_k_stab(obj, ks, notBad_Ks, k_stab);
+                end
+                % Get new weights for ks according to k stability matrix
+                weighted_k = weighted_k + k_stability_weights;
+                
+            else
                 k_stab = [];
-            else
-                k_stab = get_stabMat_kvals(obj, ks(notBad_Ks));
+                
             end
-            % Get stability metric value for k stability
-            if all(weighted_k < 1)
-                k_stability_weights = zeros(size(ks));
-            else
-                k_stability_weights = test_k_stab(obj, ks, notBad_Ks, k_stab);
-            end
-            % Get new weights for ks according to k stability matrix
-            weighted_k = weighted_k + k_stability_weights;
             
             % Get MIs and STDs to return to core objects
             final_MIs = [];
@@ -485,8 +501,11 @@ classdef mi_ksg_core < handle
             % This function returns a data fraction stability weight for
             % a single k value
             
+            % Focus only on the upper diagonal to compare forwards only
+            stab_mat = triu(dataFrac_stab_matrix);
+            
             % First, assess stability of each data frac comparison
-            stability_boolean = dataFrac_stab_matrix < 1;
+            stability_boolean = stab_mat < 1;
             
             % Determine if the frist four data fracs are stable
             if all(stability_boolean(1:4,1:4))
@@ -515,12 +534,12 @@ classdef mi_ksg_core < handle
             % values
             for ik_row = 1:length(ks)
                 % Run getMIs to return the raw estimated values for all possible k-values
-                k = ks(ik_row);
-                r = get_mi(obj, -1, 'k', k);
+                ik = ks(ik_row);
+                r = get_mi(obj, -1, 'k', ik);
                 ifinal_MI = r.mi;
                 for jk_column = 1:length(ks)
-                    k = ks(ik_row);
-                    r = get_mi(obj, -1, 'k', k);
+                    jk = ks(jk_column);
+                    r = get_mi(obj, -1, 'k', jk);
                     jfinal_MI = r.mi;
                     jfinal_std = r.err;
                     
@@ -533,8 +552,11 @@ classdef mi_ksg_core < handle
         
         function r = test_k_stab(obj, ks, stable_Ks, k_stability_matrix)
             
+            % Focus only on the upper diagonal to compare forwards only
+            stab_mat = triu(k_stability_matrix);
+            
             % First assess stability of each k value comparison
-            stability_boolean = k_stability_matrix < 1;
+            stability_boolean = stab_mat < 1;
             
             % Make k stability weight placeholder vector
             k_stability_weights = zeros(size(ks));
@@ -542,6 +564,24 @@ classdef mi_ksg_core < handle
             % Determine whether all ks are within error of each other
             if all(stability_boolean)
                 k_stability_weights(stable_Ks) = 1;
+            else
+                % If all ks are not within error of each other, check if
+                % they are within error of zero
+                final_MIs = zeros(size(stable_Ks));
+                final_stds = zeros(size(stable_Ks));
+                for ik = 1:length(stable_Ks)
+                    % Run getMIs to return the raw estimated values for all possible k-values
+                    k = ks(ik);
+                    r = get_mi(obj, -1, 'k', k);
+                    ifinal_MI = r.mi;
+                    final_MIs(ik) = ifinal_MI;
+                    ifinal_std = r.err;
+                    final_stds(ik) = ifinal_std;
+                end
+                
+                if all(final_MIs - final_stds <= 0)
+                    k_stability_weights(stable_Ks) = 1;
+                end
             end
             
             % Return k stability weight vector
