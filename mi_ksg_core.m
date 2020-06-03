@@ -22,6 +22,8 @@ classdef mi_ksg_core < handle
                % Specify whether to re-run all analysis or to just run analysis for k-values that have not been previously included. 
         
         sim_obj % sim_manager object
+        
+        set_seed = false % Can manually set to true for troubleshooting if want. 
     end
     
     methods
@@ -110,7 +112,9 @@ classdef mi_ksg_core < handle
                         % RC 20200406: We will need to decide if we want to
                         % set the seed prior to running estimates and where
                         % we want to do that. 
-                        rng(0);
+                        if obj.set_seed
+                            rng(0);
+                        end
                         for i = 1:length(obj.k_values)
                             % create datasets for data fractions with unique key
                             % to track each simulation
