@@ -23,6 +23,8 @@ classdef mi_analysis < handle
         
         reparam %Do you reparameterize
         
+        k_audited = 'No' % Have the k-values been manually audited? Automatically set to yes once auditing function is run.
+        
     end
 
     methods
@@ -166,8 +168,56 @@ classdef mi_analysis < handle
         
         function r = returnMIs(obj)
             % NOTE WE NEED TO EDIT THIS AS WE MAKE DESIGN DECISIONS!!
-            r.mi = nansum(cell2mat(obj.arrMIcore(:,4)).*cell2mat(obj.arrMIcore(:,2)));
+            
+            % Set all negative MI values to zero
+            MIs = [];
+            for iSubgroup = 1:size(obj.arrMIcore,1)
+                MI = obj.arrMIcore{iSubgroup,4};
+                if MI < 0
+                    MI = 0;
+                end
+                MIs = [MIs; MI];
+            end
+            
+            % Find weighted sum of MIs
+            r.mi = nansum(MIs.*cell2mat(obj.arrMIcore(:,2)));
+            
+            % TEMP: find weighted sum of error
             r.err = nansum(cell2mat(obj.arrMIcore(:,5)).*cell2mat(obj.arrMIcore(:,2)));
+        end
+        
+        function auditKs(obj)
+            % Go through each subgroup and determine if a k value was
+            % automatically selected
+            for iSubgroup = 1:size(obj.arrMIcore,1)
+                k_val = obj.arrMIcore{iSubgroup,3};
+                
+                if ischar(k_val)
+                    input_str = strcat('What K value is best for subgroup ', num2str(iSubgroup), ' (if unstable, input NONE?');
+                    new_k_val = input(input_str);
+                    
+                    % Check for unstable data fractions
+                    if ischar(new_k_val)
+                        % Return NaN for k val, MI, and err
+                        obj.arrMIcore{iSubgroup,3} = NaN;
+                        obj.arrMIcore{iSubgroup,4} = NaN;
+                        obj.arrMIcore{iSubgroup,5} = NaN;
+                    else
+                        % Modify k value entry in core object
+                        obj.arrMIcore{iSubgroup,3} = new_k_val;
+
+                        % Recalculate MI and Error for k-value
+                        core = obj.arrMIcore{iSubgroup,1};
+                        r = core.get_mi(-1, 'k',new_k_val);
+
+                        % Reset MI and error values in arrMIcore
+                        obj.arrMIcore{iSubgroup,4} = r.mi;
+                        obj.arrMIcore{iSubgroup,5} = r.err;
+                    end
+                end
+                
+            end
+            obj.k_audited = 'Yes';
         end
         
     end
