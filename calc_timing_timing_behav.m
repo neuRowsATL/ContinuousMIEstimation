@@ -232,6 +232,9 @@ classdef calc_timing_timing_behav < mi_analysis
             if ~ismembertol((sum(cell2mat(coeffs)) + sum(omittedCoeff)), 1, 1e-12); 
                 error('Error: Sum of coeffs and omitted data ratios does not equal 1'); 
             end
+            
+            % Audit: Is there still data left to analyze?
+            if ismembertol(sum(omitCoeff),1, 1e-12); error('Error: All subgroups were omitted. Not enough data');end
 
             buildMIs@mi_analysis(obj, {xGroups yGroups coeffs}); 
             
