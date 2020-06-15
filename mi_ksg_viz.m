@@ -129,11 +129,36 @@ classdef mi_ksg_viz < handle
                             
                             % Make figure
                             figure()
-                            plot(x_plot , y_plot, 'x')
                             hold on
                             xlabel('Discrete Value: X')
                             ylabel('Discrete Value: Y')
                             title('P(X,Y) Discrete Joint Distribution')
+                            
+                            % Make density map 
+                            pts = linspace(-1, 20, 100);
+                            [X, Y] = meshgrid(pts);
+                            D = pdist2([x_plot(:) y_plot(:)], [X(:) Y(:)], 'euclidean', 'Smallest', 1);
+
+                            % Plot scattered data:
+                            subplot(1, 2, 1);
+                            scatter(x_plot, y_plot, 'x');
+                            axis equal;
+                            set(gca, 'XLim', pts([1 end]), 'YLim', pts([1 end]));
+                            xlabel('Discrete Value: X')
+                            ylabel('Discrete Value: Y')
+                            title('P(X,Y) Discrete Joint Distribution')
+                            
+                            % Plot heatmap:
+                            subplot(1, 2, 2);
+                            imagesc(pts, pts, reshape(D, size(X)));
+                            axis equal;
+                            set(gca, 'XLim', pts([1 end]), 'YLim', pts([1 end]), 'YDir', 'normal');
+                            colormap(flip(parula(), 1));
+                            xlabel('Discrete Value: X')
+                            ylabel('Discrete Value: Y')
+                            title('P(X,Y) Density Map')
+                            
+                            
                         elseif all(rem(x,1) == 0) | all(rem(y,1) == 0)
                             % Add jitter only to the variable that is discrete, which for our data, will always be the second variable.
                             if all(rem(x,1) == 0)
