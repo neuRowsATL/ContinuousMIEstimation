@@ -127,20 +127,13 @@ classdef mi_ksg_viz < handle
                             x_plot = x + 0.2*rand(size(x));
                             y_plot = y + 0.2*rand(size(y));
                             
-                            % Make figure
-                            figure()
-                            hold on
-                            xlabel('Discrete Value: X')
-                            ylabel('Discrete Value: Y')
-                            title('P(X,Y) Discrete Joint Distribution')
-                            
                             % Make density map 
-                            pts = linspace(-1, 20, 100);
-                            [X, Y] = meshgrid(pts);
-                            D = pdist2([x_plot(:) y_plot(:)], [X(:) Y(:)], 'euclidean', 'Smallest', 1);
-
+                            pts = linspace(0, max(max(x),max(y)),max(max(x),max(y)));
+                            N = histcounts2(y(:), x(:), pts, pts);
+                            N = log(N);
+                            
                             % Plot scattered data:
-                            subplot(1, 2, 1);
+                            figure()
                             scatter(x_plot, y_plot, 'x');
                             axis equal;
                             set(gca, 'XLim', pts([1 end]), 'YLim', pts([1 end]));
@@ -149,14 +142,15 @@ classdef mi_ksg_viz < handle
                             title('P(X,Y) Discrete Joint Distribution')
                             
                             % Plot heatmap:
-                            subplot(1, 2, 2);
-                            imagesc(pts, pts, reshape(D, size(X)));
+                            figure()
+                            imagesc(pts, pts, N);
                             axis equal;
                             set(gca, 'XLim', pts([1 end]), 'YLim', pts([1 end]), 'YDir', 'normal');
-                            colormap(flip(parula(), 1));
                             xlabel('Discrete Value: X')
                             ylabel('Discrete Value: Y')
                             title('P(X,Y) Density Map')
+                            cBar = colorbar('Direction', 'normal', 'Ticks', 1:max(N, [], 'all'));
+                            cBar.Label.String = "log(# of data points)";
                             
                             
                         elseif all(rem(x,1) == 0) | all(rem(y,1) == 0)
