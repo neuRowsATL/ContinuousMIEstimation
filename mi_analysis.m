@@ -57,8 +57,8 @@ classdef mi_analysis < handle
             validate_verbose = @(x) assert(isnumeric(x) && rem(x,1) == 0, 'verbose must be an integer');
             p.addParameter('verbose', default_verbose, validate_verbose);
             
-            default_reparam = 2;
-            validate_reparam = @(x) assert(isnumeric(x) && rem(x,1) == 0, 'reparam must be an integer');
+            default_reparam = false;
+            validate_reparam = @(x) assert(islogical(x), 'reparam must be a logical value');
             p.addParameter('reparam', default_reparam, validate_reparam);
             
             % Parse the inputs
@@ -98,6 +98,16 @@ classdef mi_analysis < handle
             for iGroup = 1:size(xGroups,1)
                 x = xGroups{iGroup,1};                                                                                                                                                                                                                                    
                 y = yGroups{iGroup,1};
+                
+                %Reparametrize data in each subgroup
+                if obj.reparam == true
+                    if ~all(rem(x,1) == 0) %Check for continuous data
+                        x = reparameterize_matrix(x);
+                    end
+                    if  ~all(rem(y,1) == 0)
+                        y = reparameterize_matrix(y);   
+                    end
+                end
 
               
                 while 1 % generate random key to keep track of which MI calculations belong together
