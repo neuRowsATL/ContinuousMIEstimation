@@ -44,12 +44,13 @@ function [transformedValues] = reparameterize_data(listOfValues)
 [A,I] = sort(listOfValues,1); % data solrted by their values and their index
             % in the original data set
 
-listPositions = zeros(length(listOfValues),1);
+listPositions = zeros(size(listOfValues));
 
-for i = 1:length(listOfValues)
-    listPositions(I(i)) = i;
+for j = 1:size(listOfValues,2)
+    for i = 1:length(listOfValues)
+        listPositions(I(i,j),j) = i;
+    end
 end
-
 %reassign each i'th value to where the i'th value would have been in a 
 %standard normal dataset using the erfinv function.
 

@@ -149,9 +149,13 @@ classdef calc_timing_count < mi_analysis
                 end 
                 % Define xdata for iCond
                 ixGroup =  x(groupIdx,1:Cond);
+            
+                % Find coeff corresponding to iCond
+                
                 xGroups{groupCount,1} = ixGroup;
                 
-                % Find coeff corresponding to iCond
+
+                
                 coeffs{groupCount,1} = size(ixGroup,1)/length(xCounts);
                 
                 % Define y data for iCond
