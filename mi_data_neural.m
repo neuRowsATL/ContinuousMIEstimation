@@ -161,6 +161,7 @@ classdef mi_data_neural < mi_data
                end
             end
             
+
             
             switch timeBase
                case 'phase'

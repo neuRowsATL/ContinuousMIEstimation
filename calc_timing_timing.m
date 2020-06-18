@@ -192,8 +192,9 @@ classdef calc_timing_timing < mi_analysis
                         noteCount = noteCount + 1;
                         continue   
                     end
-                    xGroup = x(xygroupIdx,1:xCond);
+                    xGroup = x(xygroupIdx,1:xCond);                  
                     xGroups{groupCounter,1} = xGroup;
+                    
                     yGroup = y(xygroupIdx,1:yCond);
                     yGroups{groupCounter,1} = yGroup;
                     coeffs{groupCounter,1} = length(xygroupIdx)/length(xCounts);
