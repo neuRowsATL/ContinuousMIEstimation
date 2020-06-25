@@ -204,7 +204,7 @@ classdef mi_analysis < handle
                 inx = size(obj.arrMIcore{iSubgroup,1}.x, 2);
                 ip_Var = ((1 - iprob)/(inx*iprob))*(iprob^2);
                 
-                var_sum_vec(iSubgroup, 1) = ( (iVar/iMI^2) + (ip_Var/iprob^2) )*iMI^2*prob^2;
+                var_sum_vec(iSubgroup, 1) = ( (iVar/iMI^2) + (ip_Var/iprob^2) )*iMI^2*iprob^2;
             end
             
             var_tot = sum(var_sum_vec);

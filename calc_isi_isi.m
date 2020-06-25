@@ -96,7 +96,7 @@ classdef calc_isi_isi < mi_analysis
             % --> ISI_n | ISI_n+3
             
             % Find ISIs from spike times
-            ISIs = diff(spikeTimes);
+            ISIs = diff(spikeTimes)';
             if obj.shuffle
                 ISIs = ISIs(randperm(length(ISIs)));
             end
