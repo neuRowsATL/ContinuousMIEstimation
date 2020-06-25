@@ -192,8 +192,23 @@ classdef mi_analysis < handle
             % Find weighted sum of MIs
             r.mi = nansum(MIs.*cell2mat(obj.arrMIcore(:,2)));
             
-            % TEMP: find weighted sum of error
-            r.err = nansum(cell2mat(obj.arrMIcore(:,5)).*cell2mat(obj.arrMIcore(:,2)));
+            % Find Error Using Error Propagation Equations
+            % We need to iterate through each subgroup to propagate error
+            var_sum_vec = zeros(size(obj.arrMIcore, 1), 1;)
+            for iSubgroup = 1:size(obj.arrMIcore, 1)
+                iMI = obj.arrMIcore{iSubgroup, 4};
+                iprob = obj.arrMIcore{iSubgroup, 2};
+                iErr = obj.arrMIcore{iSubgroup, 5};
+                iVar = iErr^2;
+                % Find total number of data points in this subgroup
+                inx = size(obj.arrMIcore{iSubgroup,1}.x, 2);
+                ip_Var = ((1 - iprob)/(inx*iprob))*(iprob^2);
+                
+                var_sum_vec(iSubgroup, 1) = ( (iVar/iMI^2) + (ip_Var/iprob^2) )*iMI^2*prob^2;
+            end
+            
+            var_tot = sum(var_sum_vec);
+            r.err = var_tot^0.5;
         end
         
         function auditKs(obj)
