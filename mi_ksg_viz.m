@@ -127,13 +127,32 @@ classdef mi_ksg_viz < handle
                             x_plot = x + 0.2*rand(size(x));
                             y_plot = y + 0.2*rand(size(y));
                             
-                            % Make figure
+                            % Make density map 
+                            pts = linspace(0, max(max(x), max(y)) + 1, max(max(x), max(y)) + 2) 
+			    N = histcounts2(y(:), x(:), pts, pts);
+                            N = log(N);
+                            
+                            % Plot scattered data:
                             figure()
-                            plot(x_plot , y_plot, 'x')
-                            hold on
+                            scatter(x_plot, y_plot, 'x');
+                            axis equal;
+                            set(gca, 'XLim', pts([1 end]), 'YLim', pts([1 end]));
                             xlabel('Discrete Value: X')
                             ylabel('Discrete Value: Y')
                             title('P(X,Y) Discrete Joint Distribution')
+                            
+                            % Plot heatmap:
+                            figure()
+                            imagesc(pts, pts, N);
+                            axis equal;
+                            set(gca, 'XLim', pts([1 end]), 'YLim', pts([1 end]), 'YDir', 'normal');
+                            xlabel('Discrete Value: X')
+                            ylabel('Discrete Value: Y')
+                            title('P(X,Y) Density Map')
+                            cBar = colorbar('Direction', 'normal', 'Ticks', 1:max(N, [], 'all'));
+                            cBar.Label.String = "log(# of data points)";
+                            
+                            
                         elseif all(rem(x,1) == 0) | all(rem(y,1) == 0)
                             % Add jitter only to the variable that is discrete, which for our data, will always be the second variable.
                             if all(rem(x,1) == 0)
