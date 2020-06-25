@@ -194,7 +194,7 @@ classdef mi_analysis < handle
             
             % Find Error Using Error Propagation Equations
             % We need to iterate through each subgroup to propagate error
-            var_sum_vec = zeros(size(obj.arrMIcore, 1), 1;)
+            var_sum_vec = zeros(size(obj.arrMIcore, 1), 1);
             for iSubgroup = 1:size(obj.arrMIcore, 1)
                 iMI = obj.arrMIcore{iSubgroup, 4};
                 iprob = obj.arrMIcore{iSubgroup, 2};
