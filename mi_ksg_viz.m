@@ -128,8 +128,8 @@ classdef mi_ksg_viz < handle
                             y_plot = y + 0.2*rand(size(y));
                             
                             % Make density map 
-                            pts = linspace(0, max(max(x),max(y)),max(max(x),max(y)));
-                            N = histcounts2(y(:), x(:), pts, pts);
+                            pts = linspace(0, max(max(x), max(y)) + 1, max(max(x), max(y)) + 2) 
+			    N = histcounts2(y(:), x(:), pts, pts);
                             N = log(N);
                             
                             % Plot scattered data:
