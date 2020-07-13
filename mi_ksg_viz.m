@@ -85,7 +85,8 @@ classdef mi_ksg_viz < handle
         % Audit Plots from mi_analysis class
         function audit_plots(mi_analysis)
             
-            for iGroup = 1:size(size(mi_analysis.arrMIcore))
+	    % Iterating through the core objects
+	    for iGroup = 1:size(mi_analysis.arrMIcore,1)
                 coreObj = mi_analysis.arrMIcore{iGroup,1};
                 
                 % FOR NOW, NO AUDIT PLOTS FOR BEHAVIOR SUBCLASSES
@@ -115,9 +116,41 @@ classdef mi_ksg_viz < handle
                     ylabel('N Cycles')
                     title('Histogram for Y')
                     
-                    % Also skip audit plots for data where both x and y are multi-dimensional
+                    % For multidimensional data
                     if all(size(x) > 1) & all(size(y) > 1)
-                        continue
+                        
+                        % Plot the first pc1x and pc1y against each other
+                        % Variability plot for x and y individually 
+                        
+                        % Obtain relevant PCA values
+                        [~, scorex, latentx] = pca(x);
+                        [~, scorey, latenty] = pca(y); 
+                        
+                        % Plot the first components against each other 
+                        figure()
+                        scatter(scorex(:,1), scorey(:,1), 'x');
+                        axis equal; 
+                        xlabel('1st X Principle Component')
+                        ylabel('1st Y Principle Component')
+                        title('PCA Joint Plot')
+                        
+                        % Plot variability in x components 
+                        figure()
+                        cumsumx = sum(latentx);
+                        perVarx = latentx / cumsumx;
+                        bar(perVarx)
+                        xlabel('Principle Component')
+                        ylabel('Percent Variability Explained')
+                        title('Scree Plot for X')
+                        
+                        % Plot variability in y components 
+                        figure()
+                        cumsumy = sum(latenty);
+                        perVary = latenty / cumsumy;
+                        bar(perVary)
+                        xlabel('Principle Component')
+                        ylabel('Percent Variability Explained')
+                        title('Scree Plot for Y')
                     else
                         % Check for discrete data in both variables
                         if all(rem(x,1) == 0) & all(rem(y,1) == 0)
@@ -128,8 +161,8 @@ classdef mi_ksg_viz < handle
                             y_plot = y + 0.2*rand(size(y));
                             
                             % Make density map 
-                            pts = linspace(0, max(max(x), max(y)) + 1, max(max(x), max(y)) + 2) 
-			    N = histcounts2(y(:), x(:), pts, pts);
+                            pts = linspace(0, max(max(x), max(y)) + 1, max(max(x), max(y)) + 2); 
+			                N = histcounts2(y(:), x(:), pts, pts);
                             N = log(N);
                             
                             % Plot scattered data:
