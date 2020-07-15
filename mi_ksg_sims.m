@@ -14,6 +14,7 @@ classdef mi_ksg_sims < handle
         thread_count % number of available cores for parallel
         par_mode % flag to run in parallel mode
     end
+    
     methods
         function obj = mi_ksg_sims(mode, verbose) 
             % Instantiate input parser
