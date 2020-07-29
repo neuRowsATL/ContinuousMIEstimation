@@ -207,7 +207,7 @@ classdef mi_analysis < handle
                 var_sum_vec(iSubgroup, 1) = ( (iVar/iMI^2) + (ip_Var/iprob^2) )*iMI^2*iprob^2;
             end
             
-            var_tot = sum(var_sum_vec);
+            var_tot = nansum(var_sum_vec);
             r.err = var_tot^0.5;
         end
         

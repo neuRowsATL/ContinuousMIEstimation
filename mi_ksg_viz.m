@@ -19,7 +19,7 @@ classdef mi_ksg_viz < handle
             xs = cell2mat(obj_core.mi_data(bool_ixs,3));
             ys = cell2mat(obj_core.mi_data(bool_ixs,1));
             var = cell2mat(obj_core.mi_data(bool_ixs,2));
-            err = var.^.5
+            err = var.^.5;
             r_plot = errorbar(ax, xs, ys, err, '-b', 'Marker', '.', 'MarkerSize', 15);
             
             %xlabel('Data Fraction (1/N)');
@@ -86,7 +86,7 @@ classdef mi_ksg_viz < handle
         function audit_plots(mi_analysis)
             
 	    % Iterating through the core objects
-	    for iGroup = 1:size(mi_analysis.arrMIcore,1)
+            for iGroup = 1:size(mi_analysis.arrMIcore,1)
                 coreObj = mi_analysis.arrMIcore{iGroup,1};
                 
                 % FOR NOW, NO AUDIT PLOTS FOR BEHAVIOR SUBCLASSES
@@ -225,6 +225,18 @@ classdef mi_ksg_viz < handle
                     end
                 end
                 
+            end
+        end
+        
+        function rasterPlots(mi_analysis)
+            for iNeuron = 1:length(mi_analysis.varNames)
+                spikeTimes = mi_analysis.objData.get_spikes('name', mi_analysis.varNames{1, iNeuron}, 'format', 'timing', 'cycleTimes', mi_analysis.objBehav.data.cycleTimes.data);
+                figure()
+                for icycle = 1:length(mi_analysis.objBehav.data.cycleTimes.data)
+                    spikes = spikeTimes(icycle, :);
+                    plot(spikes, -1*icycle*ones(size(spikes)), 'bo')
+                    hold on
+                end
             end
         end
         
