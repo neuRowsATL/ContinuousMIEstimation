@@ -62,19 +62,22 @@ classdef calc_timing_count < mi_analysis
             
             % Find spike timings in cycles for neuron 1 
             x_name  = obj.varNames{1};
-            x = obj.objData.get_spikes('name', x_name , 'format', 'timing', 'cycleTimes', obj.objBehav.data.cycleTimes.data, 'timeBase', obj.n_timeBase);
+            
+            cycles_interest = obj.objBehav.get_cycleTimes(obj.cycle_select);
+
+            x = obj.objData.get_spikes('name', x_name , 'format', 'timing', 'cycleTimes', cycles_interest, 'timeBase', obj.n_timeBase);
             
 %             % Audit Check
-%             if sum(sum(~isnan(x))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%             if sum(sum(~isnan(x))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < cycles_interest(1,1) | obj.objData.data.(obj.varNames{1}).data > cycles_interest(end,2))))
 %                 error('Error: N Spikes in x do not match that expected from objData.varNames{1}.');
 %             end
            
             % Find different subgroups
-            xCounts = obj.objData.get_spikes('name', x_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
+            xCounts = obj.objData.get_spikes('name', x_name , 'format', 'count', 'cycleTimes', cycles_interest );
             xConds= unique(xCounts);
             
 %             % Audit Check
-%             if sum(xCounts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%             if sum(xCounts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < cycles_interest(1,1) | obj.objData.data.(obj.varNames{1}).data > cycles_interest(end,2))))
 %                 error('Error: Spike Counts for x do not match that expected from objData.varNames{1}.');
 %             end
 %             if sum(xCounts) ~=  sum(sum(~isnan(x)))
@@ -84,10 +87,10 @@ classdef calc_timing_count < mi_analysis
 
             % Next segment other neuron into cycles and find the count
             y_name = obj.varNames{2};
-            y = obj.objData.get_spikes('name', y_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
+            y = obj.objData.get_spikes('name', y_name , 'format', 'count', 'cycleTimes', cycles_interest );
 
 %             % Audit Check: number of spikes detected
-%             if sum(y) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%             if sum(y) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < cycles_interest(1,1) | obj.objData.data.(obj.varNames{2}).data > cycles_interest(end,2))))
 %                 error('Error: N Spikes in x do not match that expected from objData.varNames{1}.');
 %             end
 
@@ -97,7 +100,7 @@ classdef calc_timing_count < mi_analysis
             coeffs = {};
             yGroups = {};
 
-            % Segment x and y data into roups based on x spike count
+            % Segment x and y data into groups based on x spike count
             % Set Group counter
             groupCount = 1;
             noteCount = 1;
@@ -129,7 +132,9 @@ classdef calc_timing_count < mi_analysis
                     % zero. The percent will be accounted for in the rest
                     % of the Coeffs (the Coeffs will sum to 1 - n(zero)
                     continue
+                    
                 elseif Cond > sum(xCounts == Cond)
+
                     % Find ratio and percent of data that will be omitted. 
                     num = length(groupIdx);
                     groupRatio = num/length(xCounts);

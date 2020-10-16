@@ -5,7 +5,7 @@ classdef mi_data_behavior < mi_data
         arrFiles % list of files with raw behavioral data
         strFldr % path to where the data files are saved
         
-        cycle_select
+        cycle_choice
     end
     
     methods
@@ -29,24 +29,25 @@ classdef mi_data_behavior < mi_data
             warning('NOT IMPLEMENTED ERROR');
         end
         
-        function r = get_cycleTimes(obj, varargin)
+        function r = get_cycleTimes(obj, cycle_select)
             % Return behavior cycle times as matrix of on/off pairs
-            p = inputParser;
-
-            default_cycle_select = -1;
-            validate_cycle_select = @(x) assert(isnumeric(x), 'cycle_selection must be numeric array');
-            p.addOptional('cycle_select', default_cycle_select, validate_cycle_select)
-            p.KeepUnmatched = 1;
-            p.parse(varargin{:});
-            
-            obj.cycle_select = p.Results.cycle_select;
+%             p = inputParser;
+% 
+%             default_cycle_choice = -1;
+%             validate_cycle_choice = @(x) assert(isnumeric(x), 'cycle_selection must be numeric array');
+%             p.addParameter('cycle_choice', default_cycle_choice, validate_cycle_choice);
+%             
+%             p.KeepUnmatched = 1;
+%             p.parse(varargin{:});
+%             
+%             r.cycle_choice = p.Results.cycle_choice;
 
             all_cycles = get_data(obj, 'cycleTimes');
             
-            if obj.cycle_select == -1
+            if r.cycle_choice == -1
                 r = all_cycles;
             else
-                r = all_cycles(obj.cycle_select,:);
+                r = all_cycles(r.cycle_choice,:);
             end
         end
         

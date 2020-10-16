@@ -47,7 +47,7 @@ function [transformedValues] = reparameterize_data(listOfValues)
 listPositions = zeros(size(listOfValues));
 
 for j = 1:size(listOfValues,2)
-    for i = 1:length(listOfValues)
+    for i = 1:size(listOfValues,1)
         listPositions(I(i,j),j) = i;
     end
 end
@@ -55,5 +55,5 @@ end
 %standard normal dataset using the erfinv function.
 
 listPositions = listPositions-mean(listPositions);
-listPositions = 2.*listPositions./(length(listPositions));
+listPositions = 2.*listPositions./(size(listPositions,1));
 transformedValues = sqrt(2)*erfinv(listPositions);
