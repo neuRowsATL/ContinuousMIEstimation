@@ -67,19 +67,22 @@ classdef calc_timing_timing < mi_analysis
             
             % Find spike timings in cycles for neuron 1
             x_name = obj.varNames{1};
-            x = obj.objData.get_spikes('name', x_name , 'format', 'timing', 'cycleTimes', obj.objBehav.data.cycleTimes.data, 'timeBase', obj.n_timeBase);
+
+            cycles_interest = obj.objBehav.get_cycleTimes(obj.cycle_select);
+            
+            x = obj.objData.get_spikes('name', x_name , 'format', 'timing', 'cycleTimes', cycles_interest, 'timeBase', obj.n_timeBase);
 % 
 %             % Audit Check
-%             if sum(sum(~isnan(x))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%             if sum(sum(~isnan(x))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < cycles_interest(1,1) | obj.objData.data.(obj.varNames{1}).data > cycles_interest(end,2))))
 %                 error('Error: N Spikes in x do not match that expected from objData.varNames{1}.');
 %             end
 
             % Find different subgroups for y
-            xCounts = obj.objData.get_spikes('name', x_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
+            xCounts = obj.objData.get_spikes('name', x_name , 'format', 'count', 'cycleTimes', cycles_interest );
             xConds= unique(xCounts);
 
 %             % Audit Check
-%             if sum(xCounts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{1}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%             if sum(xCounts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{1}).data)) - (sum(obj.objData.data.(obj.varNames{1}).data < cycles_interest(1,1) | obj.objData.data.(obj.varNames{1}).data > cycles_interest(end,2))))
 %                 error('Error: Spike Counts for x do not match that expected from objData.varNames{1}.');
 %             end
 %             if sum(xCounts) ~=  sum(sum(~isnan(x)))
@@ -88,19 +91,19 @@ classdef calc_timing_timing < mi_analysis
 
             % Find spike timings in cycles for neuron 2
             y_name = obj.varNames{2};
-            y = obj.objData.get_spikes('name', y_name , 'format', 'timing', 'cycleTimes', obj.objBehav.data.cycleTimes.data, 'timeBase', obj.n_timeBase);
+            y = obj.objData.get_spikes('name', y_name , 'format', 'timing', 'cycleTimes', cycles_interest, 'timeBase', obj.n_timeBase);
 
 %             % Audit Check
-%             if sum(sum(~isnan(y))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%             if sum(sum(~isnan(y))) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < cycles_interest(1,1) | obj.objData.data.(obj.varNames{2}).data > cycles_interest(end,2))))
 %                 error('Error: N Spikes in y do not match that expected from objData.varNames{2}.');
 %             end
 
             % Find different subgroups for y
-            yCounts = obj.objData.get_spikes('name', y_name , 'format', 'count', 'cycleTimes', obj.objBehav.data.cycleTimes.data );
+            yCounts = obj.objData.get_spikes('name', y_name , 'format', 'count', 'cycleTimes', cycles_interest );
             yConds= unique(yCounts);
 
 %             % Audit Check
-%             if sum(yCounts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < obj.objBehav.data.cycleTimes.data(1,1) | obj.objData.data.(obj.varNames{2}).data > obj.objBehav.data.cycleTimes.data(end,2))))
+%             if sum(yCounts) ~= (sum(~isnan(obj.objData.data.(obj.varNames{2}).data)) - (sum(obj.objData.data.(obj.varNames{2}).data < cycles_interest(1,1) | obj.objData.data.(obj.varNames{2}).data > cycles_interest(end,2))))
 %                 error('Error: Spike Counts for y do not match that expected from objData.varNames{1}.');
 %             end
 %             if sum(yCounts) ~=  sum(sum(~isnan(y)))
