@@ -195,9 +195,13 @@ classdef mi_analysis < handle
             % Find Error Using Error Propagation Equations
             % We need to iterate through each subgroup to propagate error
             var_sum_vec = zeros(size(obj.arrMIcore, 1), 1);
+            test_val = 0;
             for iSubgroup = 1:size(obj.arrMIcore, 1)
                 iMI = obj.arrMIcore{iSubgroup, 4};
                 iprob = obj.arrMIcore{iSubgroup, 2};
+                if obj.discard_omittedData
+                    iprob = iprob/sum(cell2mat(obj.arrMIcore(:,2)));
+                end
                 iErr = obj.arrMIcore{iSubgroup, 5};
                 iVar = iErr^2;
                 % Find total number of data points in this subgroup
@@ -205,6 +209,7 @@ classdef mi_analysis < handle
                 ip_Var = ((1 - iprob)/(inx*iprob))*(iprob^2);
                 
                 var_sum_vec(iSubgroup, 1) = ( (iVar/iMI^2) + (ip_Var/iprob^2) )*iMI^2*iprob^2;
+                test_val = test_val + iprob;
             end
             
             var_tot = nansum(var_sum_vec);

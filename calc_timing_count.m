@@ -6,6 +6,7 @@ classdef calc_timing_count < mi_analysis
     
     properties
         n_timeBase
+        discard_omittedData
     end
     
     methods
@@ -33,6 +34,11 @@ classdef calc_timing_count < mi_analysis
             validate_n_timeBase = @(x) assert(ischar(x) && ismember(x, valid_n_timeBases), 'n_timeBase must be: time, phase');
             p.addParameter('n_timeBase', default_n_timeBase, validate_n_timeBase); 
             
+            default_discard_omittedData = true;
+            validate_discard_omittedData = @(x) assert(isboolean(x), 'discard_omittedData must be a boolean value');
+            p.addParameter('discard_omittedData', default_discard_omittedData, validate_discard_omittedData);
+            
+            
             % Prepare InputParser to parse only desired inputs
             p.KeepUnmatched = 1;
             p.parse(objData, objBehav, varNames, varargin{:});
@@ -52,7 +58,8 @@ classdef calc_timing_count < mi_analysis
             
             % Define timebase property of subclass object
             obj.n_timeBase = p.Results.n_timeBase;
-
+            obj.discard_omittedData = p.Results.discard_omittedData;
+            
         end
         
         function buildMIs(obj)

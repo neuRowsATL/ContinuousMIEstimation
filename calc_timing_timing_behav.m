@@ -17,6 +17,7 @@ classdef calc_timing_timing_behav < mi_analysis
         dur
         nSamp
         nPC
+        discard_omittedData
     end
     
     methods
@@ -67,6 +68,11 @@ classdef calc_timing_timing_behav < mi_analysis
             default_nPC = 3;
             validate_nPC = @(x) assert(isinteger(x), 'nPC must be an integer');
             p.addParameter('nPC', default_nPC, validate_nPC);
+            
+            default_discard_omittedData = true;
+            validate_discard_omittedData = @(x) assert(isboolean(x), 'discard_omittedData must be a boolean value');
+            p.addParameter('discard_omittedData', default_discard_omittedData, validate_discard_omittedData);
+            
 
             % Prepare InputParser to parse only desired inputs
             p.KeepUnmatched = 1;
@@ -94,6 +100,7 @@ classdef calc_timing_timing_behav < mi_analysis
             obj.dur = p.Results.dur;
             obj.nSamp = p.Results.nSamp;
             obj.nPC = p.Results.nPC;
+            obj.discard_omittedData = p.Results.discard_omittedData;
         end
         
         function buildMIs(obj)

@@ -11,6 +11,7 @@ classdef calc_timing_count_behav < mi_analysis
         dur
         nSamp
         nPC
+        discard_omittedData
     end
     
     methods
@@ -33,6 +34,11 @@ classdef calc_timing_count_behav < mi_analysis
             valid_n_timeBases = {'time', 'phase'};
             validate_n_timeBase = @(x) assert(ischar(x) && ismember(x, valid_n_timeBases), 'n_timeBase must be: time, phase');
             p.addParameter('n_timeBase', default_n_timeBase, validate_n_timeBase); 
+            
+            default_discard_omittedData = true;
+            validate_discard_omittedData = @(x) assert(isboolean(x), 'discard_omittedData must be a boolean value');
+            p.addParameter('discard_omittedData', default_discard_omittedData, validate_discard_omittedData);
+            
 
                                     
             % Set parameters
@@ -88,6 +94,7 @@ classdef calc_timing_count_behav < mi_analysis
             obj.dur = p.Results.dur;
             obj.nSamp = p.Results.nSamp;
             obj.nPC = p.Results.nPC;
+            obj.discard_omittedData = p.Results.discard_omittedData;
         end
         
         function buildMIs(obj)
