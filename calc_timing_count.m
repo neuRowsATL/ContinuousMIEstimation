@@ -108,71 +108,36 @@ classdef calc_timing_count < mi_analysis
             % Set Group counter
             groupCount = 1;
             noteCount = 1;
-            omitCoeff = [];
             
             for iCond = 1:length(xConds)
-                Cond = xConds(iCond);
-                groupIdx = find(xCounts == Cond);
-                if Cond == 0
-                    % Find ratio and percent of data that will be omitted. 
-                    num = length(groupIdx);
-                    groupRatio = num/length(xCounts);
-                    percent = groupRatio*100;
-                    
-                    % Document how much data is omitted.
-                    note = strcat('Omitting ', num2str(percent), 'percent of cycles because zero spikes');
-                    disp(note)
-                    obj.notes{noteCount,1} = note;
-                    
-                    % Keep track of total omitted ratio
-                    omitCoeff(noteCount) = groupRatio;
-                    
-                    % Increase note counter
-                    noteCount = noteCount + 1;
-                    % When there are zero spikes, the MI from timing is zero. This
-                    % can't be accounted for in the calculation because
-                    % there are no time values to send to MIxnyn.
-                    % Therefore, we are setting the coeff for this group to
-                    % zero. The percent will be accounted for in the rest
-                    % of the Coeffs (the Coeffs will sum to 1 - n(zero)
+                % Check for data in subgroup
+                coeff = size(ixGroup,1)/length(xCounts);
+                
+                if coeff == 0
                     continue
-                elseif Cond > sum(xCounts == Cond)
-                    % Find ratio and percent of data that will be omitted. 
-                    num = length(groupIdx);
-                    groupRatio = num/length(xCounts);
-                    percent = groupRatio*100;
-                    
-                    % Document how much data is omitted. 
-                    note = strcat('Omitting ', num2str(percent), 'percent of cycles, where Cond = ' , num2str(Cond), 'because more spikes than data.');
-                    disp(note)
-                    obj.notes{noteCount,1} = note;
-                    
-                    % Keep track of total omitted ratio
-                    omitCoeff(noteCount) = groupRatio;
-                    
-                    % Increase note counter
-                    noteCount = noteCount + 1;                    
-                    continue
-                end 
-                % Define xdata for iCond
-                ixGroup =  x(groupIdx,1:Cond);
-                xGroups{groupCount,1} = ixGroup;
+                else
+                    Cond = xConds(iCond);
+                    groupIdx = find(xCounts == Cond);
+
+                    % Define xdata for iCond
+                    ixGroup =  x(groupIdx,1:Cond);
+                    xGroups{groupCount,1} = ixGroup;
+
+                    % Find coeff corresponding to iCond
+                    coeffs{groupCount,1} = coeff;
+
+                    % Define y data for iCond
+                    yGroups{groupCount,1} = y(groupIdx)';
+
+                    % Increase group counter
+                    groupCount = groupCount + 1;              
+                end
                 
-                % Find coeff corresponding to iCond
-                coeffs{groupCount,1} = size(ixGroup,1)/length(xCounts);
-                
-                % Define y data for iCond
-                yGroups{groupCount,1} = y(groupIdx)';
-                
-                % Increase group counter
-                groupCount = groupCount + 1;
             end
             % Audit: Check that omit coeffs and group coeffs sum to 1 with a very small tolerance to account for matlab rounding error. 
-            if ~ismembertol((sum(cell2mat(coeffs)) + sum(omitCoeff)), 1, 1e-12); error('Error: Sum of coeffs and omitted data ratios does not equal 1'); end
+            if ~ismembertol(sum(cell2mat(coeffs)), 1, 1e-12); error('Error: Sum of coeffs and omitted data ratios does not equal 1'); end
             
-            % Audit: Is there still data left to analyze?
-            if ismembertol(sum(omitCoeff),1, 1e-12); error('Error: All subgroups were omitted. Not enough data');end
-            
+
             % Call parent class buildMIs()
             buildMIs@mi_analysis(obj, {xGroups yGroups coeffs});          
             

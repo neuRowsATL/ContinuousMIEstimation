@@ -89,6 +89,16 @@ classdef mi_ksg_sims < handle
             sim_set = cell(0,5);
             for i=1:size(obj.mi_core_arr,1)
                 [tmp_core, tmp_key] = obj.mi_core_arr{i,:};
+                if isempty(tmp_core.x) | isempty(tmp_core.y)
+                    tmp_core.analysis_failure = 'Zero Spikes';
+                    if obj.verbose > 1; disp('Core object not analyzable due to zero spikes in x or y'); end
+                    continue
+                elseif size(tmp_core.x,2) > size(tmp_core.x,1) | size(tmp_core.y,2) > size(tmp_core.y,1)
+                    tmp_core.analysis_failure = 'Dimensionality';
+                    if obj.verbose > 1; disp('Core object not analyzable due to dimensionality being more than data'); end    
+                    continue
+                end
+                
                 tmp_set = get_core_dataset(tmp_core); % get MI data and parameters from core obj
                 tmp_set(:,5) = {tmp_key}; % add core obj identifier for each data/param set
                 sim_set = cat(1, sim_set, tmp_set); % add data/param set with identifiers to sim set

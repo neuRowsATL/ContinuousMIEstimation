@@ -122,96 +122,103 @@ classdef calc_timing_timing < mi_analysis
             % Set Group Counter
             noteCount = 1;
             groupCounter = 1;
-            omitCoeff = [];
+%             omitCoeff = [];
             
             for ixCond = 1:length(xConds)
                 xCond = xConds(ixCond);
                 xgroupIdx = find(xCounts == xCond);
-                if xCond == 0
-                    % Find ratio and percent of data that will be omitted.
-                    num = length(xgroupIdx);
-                    groupRatio = (num/length(xCounts));
-                    percent = groupRatio*100;
-
-                    % Document how much data is omitted.
-                    note = strcat('Omitting ', num2str(percent), ' percent of cycles because zero spikes in x.');
-                    disp(note)
-                    obj.notes{noteCount,1} = note;
-
-                    % Keep track of total omitted ratio
-                    omitCoeff(noteCount) =  groupRatio;
-
-                    % Increase not counter.
-                    noteCount = noteCount + 1;
-                    continue
-                end
+%                 if xCond == 0
+%                     % Find ratio and percent of data that will be omitted.
+%                     num = length(xgroupIdx);
+%                     groupRatio = (num/length(xCounts));
+%                     percent = groupRatio*100;
+% 
+%                     % Document how much data is omitted.
+%                     note = strcat('Omitting ', num2str(percent), ' percent of cycles because zero spikes in x.');
+%                     disp(note)
+%                     obj.notes{noteCount,1} = note;
+% 
+%                     % Keep track of total omitted ratio
+%                     omitCoeff(noteCount) =  groupRatio;
+% 
+%                     % Increase not counter.
+%                     noteCount = noteCount + 1;
+%                     continue
+%                 end
                 for iyCond = 1:length(yConds)
                     yCond = yConds(iyCond);
                     ygroupIdx = find(yCounts == yCond);
                     xygroupIdx = intersect(xgroupIdx,ygroupIdx);
-                    if yCond == 0
-                        num = length(xygroupIdx);
-                        groupRatio = (num/length(yCounts));
-                        percent = groupRatio * 100;
-                        note = strcat('Omitting ', num2str(percent),'where xCond = ', num2str(xCond),'and yCond = ',num2str(yCond), ' percent of cycles because zero spikes in y.');
-                        disp(note)
-                        obj.notes{noteCount,1} = note;
-
-                        % Keep track of total omitted ratio
-                        omitCoeff(noteCount) = groupRatio;
-
-                        % Increase group count
-                        noteCount = noteCount + 1;
+%                     if yCond == 0
+%                         num = length(xygroupIdx);
+%                         groupRatio = (num/length(yCounts));
+%                         percent = groupRatio * 100;
+%                         note = strcat('Omitting ', num2str(percent),'where xCond = ', num2str(xCond),'and yCond = ',num2str(yCond), ' percent of cycles because zero spikes in y.');
+%                         disp(note)
+%                         obj.notes{noteCount,1} = note;
+% 
+%                         % Keep track of total omitted ratio
+%                         omitCoeff(noteCount) = groupRatio;
+% 
+%                         % Increase group count
+%                         noteCount = noteCount + 1;
+%                         continue
+%                         
+%                     elseif xCond > length(xygroupIdx)
+%                         num = length(xygroupIdx);
+%                         groupRatio = (num/length(xCounts));
+%                         percent = groupRatio * 100;
+% 
+%                         % Document how much data is omitted.
+%                         note = strcat('Omitting ', num2str(percent), ' percent of cycles, where xCond = ', num2str(xCond),'and yCond = ', num2str(yCond), 'because more spikes in x than data.');
+%                         disp(note)
+%                         obj.notes{noteCount,1} = note;
+% 
+%                         % Keep track of total omitted ratio
+%                         omitCoeff(noteCount) = groupRatio;
+% 
+%                         % Increase note counter
+%                         noteCount = noteCount + 1;
+%                         continue
+%                         
+%                     elseif yCond > length(xygroupIdx)
+%                         num = length(xygroupIdx);
+%                         groupRatio = (num/length(yCounts));
+%                         percent = groupRatio * 100;
+%                         
+%                         % Document how much data is omitted. 
+%                         note = strcat('Omitting ', num2str(percent), ' percent of cycles, where xCond = ',num2str(xCond), ' and yCond = ', num2str(yCond), 'because more spikes than data.');
+%                         disp(note)
+%                         obj.notes{noteCount,1} = note;
+% 
+%                         % Keep track of total omitted ratio
+%                         omitCoeff(noteCount) = groupRatio;
+% 
+%                         % Increase note counter
+%                         noteCount = noteCount + 1;
+%                         continue   
+%                     end
+                    % Check for data in subgroup
+                    coeff = size(xygroupIdx,2)/length(xCounts);
+                    if coeff == 0
                         continue
-                        
-                    elseif xCond > length(xygroupIdx)
-                        num = length(xygroupIdx);
-                        groupRatio = (num/length(xCounts));
-                        percent = groupRatio * 100;
+                    else
+                        xGroup = x(xygroupIdx,1:xCond);
+                        xGroups{groupCounter,1} = xGroup;
+                        yGroup = y(xygroupIdx,1:yCond);
+                        yGroups{groupCounter,1} = yGroup;
 
-                        % Document how much data is omitted.
-                        note = strcat('Omitting ', num2str(percent), ' percent of cycles, where xCond = ', num2str(xCond),'and yCond = ', num2str(yCond), 'because more spikes in x than data.');
-                        disp(note)
-                        obj.notes{noteCount,1} = note;
-
-                        % Keep track of total omitted ratio
-                        omitCoeff(noteCount) = groupRatio;
-
-                        % Increase note counter
-                        noteCount = noteCount + 1;
-                        continue
-                        
-                    elseif yCond > length(xygroupIdx)
-                        num = length(xygroupIdx);
-                        groupRatio = (num/length(yCounts));
-                        percent = groupRatio * 100;
-                        
-                        % Document how much data is omitted. 
-                        note = strcat('Omitting ', num2str(percent), ' percent of cycles, where xCond = ',num2str(xCond), ' and yCond = ', num2str(yCond), 'because more spikes than data.');
-                        disp(note)
-                        obj.notes{noteCount,1} = note;
-
-                        % Keep track of total omitted ratio
-                        omitCoeff(noteCount) = groupRatio;
-
-                        % Increase note counter
-                        noteCount = noteCount + 1;
-                        continue   
+                        coeffs{groupCounter,1} = coeff;
+                        groupCounter = groupCounter + 1;
                     end
-                    xGroup = x(xygroupIdx,1:xCond);
-                    xGroups{groupCounter,1} = xGroup;
-                    yGroup = y(xygroupIdx,1:yCond);
-                    yGroups{groupCounter,1} = yGroup;
-                    coeffs{groupCounter,1} = length(xygroupIdx)/length(xCounts);
-                    groupCounter = groupCounter + 1;
                 end
             end
 
             % Audit: Check that omit coeffs and group coeffs sum to 1 with a very small tolerance to account for matlab rounding error. 
-            if ~ismembertol((sum(cell2mat(coeffs)) + sum(omitCoeff)), 1, 1e-12); error('Error: Sum of coeffs and omitted data ratios does not equal 1'); end
+            if ~ismembertol(sum(cell2mat(coeffs)), 1, 1e-12); error('Error: Sum of coeffs and omitted data ratios does not equal 1'); end
 
-            % Audit: Is there still data left to analyze?
-            if ismembertol(sum(omitCoeff),1, 1e-12); error('Error: All subgroups were omitted. Not enough data');end
+%            % Audit: Is there still data left to analyze?
+%            if ismembertol(sum(omitCoeff),1, 1e-12); error('Error: All subgroups were omitted. Not enough data');end
             
             buildMIs@mi_analysis(obj, {xGroups yGroups coeffs});     
             

@@ -8,7 +8,7 @@
 clear all
 close('all')
 
-with_plots = true;
+with_plots = false;
 
 [ret name] = system('hostname');
 computer_name = split(name,'.');
