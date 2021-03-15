@@ -10,6 +10,7 @@ classdef mi_data < handle
         Fs % sampling rate in Hz
         
         verbose % level of output for progress and troubleshooting/debugging
+        
     end
 
     methods

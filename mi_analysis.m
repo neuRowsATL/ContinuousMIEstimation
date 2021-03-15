@@ -26,9 +26,11 @@ classdef mi_analysis < handle
         k_audited = 'No' % Have the k-values been manually audited? Automatically set to yes once auditing function is run.
  
         
+        cycle_select
     end
 
     methods
+
         function obj = mi_analysis(objData, objBehav, varNames, varargin)
             % This funtion inputs the data object reference and variable references
             
@@ -45,9 +47,6 @@ classdef mi_analysis < handle
             validate_varNames = @(x) assert(iscell(x), 'varNames must be a cell array of strings');
             p.addRequired('varNames', validate_varNames);
             
-            
-            % Set up optional input
-            
             % append
             default_append = true;
             validate_append = @(x) assert(islogical(x), 'append must be a logical value');
@@ -59,10 +58,21 @@ classdef mi_analysis < handle
             p.addParameter('verbose', default_verbose, validate_verbose);
             
             % reparam
+<<<<<<< HEAD
             default_reparam = false;
             validate_reparam = @(x) assert(islogical(x), 'reparam must be a logical value');
             p.addParameter('reparam', default_reparam, validate_reparam);
             
+=======
+            default_reparam = true;
+            validate_reparam = @(x) assert(islogical(x), 'reparam must be a logical value');
+            p.addParameter('reparam', default_reparam, validate_reparam);
+            
+            % cycle_select
+            default_cycle_select = -1;
+            validate_cycle_select = @(x) assert(isnumeric(x), 'cycle_selection must be array of integers');
+            p.addParameter('cycle_select', default_cycle_select, validate_cycle_select);
+>>>>>>> 93d81095a13b995dded2002c8b6630b95bb19263
             
             % Parse the inputs
             % Set up InputParser to handle extra inputs from subclasses
@@ -75,6 +85,7 @@ classdef mi_analysis < handle
             obj.append = p.Results.append;
             obj.verbose = p.Results.verbose;
             obj.reparam = p.Results.reparam;
+            obj.cycle_select = p.Results.cycle_select;
             
             % Temporarily set arrMIcore and instantiate a sim_manager
             % object
@@ -83,7 +94,39 @@ classdef mi_analysis < handle
             
             if obj.verbose > 0; disp([newline 'mi_analysis instantiated']); end
         end
+        
+        function set_parameters(obj,varargin)
+            p = inputParser;           
 
+            % append
+            default_append = true;
+            validate_append = @(x) assert(islogical(x), 'append must be a logical value');
+            p.addParameter('append', default_append, validate_append);
+            
+            % verbose
+            default_verbose = 1;
+            validate_verbose = @(x) assert(isnumeric(x) && rem(x,1) == 0, 'verbose must be an integer');
+            p.addParameter('verbose', default_verbose, validate_verbose);
+            
+            % reparam
+            default_reparam = true;
+            validate_reparam = @(x) assert(islogical(x), 'reparam must be a logical value');
+            p.addParameter('reparam', default_reparam, validate_reparam);
+            
+            % cycle_select
+            default_cycle_select = -1;
+            validate_cycle_select = @(x) assert(isnumeric(x), 'cycle_selection must be numeric array');
+            p.addParameter('cycle_select', default_cycle_select, validate_cycle_select);
+            
+            p.KeepUnmatched = 1;
+            p.parse(varargin{:});
+            
+            obj.append = p.Results.append;
+            obj.verbose = p.Results.verbose;
+            obj.reparam = p.Results.reparam;
+            obj.cycle_select = p.Results.cycle_select;
+        end
+        
         function buildMIs(obj, mi_data)
 
             % Set up empty array for obj.arrMIcore
