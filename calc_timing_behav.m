@@ -65,7 +65,7 @@ classdef calc_timing_behav < mi_analysis
             p.addParameter('nPC', default_nPC, validate_nPC);
             
             default_discard_omittedData = true;
-            validate_discard_omittedData = @(x) assert(isboolean(x), 'discard_omittedData must be a boolean value');
+            validate_discard_omittedData = @(x) assert(islogical(x), 'discard_omittedData must be a boolean value');
             p.addParameter('discard_omittedData', default_discard_omittedData, validate_discard_omittedData);
             
 

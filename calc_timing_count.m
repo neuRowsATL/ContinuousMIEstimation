@@ -35,7 +35,7 @@ classdef calc_timing_count < mi_analysis
             p.addParameter('n_timeBase', default_n_timeBase, validate_n_timeBase); 
             
             default_discard_omittedData = true;
-            validate_discard_omittedData = @(x) assert(isboolean(x), 'discard_omittedData must be a boolean value');
+            validate_discard_omittedData = @(x) assert(islogical(x), 'discard_omittedData must be a boolean value');
             p.addParameter('discard_omittedData', default_discard_omittedData, validate_discard_omittedData);
             
             
@@ -110,17 +110,20 @@ classdef calc_timing_count < mi_analysis
             noteCount = 1;
             
             for iCond = 1:length(xConds)
+                
+                Cond = xConds(iCond);
+                groupIdx = find(xCounts == Cond);
+
+                % Define xdata for iCond
+                ixGroup =  x(groupIdx,1:Cond);
+                
                 % Check for data in subgroup
                 coeff = size(ixGroup,1)/length(xCounts);
                 
                 if coeff == 0
                     continue
                 else
-                    Cond = xConds(iCond);
-                    groupIdx = find(xCounts == Cond);
 
-                    % Define xdata for iCond
-                    ixGroup =  x(groupIdx,1:Cond);
                     xGroups{groupCount,1} = ixGroup;
 
                     % Find coeff corresponding to iCond

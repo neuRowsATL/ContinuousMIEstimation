@@ -24,6 +24,7 @@ classdef mi_analysis < handle
         reparam %Do you reparameterize
         
         k_audited = 'No' % Have the k-values been manually audited? Automatically set to yes once auditing function is run.
+ 
         
     end
 
@@ -57,9 +58,11 @@ classdef mi_analysis < handle
             validate_verbose = @(x) assert(isnumeric(x) && rem(x,1) == 0, 'verbose must be an integer');
             p.addParameter('verbose', default_verbose, validate_verbose);
             
+            % reparam
             default_reparam = false;
             validate_reparam = @(x) assert(islogical(x), 'reparam must be a logical value');
             p.addParameter('reparam', default_reparam, validate_reparam);
+            
             
             % Parse the inputs
             % Set up InputParser to handle extra inputs from subclasses
