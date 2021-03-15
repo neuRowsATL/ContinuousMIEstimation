@@ -14,21 +14,30 @@ classdef mi_ksg_sims < handle
         thread_count % number of available cores for parallel
         par_mode % flag to run in parallel mode
     end
+    
     methods
-        function obj = mi_ksg_sims(mode, verbose)
-            if nargin == 1
-                % initialize parallel mode and default to no output
-                obj.par_mode = mode;
-                obj.verbose = 0;
-            elseif nargin == 2
-                % initialize parallel mode and output level
-                obj.par_mode = mode;
-                obj.verbose = verbose;
-            else
-                % default to parallel mode and no output
-                obj.par_mode = true;
-                obj.verbose = 0;
-            end
+        function obj = mi_ksg_sims(mode, verbose) 
+            % Instantiate input parser
+            p = inputParser; 
+            
+            % Set up optional inputs
+            
+            % par_mode
+            default_par_mode = true;
+            validate_par_mode = @(x) assert(rem(x,1) == 0 || islogical(x), 'par_mode must be a valid logical value');
+            p.addOptional('par_mode', default_par_mode, validate_par_mode);
+            
+            % verbose 
+            default_verbose = 0;
+            validate_verbose = @(x) assert(rem(x,1) == 0, 'verbose must be a valid integer');
+            p.addOptional('verbose', default_verbose, validate_verbose);
+            
+            % Parse the inputs
+            p.parse(mode, verbose);
+            
+            % Set the values 
+            obj.par_mode = p.Results.par_mode;
+            obj.verbose = p.Results.verbose;
             
             if obj.verbose > 0; disp('Initializing MI_KSG_sim_manager...'); end
             
@@ -80,6 +89,16 @@ classdef mi_ksg_sims < handle
             sim_set = cell(0,5);
             for i=1:size(obj.mi_core_arr,1)
                 [tmp_core, tmp_key] = obj.mi_core_arr{i,:};
+                if isempty(tmp_core.x) | isempty(tmp_core.y)
+                    tmp_core.analysis_failure = 'Zero Spikes';
+                    if obj.verbose > 1; disp('Core object not analyzable due to zero spikes in x or y'); end
+                    continue
+                elseif size(tmp_core.x,2) > size(tmp_core.x,1) | size(tmp_core.y,2) > size(tmp_core.y,1)
+                    tmp_core.analysis_failure = 'Dimensionality';
+                    if obj.verbose > 1; disp('Core object not analyzable due to dimensionality being more than data'); end    
+                    continue
+                end
+                
                 tmp_set = get_core_dataset(tmp_core); % get MI data and parameters from core obj
                 tmp_set(:,5) = {tmp_key}; % add core obj identifier for each data/param set
                 sim_set = cat(1, sim_set, tmp_set); % add data/param set with identifiers to sim set

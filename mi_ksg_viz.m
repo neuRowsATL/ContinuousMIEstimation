@@ -19,7 +19,7 @@ classdef mi_ksg_viz < handle
             xs = cell2mat(obj_core.mi_data(bool_ixs,3));
             ys = cell2mat(obj_core.mi_data(bool_ixs,1));
             var = cell2mat(obj_core.mi_data(bool_ixs,2));
-            err = var.^.5
+            err = var.^.5;
             r_plot = errorbar(ax, xs, ys, err, '-b', 'Marker', '.', 'MarkerSize', 15);
             
             %xlabel('Data Fraction (1/N)');
@@ -85,7 +85,8 @@ classdef mi_ksg_viz < handle
         % Audit Plots from mi_analysis class
         function audit_plots(mi_analysis)
             
-            for iGroup = 1:size(size(mi_analysis.arrMIcore))
+	    % Iterating through the core objects
+            for iGroup = 1:size(mi_analysis.arrMIcore,1)
                 coreObj = mi_analysis.arrMIcore{iGroup,1};
                 
                 % FOR NOW, NO AUDIT PLOTS FOR BEHAVIOR SUBCLASSES
@@ -115,64 +116,139 @@ classdef mi_ksg_viz < handle
                     ylabel('N Cycles')
                     title('Histogram for Y')
                     
-                    % Also skip audit plots for data where both x and y are multi-dimensional
+                    % For multidimensional data
                     if all(size(x) > 1) & all(size(y) > 1)
-                        continue
+                        % Plot the first pc1x and pc1y against each other
+                        % Variability plot for x and y individually 
+                        
+                        % Obtain relevant PCA values
+                        [~, scorex, latentx] = pca(x);
+                        [~, scorey, latenty] = pca(y); 
+                        
+                        % Plot the first components against each other 
+                        figure()
+                        scatter(scorex(:,1), scorey(:,1), 'x');
+                        axis equal; 
+                        xlabel('1st X Principle Component')
+                        ylabel('1st Y Principle Component')
+                        title('PCA Joint Plot')
+                        
+                        % Plot variability in x components 
+                        figure()
+                        cumsumx = sum(latentx);
+                        perVarx = latentx / cumsumx;
+                        bar(perVarx)
+                        xlabel('Principle Component')
+                        ylabel('Percent Variability Explained')
+                        title('Scree Plot for X')
+                        
+                        % Plot variability in y components 
+                        figure()
+                        cumsumy = sum(latenty);
+                        perVary = latenty / cumsumy;
+                        bar(perVary)
+                        xlabel('Principle Component')
+                        ylabel('Percent Variability Explained')
+                        title('Scree Plot for Y')
                     else
                         % Check for discrete data in both variables
-                        if all(rem(x,1) == 0) & all(rem(y,1) == 0)
-                            % For discrete data, plot a jittered histogram
-                            
-                            % Add noise for joint histogram
-                            x_plot = x + 0.2*rand(size(x));
-                            y_plot = y + 0.2*rand(size(y));
-                            
-                            % Make figure
-                            figure()
-                            plot(x_plot , y_plot, 'x')
-                            hold on
-                            xlabel('Discrete Value: X')
-                            ylabel('Discrete Value: Y')
-                            title('P(X,Y) Discrete Joint Distribution')
-                        elseif all(rem(x,1) == 0) | all(rem(y,1) == 0)
-                            % Add jitter only to the variable that is discrete, which for our data, will always be the second variable.
-                            if all(rem(x,1) == 0)
+                        if all(all(rem(x,1) == 0)) & all(all(rem(y,1) == 0))
+                            try
+                                % For discrete data, plot a jittered histogram
+
+                                % Add noise for joint histogram
                                 x_plot = x + 0.2*rand(size(x));
-                                x_L = 'Discrete Value: X';
-                            else
-                                x_plot = x;
-                                x_L = 'Continuous Value: X';
-                            end
-                            if all(rem(y,1) == 0)
                                 y_plot = y + 0.2*rand(size(y));
-                                y_L = 'Discrete Value: Y';
-                            else
-                                y_plot = y;
-                                y_L = 'Continuous Value: Y';
+
+                                % Make density map 
+                                pts = linspace(0, max(max(x), max(y)) + 1, max(max(x), max(y)) + 2); 
+                                N = histcounts2(y(:), x(:), pts, pts);
+                                N = log(N);
+
+                                % Plot scattered data:
+                                figure()
+                                scatter(x_plot, y_plot, 'x');
+                                axis equal;
+                                set(gca, 'XLim', pts([1 end]), 'YLim', pts([1 end]));
+                                xlabel('Discrete Value: X')
+                                ylabel('Discrete Value: Y')
+                                title('P(X,Y) Discrete Joint Distribution')
+
+                                % Plot heatmap:
+                                figure()
+                                imagesc(pts, pts, N);
+                                axis equal;
+                                set(gca, 'XLim', pts([1 end]), 'YLim', pts([1 end]), 'YDir', 'normal');
+                                xlabel('Discrete Value: X')
+                                ylabel('Discrete Value: Y')
+                                title('P(X,Y) Density Map')
+                                cBar = colorbar('Direction', 'normal', 'Ticks', 1:max(N, [], 'all'));
+                                cBar.Label.String = "log(# of data points)";
+                            catch
+                                continue
                             end
                             
-                            % Make figure
-                            figure()
-                            plot(x_plot, y_plot, 'x')
-                            hold on
-                            xlabel(x_L)
-                            ylabel(y_L)
-                            title('P(X,Y) Mixed Joint Distribution')
+                            
+                        elseif all(all(rem(x,1) == 0)) | all(all(rem(y,1) == 0))
+                            % Try to catch any empty vectors. 
+                            try
+                                % Add jitter only to the variable that is discrete, which for our data, will always be the second variable.
+                                if all(rem(x,1) == 0)
+                                    x_plot = x + 0.2*rand(size(x));
+                                    x_L = 'Discrete Value: X';
+                                else
+                                    x_plot = x;
+                                    x_L = 'Continuous Value: X';
+                                end
+                                if all(rem(y,1) == 0)
+                                    y_plot = y + 0.2*rand(size(y));
+                                    y_L = 'Discrete Value: Y';
+                                else
+                                    y_plot = y;
+                                    y_L = 'Continuous Value: Y';
+                                end
+
+                                % Make figure
+                                figure()
+                                plot(x_plot, y_plot, 'x')
+                                hold on
+                                xlabel(x_L)
+                                ylabel(y_L)
+                                title('P(X,Y) Mixed Joint Distribution')
+                            catch
+                                continue
+                            end
                         else
                             % The assumption is that both distributions are continuous if neither of the above if statements are true.
+                            try
+                                % Make figure
+                                figure()
+                                plot(x,y, 'x')
+                                hold on
+                                xlabel('Continuous Variable: X')
+                                ylabel('Continuous Variable: Y')
+                                title('P(X,Y) Continuous Joint Distribution')
                             
-                            % Make figure
-                            figure()
-                            plot(x,y, 'x')
-                            hold on
-                            xlabel('Continuous Variable: X')
-                            ylabel('Continuous Variable: Y')
-                            title('P(X,Y) Continuous Joint Distribution')
+                            catch
+                                continue
+                            end
                         end
                         
                     end
                 end
                 
+            end
+        end
+        
+        function rasterPlots(mi_analysis)
+            for iNeuron = 1:length(mi_analysis.varNames)
+                spikeTimes = mi_analysis.objData.get_spikes('name', mi_analysis.varNames{1, iNeuron}, 'format', 'timing', 'cycleTimes', mi_analysis.objBehav.data.cycleTimes.data);
+                figure()
+                for icycle = 1:length(mi_analysis.objBehav.data.cycleTimes.data)
+                    spikes = spikeTimes(icycle, :);
+                    plot(spikes, -1*icycle*ones(size(spikes)), 'bo')
+                    hold on
+                end
             end
         end
         
