@@ -11,6 +11,7 @@ classdef calc_timing_behav < mi_analysis
         dur
         nSamp
         nPC
+        discard_omittedData
     end
     
     methods
@@ -62,6 +63,11 @@ classdef calc_timing_behav < mi_analysis
             default_nPC = 3;
             validate_nPC = @(x) assert(isinteger(x), 'nPC must be an integer');
             p.addParameter('nPC', default_nPC, validate_nPC);
+            
+            default_discard_omittedData = true;
+            validate_discard_omittedData = @(x) assert(isboolean(x), 'discard_omittedData must be a boolean value');
+            p.addParameter('discard_omittedData', default_discard_omittedData, validate_discard_omittedData);
+            
 
             
             % Prepare InputParser to parse only desired inputs
@@ -89,6 +95,7 @@ classdef calc_timing_behav < mi_analysis
             obj.dur = p.Results.dur;
             obj.nSamp = p.Results.nSamp;
             obj.nPC = p.Results.nPC;
+            obj.discard_omittedData = p.Results.discard_omittedData;
 
 
 
@@ -133,71 +140,77 @@ classdef calc_timing_behav < mi_analysis
             % Set Group counter
             groupCount = 1;
             noteCount = 1;
-            omitCoeff = [];
+%            omitCoeff = [];
 
             for iCond = 1:length(xConds)
                 Cond = xConds(iCond);
                 groupIdx = find(xCounts == Cond);
-                if Cond == 0
-                    num = length(groupIdx);
-                    groupRatio = (num/length(xCounts));
-                    percent = groupRatio * 100;
-
-                    % Document how much data is omitted
-                    note = strcat('Omitting ', num2str(percent), 'percent of cycles because zero spikes');                    
-                    disp(note)
-                    obj.notes{noteCount,1} = note;
-
-                    % Keep track of total omitted ratio
-                    omitCoeff(noteCount) = groupRatio;
-
-                    % Increase note counter
-                    noteCount = noteCount + 1;
-                    % When there are zero spikes, the MI from timing is zero. This
-                    % can't be accounted for in the calculation because
-                    % there are no time values to send to MIxnyn.
-                    % Therefore, we are setting the coeff for this group to
-                    % zero. The percent will be accounted for in the rest
-                    % of the Coeffs (the Coeffs will sum to 1 - n(zero)
-                    continue
-                elseif Cond > sum(xCounts == Cond)
-                    % Find ratio and percent of data that will be omitted. 
-                    num = length(groupIdx);
-                    groupRatio = num/length(xCounts);
-                    percent = groupRatio*100;
-                    
-                    % Document how much data is omitted. 
-                    note = strcat('Omitting ', num2str(percent), 'percent of cycles, where Cond = ' , num2str(Cond), 'because more spikes than data.');
-                    disp(note)
-                    obj.notes{noteCount,1} = note;
-                    
-                    % Keep track of total omitted ratio
-                    omitCoeff(noteCount) = groupRatio;
-                    
-                    % Increase note counter
-                    noteCount = noteCount + 1;                    
-                    continue
-                end
+%                 if Cond == 0
+%                     num = length(groupIdx);
+%                     groupRatio = (num/length(xCounts));
+%                     percent = groupRatio * 100;
+% 
+%                     % Document how much data is omitted
+%                     note = strcat('Omitting ', num2str(percent), 'percent of cycles because zero spikes');                    
+%                     disp(note)
+%                     obj.notes{noteCount,1} = note;
+% 
+%                     % Keep track of total omitted ratio
+%                     omitCoeff(noteCount) = groupRatio;
+% 
+%                     % Increase note counter
+%                     noteCount = noteCount + 1;
+%                     % When there are zero spikes, the MI from timing is zero. This
+%                     % can't be accounted for in the calculation because
+%                     % there are no time values to send to MIxnyn.
+%                     % Therefore, we are setting the coeff for this group to
+%                     % zero. The percent will be accounted for in the rest
+%                     % of the Coeffs (the Coeffs will sum to 1 - n(zero)
+%                     continue
+%                 elseif Cond > sum(xCounts == Cond)
+%                     % Find ratio and percent of data that will be omitted. 
+%                     num = length(groupIdx);
+%                     groupRatio = num/length(xCounts);
+%                     percent = groupRatio*100;
+%                     
+%                     % Document how much data is omitted. 
+%                     note = strcat('Omitting ', num2str(percent), 'percent of cycles, where Cond = ' , num2str(Cond), 'because more spikes than data.');
+%                     disp(note)
+%                     obj.notes{noteCount,1} = note;
+%                     
+%                     % Keep track of total omitted ratio
+%                     omitCoeff(noteCount) = groupRatio;
+%                     
+%                     % Increase note counter
+%                     noteCount = noteCount + 1;                    
+%                     continue
+%                 end
 
                 % Define xdata for iCond
                 ixGroup =  x(groupIdx,1:Cond);
                 xGroups{groupCount,1} = ixGroup;
 
-                % Find coeff corresponding to iCond
-                coeffs{groupCount,1} = length(ixGroup)/length(xCounts);
+                % Check for data in subgroup
+                coeff = size(ixGroup,1)/length(xCounts);
+                if coeff == 0
+                    continue
+                else
+                    % Find coeff corresponding to iCond
+                    coeffs{groupCount,1} = coeff;
 
-                % Define y data for iCond
-                yGroups{groupCount,1} = y(groupIdx, 1:end);
-                
-                groupCount = groupCount + 1;                
+                    % Define y data for iCond
+                    yGroups{groupCount,1} = y(groupIdx, 1:end);
+
+                    groupCount = groupCount + 1; 
+                end
             end
 
             % Audit: Check that omit coeffs and group coeffs sum to 1 with a very small tolerance to account for matlab rounding error. 
-            if ~ismembertol((sum(cell2mat(coeffs)) + sum(omitCoeff)), 1, 1e-12); error('Error: Sum of coeffs and omitted data ratios does not equal 1'); end
+            if ~ismembertol(sum(cell2mat(coeffs)), 1, 1e-12); error('Error: Sum of coeffs and omitted data ratios does not equal 1'); end
 
-            % Audit: Is there still data left to analyze?
-            if ismembertol(sum(omitCoeff),1, 1e-12); error('Error: All subgroups were omitted. Not enough data');end
-            buildMIs@mi_analysis(obj, {xGroups yGroups coeffs}); 
+%             % Audit: Is there still data left to analyze?
+%             if ismembertol(sum(omitCoeff),1, 1e-12); error('Error: All subgroups were omitted. Not enough data');end
+%             buildMIs@mi_analysis(obj, {xGroups yGroups coeffs}); 
    
         end
     end

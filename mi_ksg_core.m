@@ -24,6 +24,8 @@ classdef mi_ksg_core < handle
         sim_obj % sim_manager object
         
         set_seed = false % Can manually set to true for troubleshooting if want. 
+        
+        analysis_failure = 'NONE' % Defaults to NONE. Value changed if NaN value is returned for overall MI. 
     end
     
     methods
@@ -215,9 +217,165 @@ classdef mi_ksg_core < handle
             errThreshold = p.Results.errThreshold;
             k = p.Results.k;
 
+            if isempty(obj.mi_data)
+                disp('Data was not able to be analyzed. Returning NaN value for MI');
+                r.mi = NaN;
+                r.err = NaN;
+                r.k = NaN;
+                
+                return
+
+            else
+                 % Find MIs differently depending on value of k
+                if k == 0
+                    % Find MI for optimized k.
+                    r = obj.get_opk_mi();
+
+                   % Sanity check that our MI value matches what it would be if
+                   % we had inputted the optimized k value
+
+                   %GET VALUES FOR SANITY CHECK
+                   % Find MI calcs with k-value
+                    test_data_ixs = cell2mat(obj.mi_data(:,4)) == r.k;
+
+                    % calculate estimated error
+                    test_listSplitSizes = cell2mat(obj.mi_data(test_data_ixs,3));
+                    test_MIs = cell2mat(obj.mi_data(test_data_ixs,1));
+                    test_listVariances = cell2mat(obj.mi_data(test_data_ixs,2));
+
+                    if sum(isnan(test_MIs) ~= 0)
+                        if sum(~isnan(test_MIs)) >= 4
+                            test_listSplitSizes = test_listSplitSizes(~isnan(test_MIs));
+                            test_MIs = test_MIs(~isnan(test_MIs));
+                            test_listVariances = test_listVariances(~isnan(test_listVariances));
+                        end
+                        % Check that sizes are all still consistent
+                        if size(test_listSplitSizes) ~= size(test_MIs) | size(test_listSplitSizes) ~= size(test_listVariances)
+                            error('Error: Sizes of vectors without NaN values do not match')
+                        end
+                    end
+
+
+                    test_listVariances = test_listVariances(2:end);
+
+                    test_k_err = test_listSplitSizes(2:end);
+                    test_variancePredicted = sum((test_k_err-1)./test_k_err.*test_listVariances)./sum((test_k_err-1));
+
+                    test_MI = test_MIs(1);
+                    test_err = test_variancePredicted.^0.5;
+
+                    % ACTUAL SANITY CHECK
+                    if ~isequaln(r.mi,test_MI) | ~isequaln(r.err, test_err) 
+                        keyboard
+                        error('Optimized K MI does not match that stored in mi_data'); 
+                    end
+
+
+                else
+                    % Find MI for specified k.
+                    r = obj.get_singlek_mi(k);   
+                    
+
+                end
+% -------------THIS CALCULATES THE ERROR OF THE ERROR-----------------------------------            
+%             N = size(obj.x,2);
+%             Sml=variancePredicted*N;
+%             varS = 2*Sml^2/sum((k-1)); %Estimated variance of the variance of the estimate of the mutual information at full N
+%             stdvar = sqrt(varS/N^2); %the error bars on our estimate of the variance
+% --------------------------------------------------------------------------------------
+
+                % 2019107 BC
+                % Adding hack to filter mutual information results that are
+                % within three S.D. from 0
+                if errThreshold < 0
+                    r.mi = r.mi;
+                    r.err = r.err;
+
+                elseif errThreshold == 0
+                    if MI >= 0
+                        r.mi = r.mi;
+                    else
+                        r.mi = 0;
+                    end
+                    r.err = r.err;
+
+                elseif errThreshold > 0
+                    if (MI - errThreshold*(err)) > 0 || ((errThreshold == 0) && (MI > 0))
+                        r.mi = r.mi;
+                        r.err = r.err;
+                    else
+                        r.mi = 0;
+                        r.err = r.err;
+                    end      
+                end  
+            end            
+        end
+        
+        function find_k_value(obj)
+            % determine best k-value to use
+            data = cell2mat(obj.mi_data);
             
-            % Find MIs differently depending on value of k
-            if k == 0
+            k_vals = [obj.mi_data{:,4}];
+            ks = unique(k_vals);
+            weighted_k = zeros(size(ks)); 
+            for ik = 1:length(ks)
+                % Find data fraction stability matrix for each k
+                dataFrac_stab = get_stabMat_dataFrac(obj,ks(ik));
+                
+                % Get stability metric value for each k
+                weighted_k(ik) = test_dataFrac_stab(obj, dataFrac_stab);               
+            end                      
+
+            % Identify k values that satisfy the minimum criteria for
+            % stability
+            notBad_Ks = find(weighted_k >= 1);
+            
+            
+            if all(weighted_k == 0)
+                keyboard
+            end
+
+            % Only check for stability across ks if there are more than 1
+            % stable k values. Otherwise, audit is necessary
+            if length(notBad_Ks) > 1
+
+                % Find matrix to describe stability across good k values
+                if all(weighted_k < 1)
+                    k_stab = [];
+                else
+                    k_stab = get_stabMat_kvals(obj, ks(notBad_Ks));
+                end
+                % Get stability metric value for k stability
+                if all(weighted_k < 1)
+                    k_stability_weights = zeros(size(ks));
+                else
+                    k_stability_weights = test_k_stab(obj, ks, notBad_Ks, k_stab);
+                end
+                % Get new weights for ks according to k stability matrix
+                weighted_k = weighted_k + k_stability_weights;
+                
+            else
+                k_stab = [];
+                
+            end
+            
+            % Get MIs and STDs to return to core objects
+            final_MIs = [];
+            final_stds = [];
+            for ik = 1:length(ks)
+                k = ks(ik);
+                r = get_singlek_mi(obj, k);
+                final_MIs(ik) = r.mi;
+                final_stds(ik) = r.err;
+            end
+            
+            % Return all values to core object
+            obj.opt_k = {final_MIs, final_stds, weighted_k, ['k < 1: Bad; 1 <= k < 2: Not Bad (Ks have data fraction stability, but do not match each othebr, see matrix); k > 2: Good! Ks in this range match and have consistent ' ...
+                                    'data fractions!'], k_stab};
+        end
+        
+        function r = get_opk_mi(obj)
+                % Find MIs differently depending on value of k
                 % We have either already optimized k, or we need to
                 % optimize k  
                 if ~iscell(obj.opt_k)
@@ -294,52 +452,15 @@ classdef mi_ksg_core < handle
                % 
                k_vals = [obj.mi_data{:,4}];
                ks = unique(k_vals);
+               
+               % Set return values
                r.k = ks(best_kIdx);
-               
-               
-               % Sanity check that our MI value matches what it would be if
-               % we had inputted the optimized k value
-               
-               %GET VALUES FOR SANITY CHECK
-               % Find MI calcs with k-value
-                test_data_ixs = cell2mat(obj.mi_data(:,4)) == r.k;
-               
-                % calculate estimated error
-                test_listSplitSizes = cell2mat(obj.mi_data(test_data_ixs,3));
-                test_MIs = cell2mat(obj.mi_data(test_data_ixs,1));
-                test_listVariances = cell2mat(obj.mi_data(test_data_ixs,2));
-                
-                if sum(isnan(test_MIs) ~= 0)
-                    if sum(~isnan(test_MIs)) >= 4
-                        test_listSplitSizes = test_listSplitSizes(~isnan(test_MIs));
-                        test_MIs = test_MIs(~isnan(test_MIs));
-                        test_listVariances = test_listVariances(~isnan(test_listVariances));
-                    end
-                    % Check that sizes are all still consistent
-                    if size(test_listSplitSizes) ~= size(test_MIs) | size(test_listSplitSizes) ~= size(test_listVariances)
-                        error('Error: Sizes of vectors without NaN values do not match')
-                    end
-                end
-                
-                
-                test_listVariances = test_listVariances(2:end);
-
-                test_k_err = test_listSplitSizes(2:end);
-                test_variancePredicted = sum((test_k_err-1)./test_k_err.*test_listVariances)./sum((test_k_err-1));
-                
-                test_MI = test_MIs(1);
-                test_err = test_variancePredicted.^0.5;
-                
-                % ACTUAL SANITY CHECK
-                if ~isequaln(MI,test_MI) | ~isequaln(err, test_err) 
-                    keyboard
-                    error('Optimized K MI does not match that stored in mi_data'); 
-                end
-               
-       
-            else
-                
-            
+               r.mi = MI;
+               r.err = err;
+              
+        end
+        
+        function r = get_singlek_mi(obj,k)
                 % get mutual information and error estimates
                 data_ixs = cell2mat(obj.mi_data(:,4)) == k; % find MI calcs with k-value
 
@@ -368,106 +489,12 @@ classdef mi_ksg_core < handle
                 MI = MIs(1);
                 err = variancePredicted.^0.5;
                 
-            
-            end
-            
-% -------------THIS CALCULATES THE ERROR OF THE ERROR-----------------------------------            
-%             N = size(obj.x,2);
-%             Sml=variancePredicted*N;
-%             varS = 2*Sml^2/sum((k-1)); %Estimated variance of the variance of the estimate of the mutual information at full N
-%             stdvar = sqrt(varS/N^2); %the error bars on our estimate of the variance
-% --------------------------------------------------------------------------------------
-
-            % 2019107 BC
-            % Adding hack to filter mutual information results that are
-            % within three S.D. from 0
-            if errThreshold < 0
+                % Set return values
                 r.mi = MI;
+                r.k = k;
                 r.err = err;
-                
-            elseif errThreshold == 0
-                if MI >= 0
-                    r.mi = MI;
-                else
-                    r.mi = 0;
-                end
-                r.err = err;
-
-            elseif errThreshold > 0
-                if (MI - errThreshold*(err)) > 0 || ((errThreshold == 0) && (MI > 0))
-                    r.mi = MI;
-                    r.err = err;
-                else
-                    r.mi = 0;
-                    r.err = err;
-                end
-                                
-            end          
-            
         end
-        
-        function find_k_value(obj)
-            % determine best k-value to use
-            data = cell2mat(obj.mi_data);
-            
-            k_vals = [obj.mi_data{:,4}];
-            ks = unique(k_vals);
-            weighted_k = zeros(size(ks)); 
-            for ik = 1:length(ks)
-                % Find data fraction stability matrix for each k
-                dataFrac_stab = get_stabMat_dataFrac(obj,ks(ik));
-                
-                % Get stability metric value for each k
-                weighted_k(ik) = test_dataFrac_stab(obj, dataFrac_stab);               
-            end                      
-
-            % Identify k values that satisfy the minimum criteria for
-            % stability
-            notBad_Ks = find(weighted_k >= 1);
-            
-            
-            if all(weighted_k == 0)
-                keyboard
-            end
-
-            % Only check for stability across ks if there are more than 1
-            % stable k values. Otherwise, audit is necessary
-            if length(notBad_Ks) > 1
-
-                % Find matrix to describe stability across good k values
-                if all(weighted_k < 1)
-                    k_stab = [];
-                else
-                    k_stab = get_stabMat_kvals(obj, ks(notBad_Ks));
-                end
-                % Get stability metric value for k stability
-                if all(weighted_k < 1)
-                    k_stability_weights = zeros(size(ks));
-                else
-                    k_stability_weights = test_k_stab(obj, ks, notBad_Ks, k_stab);
-                end
-                % Get new weights for ks according to k stability matrix
-                weighted_k = weighted_k + k_stability_weights;
-                
-            else
-                k_stab = [];
-                
-            end
-            
-            % Get MIs and STDs to return to core objects
-            final_MIs = [];
-            final_stds = [];
-            for ik = 1:length(ks)
-                k = ks(ik);
-                r = get_mi(obj, -1, 'k', k);
-                final_MIs(ik) = r.mi;
-                final_stds(ik) = r.err;
-            end
-            
-            % Return all values to core object
-            obj.opt_k = {final_MIs, final_stds, weighted_k, ['k < 1: Bad; 1 <= k < 2: Not Bad (Ks have data fraction stability, but do not match each othebr, see matrix); k > 2: Good! Ks in this range match and have consistent ' ...
-                                    'data fractions!'], k_stab};
-        end
+       
         
         function r = get_stabMat_dataFrac(obj,k)
             
@@ -539,11 +566,11 @@ classdef mi_ksg_core < handle
             for ik_row = 1:length(ks)
                 % Run getMIs to return the raw estimated values for all possible k-values
                 ik = ks(ik_row);
-                r = get_mi(obj, -1, 'k', ik);
+                r = get_singlek_mi(obj, ik);
                 ifinal_MI = r.mi;
                 for jk_column = 1:length(ks)
                     jk = ks(jk_column);
-                    r = get_mi(obj, -1, 'k', jk);
+                    r = get_singlek_mi(obj, jk);
                     jfinal_MI = r.mi;
                     jfinal_std = r.err;
                     
@@ -576,7 +603,7 @@ classdef mi_ksg_core < handle
                 for ik = 1:length(stable_Ks)
                     % Run getMIs to return the raw estimated values for all possible k-values
                     k = ks(ik);
-                    r = get_mi(obj, -1, 'k', k);
+                    r = get_singlek_mi(obj, k);
                     ifinal_MI = r.mi;
                     final_MIs(ik) = ifinal_MI;
                     ifinal_std = r.err;

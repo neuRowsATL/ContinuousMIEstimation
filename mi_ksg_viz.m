@@ -118,7 +118,6 @@ classdef mi_ksg_viz < handle
                     
                     % For multidimensional data
                     if all(size(x) > 1) & all(size(y) > 1)
-                        
                         % Plot the first pc1x and pc1y against each other
                         % Variability plot for x and y individually 
                         
@@ -153,73 +152,86 @@ classdef mi_ksg_viz < handle
                         title('Scree Plot for Y')
                     else
                         % Check for discrete data in both variables
-                        if all(rem(x,1) == 0) & all(rem(y,1) == 0)
-                            % For discrete data, plot a jittered histogram
-                            
-                            % Add noise for joint histogram
-                            x_plot = x + 0.2*rand(size(x));
-                            y_plot = y + 0.2*rand(size(y));
-                            
-                            % Make density map 
-                            pts = linspace(0, max(max(x), max(y)) + 1, max(max(x), max(y)) + 2); 
-			                N = histcounts2(y(:), x(:), pts, pts);
-                            N = log(N);
-                            
-                            % Plot scattered data:
-                            figure()
-                            scatter(x_plot, y_plot, 'x');
-                            axis equal;
-                            set(gca, 'XLim', pts([1 end]), 'YLim', pts([1 end]));
-                            xlabel('Discrete Value: X')
-                            ylabel('Discrete Value: Y')
-                            title('P(X,Y) Discrete Joint Distribution')
-                            
-                            % Plot heatmap:
-                            figure()
-                            imagesc(pts, pts, N);
-                            axis equal;
-                            set(gca, 'XLim', pts([1 end]), 'YLim', pts([1 end]), 'YDir', 'normal');
-                            xlabel('Discrete Value: X')
-                            ylabel('Discrete Value: Y')
-                            title('P(X,Y) Density Map')
-                            cBar = colorbar('Direction', 'normal', 'Ticks', 1:max(N, [], 'all'));
-                            cBar.Label.String = "log(# of data points)";
-                            
-                            
-                        elseif all(rem(x,1) == 0) | all(rem(y,1) == 0)
-                            % Add jitter only to the variable that is discrete, which for our data, will always be the second variable.
-                            if all(rem(x,1) == 0)
+                        if all(all(rem(x,1) == 0)) & all(all(rem(y,1) == 0))
+                            try
+                                % For discrete data, plot a jittered histogram
+
+                                % Add noise for joint histogram
                                 x_plot = x + 0.2*rand(size(x));
-                                x_L = 'Discrete Value: X';
-                            else
-                                x_plot = x;
-                                x_L = 'Continuous Value: X';
-                            end
-                            if all(rem(y,1) == 0)
                                 y_plot = y + 0.2*rand(size(y));
-                                y_L = 'Discrete Value: Y';
-                            else
-                                y_plot = y;
-                                y_L = 'Continuous Value: Y';
+
+                                % Make density map 
+                                pts = linspace(0, max(max(x), max(y)) + 1, max(max(x), max(y)) + 2); 
+                                N = histcounts2(y(:), x(:), pts, pts);
+                                N = log(N);
+
+                                % Plot scattered data:
+                                figure()
+                                scatter(x_plot, y_plot, 'x');
+                                axis equal;
+                                set(gca, 'XLim', pts([1 end]), 'YLim', pts([1 end]));
+                                xlabel('Discrete Value: X')
+                                ylabel('Discrete Value: Y')
+                                title('P(X,Y) Discrete Joint Distribution')
+
+                                % Plot heatmap:
+                                figure()
+                                imagesc(pts, pts, N);
+                                axis equal;
+                                set(gca, 'XLim', pts([1 end]), 'YLim', pts([1 end]), 'YDir', 'normal');
+                                xlabel('Discrete Value: X')
+                                ylabel('Discrete Value: Y')
+                                title('P(X,Y) Density Map')
+                                cBar = colorbar('Direction', 'normal', 'Ticks', 1:max(N, [], 'all'));
+                                cBar.Label.String = "log(# of data points)";
+                            catch
+                                continue
                             end
                             
-                            % Make figure
-                            figure()
-                            plot(x_plot, y_plot, 'x')
-                            hold on
-                            xlabel(x_L)
-                            ylabel(y_L)
-                            title('P(X,Y) Mixed Joint Distribution')
+                            
+                        elseif all(all(rem(x,1) == 0)) | all(all(rem(y,1) == 0))
+                            % Try to catch any empty vectors. 
+                            try
+                                % Add jitter only to the variable that is discrete, which for our data, will always be the second variable.
+                                if all(rem(x,1) == 0)
+                                    x_plot = x + 0.2*rand(size(x));
+                                    x_L = 'Discrete Value: X';
+                                else
+                                    x_plot = x;
+                                    x_L = 'Continuous Value: X';
+                                end
+                                if all(rem(y,1) == 0)
+                                    y_plot = y + 0.2*rand(size(y));
+                                    y_L = 'Discrete Value: Y';
+                                else
+                                    y_plot = y;
+                                    y_L = 'Continuous Value: Y';
+                                end
+
+                                % Make figure
+                                figure()
+                                plot(x_plot, y_plot, 'x')
+                                hold on
+                                xlabel(x_L)
+                                ylabel(y_L)
+                                title('P(X,Y) Mixed Joint Distribution')
+                            catch
+                                continue
+                            end
                         else
                             % The assumption is that both distributions are continuous if neither of the above if statements are true.
+                            try
+                                % Make figure
+                                figure()
+                                plot(x,y, 'x')
+                                hold on
+                                xlabel('Continuous Variable: X')
+                                ylabel('Continuous Variable: Y')
+                                title('P(X,Y) Continuous Joint Distribution')
                             
-                            % Make figure
-                            figure()
-                            plot(x,y, 'x')
-                            hold on
-                            xlabel('Continuous Variable: X')
-                            ylabel('Continuous Variable: Y')
-                            title('P(X,Y) Continuous Joint Distribution')
+                            catch
+                                continue
+                            end
                         end
                         
                     end
