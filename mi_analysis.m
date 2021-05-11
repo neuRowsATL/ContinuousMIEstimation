@@ -58,21 +58,15 @@ classdef mi_analysis < handle
             p.addParameter('verbose', default_verbose, validate_verbose);
             
             % reparam
-<<<<<<< HEAD
             default_reparam = false;
             validate_reparam = @(x) assert(islogical(x), 'reparam must be a logical value');
             p.addParameter('reparam', default_reparam, validate_reparam);
             
-=======
-            default_reparam = true;
-            validate_reparam = @(x) assert(islogical(x), 'reparam must be a logical value');
-            p.addParameter('reparam', default_reparam, validate_reparam);
             
             % cycle_select
             default_cycle_select = -1;
             validate_cycle_select = @(x) assert(isnumeric(x), 'cycle_selection must be array of integers');
             p.addParameter('cycle_select', default_cycle_select, validate_cycle_select);
->>>>>>> 93d81095a13b995dded2002c8b6630b95bb19263
             
             % Parse the inputs
             % Set up InputParser to handle extra inputs from subclasses
@@ -268,6 +262,8 @@ classdef mi_analysis < handle
                     
                     MIcore = obj.arrMIcore(keep_flag,:); 
                     MIs = MIs(keep_flag);
+                else
+                    MIcore = obj.arrMIcore;
                 end
             else
                 MIcore = obj.arrMIcore;
