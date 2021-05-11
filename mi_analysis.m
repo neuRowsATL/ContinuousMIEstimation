@@ -24,6 +24,7 @@ classdef mi_analysis < handle
         reparam %Do you reparameterize
         
         k_audited = 'No' % Have the k-values been manually audited? Automatically set to yes once auditing function is run.
+ 
         
         cycle_select
     end
@@ -57,9 +58,10 @@ classdef mi_analysis < handle
             p.addParameter('verbose', default_verbose, validate_verbose);
             
             % reparam
-            default_reparam = true;
+            default_reparam = false;
             validate_reparam = @(x) assert(islogical(x), 'reparam must be a logical value');
             p.addParameter('reparam', default_reparam, validate_reparam);
+            
             
             % cycle_select
             default_cycle_select = -1;
@@ -260,6 +262,8 @@ classdef mi_analysis < handle
                     
                     MIcore = obj.arrMIcore(keep_flag,:); 
                     MIs = MIs(keep_flag);
+                else
+                    MIcore = obj.arrMIcore;
                 end
             else
                 MIcore = obj.arrMIcore;
